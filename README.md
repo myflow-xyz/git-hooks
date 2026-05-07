@@ -102,9 +102,10 @@ GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest"
 selects built-in check lists. Multiple profiles are merged by running each
 profile in declared order, then phase-specific `GIT_HOOK_*_EXTRA_CHECKS` are
 appended. Extra checks do not override profile checks, and duplicate check IDs
-are not de-duplicated. Duplicate profiles are invalid for setup/check, but
-runtime skips repeated profiles with a warning for existing repo configs. Omit
-empty variables; missing extra-check variables default to empty.
+are not de-duplicated. Unknown profiles are invalid. Duplicate profiles are
+invalid for setup/check, but runtime skips repeated profiles with a warning for
+existing repo configs. Omit empty variables; missing extra-check variables
+default to empty.
 
 ## Layout
 

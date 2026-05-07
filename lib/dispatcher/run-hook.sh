@@ -59,6 +59,10 @@ git_hooks_dispatcher_mark_profile_seen() {
   git_hooks_dispatcher_profile_seen="$git_hooks_dispatcher_profile_seen $1"
 }
 
+git_hooks_dispatcher_profile_exists() {
+  [ -d "$(git_hooks_paths_join "$GIT_HOOKS_HOME" profiles "$1")" ]
+}
+
 if [ "$#" -lt 1 ]; then
   git_hooks_dispatcher_usage >&2
   exit 2
@@ -88,6 +92,11 @@ for git_hooks_dispatcher_profile in $GIT_HOOK_PROFILES; do
   if git_hooks_dispatcher_profile_was_seen "$git_hooks_dispatcher_profile"; then
     git_hooks_log_warn "skip duplicate profile: $git_hooks_dispatcher_profile"
     continue
+  fi
+
+  if ! git_hooks_dispatcher_profile_exists "$git_hooks_dispatcher_profile"; then
+    git_hooks_log_error "unknown profile: $git_hooks_dispatcher_profile"
+    exit 2
   fi
 
   git_hooks_dispatcher_mark_profile_seen "$git_hooks_dispatcher_profile"

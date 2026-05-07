@@ -15,6 +15,7 @@ Phase dispatcher for repo-local Git hook wrappers.
 - Pass Git hook arguments through to each check entrypoint.
 - Run phase-specific extra checks from project config.
 - Ignore blank and comment lines in profile lists.
+- Reject unknown profiles from project config.
 - Skip duplicate profiles with a warning so existing repo configs do not run the
   same profile twice.
 
@@ -45,6 +46,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | ignores blank and comment lines in profile lists |
 | Existing | `git-hooks` | runs multiple profiles in declared order |
 | Existing | `git-hooks` | skips duplicate profiles with a warning |
+| Existing | `git-hooks` | rejects unknown profiles from project config |
 | Existing | `git-hooks` | runs python profile checks |
 | Existing | `git-hooks` | runs extra checks after profile checks |
 | Existing | `git-hooks` | stops on the first failing check |

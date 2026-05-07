@@ -63,6 +63,7 @@ setup-repo.sh [--check] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>
 - Default profile is `common`.
 - `GIT_HOOK_PROFILES` may be omitted when the default `common` profile is enough.
 - Multiple profiles are additive and run in declared order.
+- Unknown profiles are invalid during setup/check and runtime dispatch.
 - Duplicate profiles are invalid in `setup-repo.sh` install/check mode.
 - Phase-specific `GIT_HOOK_*_EXTRA_CHECKS` append after profile checks.
 - Missing extra-check variables default to empty.
@@ -172,4 +173,5 @@ Run only this script's tests:
 | Existing | `git-hooks` | rejects empty profile selection |
 | Existing | `git-hooks` | rejects whitespace-only profile selection |
 | Existing | `git-hooks` | rejects unknown profiles |
+| Existing | `git-hooks` | rejects unknown profiles during check |
 | Existing | `git-hooks` | rejects duplicate profiles |

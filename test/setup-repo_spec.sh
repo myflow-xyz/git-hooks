@@ -2,6 +2,7 @@ Describe 'setup-repo.sh'
   It 'bootstraps minimal repo-local hooks with the default common profile'
     When run sh -u -c '
       ROOT=$1
+      set -e
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
       trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
       export HOME="$tmpdir/home"
@@ -12,6 +13,9 @@ Describe 'setup-repo.sh'
       [ -x .githooks/pre-commit ]
       [ -x .githooks/commit-msg ]
       [ -x .githooks/pre-push ]
+      cmp -s "$ROOT/templates/repo-githooks/pre-commit" .githooks/pre-commit
+      cmp -s "$ROOT/templates/repo-githooks/commit-msg" .githooks/commit-msg
+      cmp -s "$ROOT/templates/repo-githooks/pre-push" .githooks/pre-push
       [ ! -e .githooks/hooks.env ]
       [ ! -e .githooks/project.conf ]
       [ "$(git config --local --get core.hooksPath)" = ".githooks" ]
@@ -290,6 +294,22 @@ Describe 'setup-repo.sh'
       cd "$tmpdir/repo"
       git init -q
       sh "$ROOT/setup-repo.sh" --profiles "common golagn"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 2
+    The stderr should include 'unknown profile: golagn'
+  End
+
+  It 'rejects unknown profiles during check'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      mkdir -p "$HOME" "$tmpdir/repo"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/setup-repo.sh" >/dev/null
+      sh "$ROOT/setup-repo.sh" --check --profiles "common golagn"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'unknown profile: golagn'

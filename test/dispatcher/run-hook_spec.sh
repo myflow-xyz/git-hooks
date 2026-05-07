@@ -154,6 +154,24 @@ Describe 'lib/dispatcher/run-hook.sh'
     The stderr should include 'git-hooks: warn: skip duplicate profile: one'
   End
 
+  It 'rejects unknown profiles from project config'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/common" "$tmpdir/repo/.githooks"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      printf "%s\n" "GIT_HOOK_PROFILES=\"common golagn\"" > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 2
+    The stderr should include 'git-hooks: error: unknown profile: golagn'
+  End
+
   It 'runs react-vite pre-commit profile checks'
     When run sh -u -c '
       ROOT=$1
