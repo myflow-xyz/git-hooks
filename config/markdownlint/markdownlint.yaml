@@ -1,0 +1,50 @@
+globs:
+  - "**/*.{md,markdown}"
+  - "#.git"
+  - "#.git/**"
+  - "#**/.git/**"
+  - "#node_modules"
+  - "#node_modules/**"
+  - "#**/node_modules/**"
+  - "#vendor"
+  - "#vendor/**"
+  - "#**/vendor/**"
+  - "#dist"
+  - "#dist/**"
+  - "#**/dist/**"
+  - "#build"
+  - "#build/**"
+  - "#**/build/**"
+  - "#coverage"
+  - "#coverage/**"
+  - "#**/coverage/**"
+
+config:
+  MD013:
+    line_length: 120
+    heading_line_length: 100
+    code_block_line_length: 120
+    code_blocks: false
+    tables: false
+    headings: true
+    strict: false
+    stern: false
+
+  MD024:
+    siblings_only: true
+
+  MD026:
+    punctuation: ".,;:!"
+
+  MD033:
+    allowed_elements:
+      - br
+      - details
+      - summary
+      - kbd
+
+  MD046:
+    style: fenced
+
+  MD048:
+    style: backtick

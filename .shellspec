@@ -1,0 +1,3 @@
+--default-path test
+--pattern *_spec.sh
+--env GIT_HOOK_VERBOSE=0

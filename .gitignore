@@ -1,0 +1,5 @@
+.DS_Store
+.git/gitk.cache
+*.tmp
+*.swp
+*.swo

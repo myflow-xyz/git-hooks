@@ -1,0 +1,5 @@
+common/gitleaks
+common/eol-lf
+common/whitespace
+common/eof-newline
+common/md-lint

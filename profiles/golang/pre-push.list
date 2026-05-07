@@ -1,0 +1,4 @@
+golang/go-mod-tidy
+golang/golangci-lint
+golang/go-vet
+golang/go-test

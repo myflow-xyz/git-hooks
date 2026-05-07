@@ -1,0 +1,60 @@
+version: "2"
+
+run:
+  timeout: 5m
+  relative-path-mode: gomod
+  tests: true
+
+linters:
+  default: standard
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - cyclop
+    - durationcheck
+    - dupword
+    - errcheck
+    - errname
+    - errorlint
+    - funlen
+    - gocheckcompilerdirectives
+    - goprintffuncname
+    - govet
+    - inamedparam
+    - interfacebloat
+    - makezero
+    - misspell
+    - nilerr
+    - nilnil
+    - nolintlint
+    - noctx
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - predeclared
+    - unqueryvet
+    - ineffassign
+    - unused
+    - usestdlibvars
+  settings:
+    cyclop:
+      max-complexity: 25
+      package-average: 15
+    funlen:
+      lines: 180
+      statements: 80
+    interfacebloat:
+      max: 10
+    revive:
+      rules:
+        - name: context-as-argument
+        - name: exported
+        - name: package-comments
+        - name: unused-parameter
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

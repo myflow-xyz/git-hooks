@@ -1,0 +1,39 @@
+version: "2"
+
+run:
+  timeout: 60s
+  relative-path-mode: gomod
+  tests: false
+
+linters:
+  default: none
+  enable:
+    - asciicheck
+    - bidichk
+    - copyloopvar
+    - cyclop
+    - dupword
+    - funlen
+    - gocheckcompilerdirectives
+    - goprintffuncname
+    - inamedparam
+    - ineffassign
+    - interfacebloat
+    - misspell
+    - nolintlint
+    - predeclared
+    - unqueryvet
+    - usestdlibvars
+  settings:
+    cyclop:
+      max-complexity: 25
+      package-average: 15
+    funlen:
+      lines: 180
+      statements: 80
+    interfacebloat:
+      max: 10
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
