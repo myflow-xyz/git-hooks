@@ -15,6 +15,7 @@ Commit message subject validation for `commit-msg`.
   `<type>(scope)!: brief description`
 
 Allowed types:
+
 - `feat`
 - `fix`
 - `docs`
@@ -33,6 +34,8 @@ Allowed types:
 - Returns `1` when the commit message file does not exist.
 - Returns `1` when the subject type, scope, colon separator, or brief
   description is invalid.
+- Invalid subject output uses a `commit-msg` phase prefix, one cause-bearing
+  error line, and one expected-format info line.
 
 ## Future Tracking
 
@@ -43,6 +46,7 @@ instead of hardcoding it into every project.
 ## Test Cases
 
 Run only this script's tests:
+
 - `shellspec test/checks/common/commit-msg_spec.sh`
 
 | Status | Environment | Scenario |
