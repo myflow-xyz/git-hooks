@@ -31,7 +31,7 @@ Describe 'lib/checks/python/pip-audit.sh'
       sh "$ROOT/lib/checks/python/pip-audit.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip pip-audit; missing tool: pip-audit; install: uv add --dev pip-audit'
+    The stderr should include 'warn: skip pip-audit: missing tool; install: uv add --dev pip-audit'
   End
 
   It 'audits pyproject project path'

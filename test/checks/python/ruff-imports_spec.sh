@@ -53,7 +53,7 @@ Describe 'lib/checks/python/ruff-imports.sh'
       sh "$ROOT/lib/checks/python/ruff-imports.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip ruff-imports; missing tool: ruff; install: uv add --dev ruff'
+    The stderr should include 'warn: skip ruff-imports: missing ruff; install: uv add --dev ruff'
   End
 
   It 'runs ruff import check and keeps success silent'

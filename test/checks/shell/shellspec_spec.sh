@@ -32,7 +32,7 @@ Describe 'lib/checks/shell/shellspec.sh'
       sh "$ROOT/lib/checks/shell/shellspec.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip shellspec; missing tool: shellspec; install: brew install shellspec'
+    The stderr should include 'warn: skip shellspec: missing tool; install: brew install shellspec'
   End
 
   It 'runs once per tracked ShellSpec directory'

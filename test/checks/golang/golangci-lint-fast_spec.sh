@@ -59,7 +59,7 @@ Describe 'lib/checks/golang/golangci-lint-fast.sh'
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip golangci-lint-fast; missing tool: golangci-lint; install: install upstream binary from golangci-lint releases; avoid Homebrew Go runtime shims'
+    The stderr should include 'warn: skip golangci-lint-fast: missing golangci-lint; install: install upstream binary from golangci-lint releases; avoid Homebrew Go runtime shims'
     The stderr should not include 'brew install golangci-lint'
   End
 

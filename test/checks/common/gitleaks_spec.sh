@@ -31,7 +31,7 @@ Describe 'lib/checks/common/gitleaks.sh'
       sh "$ROOT/lib/checks/common/gitleaks.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip gitleaks; missing tool: gitleaks; install: brew install gitleaks'
+    The stderr should include 'warn: skip gitleaks: missing tool; install: brew install gitleaks'
   End
 
   It 'suppresses noisy gitleaks output when no leak is present'

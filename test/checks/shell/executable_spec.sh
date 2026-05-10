@@ -74,8 +74,7 @@ Describe 'lib/checks/shell/executable.sh'
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
     The stdout should eq ''
-    The stderr should include 'shell-executable failed; path=run.sh'
-    The stderr should include 'missing supported shell shebang'
+    The stderr should include 'shell-executable: run.sh; missing supported shebang'
   End
 
   It 'checks zsh executable files'

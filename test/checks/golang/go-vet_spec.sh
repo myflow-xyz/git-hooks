@@ -33,7 +33,7 @@ Describe 'lib/checks/golang/go-vet.sh'
       sh "$ROOT/lib/checks/golang/go-vet.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip go-vet; missing tool: go; install: install Go from https://go.dev/dl/'
+    The stderr should include 'warn: skip go-vet: missing go; install: install Go from https://go.dev/dl/'
   End
 
   It 'keeps clean success silent'

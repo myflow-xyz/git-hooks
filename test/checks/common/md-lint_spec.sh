@@ -89,7 +89,7 @@ EOF
       sh "$ROOT/lib/checks/common/md-lint.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip md-lint; missing tool: markdownlint-cli2; install: pnpm add -g markdownlint-cli2'
+    The stderr should include 'warn: skip md-lint: missing markdownlint-cli2; install: pnpm add -g markdownlint-cli2'
   End
 
   It 'skips staged binary markdown files'

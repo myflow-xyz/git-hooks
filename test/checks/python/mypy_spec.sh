@@ -31,7 +31,7 @@ Describe 'lib/checks/python/mypy.sh'
       sh "$ROOT/lib/checks/python/mypy.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip mypy; missing tool: mypy; install: uv add --dev mypy'
+    The stderr should include 'warn: skip mypy: missing tool; install: uv add --dev mypy'
   End
 
   It 'runs mypy and keeps success silent'

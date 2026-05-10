@@ -56,7 +56,7 @@ Describe 'lib/checks/shell/shfmt.sh'
       sh "$ROOT/lib/checks/shell/shfmt.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip shfmt; missing tool: shfmt; install: go install mvdan.cc/sh/v3/cmd/shfmt@latest'
+    The stderr should include 'warn: skip shfmt: missing tool; install: go install mvdan.cc/sh/v3/cmd/shfmt@latest'
   End
 
   It 'keeps clean success silent'

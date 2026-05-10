@@ -78,7 +78,7 @@ Describe 'lib/checks/python/_env.sh'
       git_hooks_python_require_tool ruff-format ruff "uv add --dev ruff"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'warn: skip ruff-format; missing tool: ruff; install: uv add --dev ruff'
+    The stderr should include 'warn: skip ruff-format: missing ruff; install: uv add --dev ruff'
   End
 
   It 'runs commands through uv with configured args'

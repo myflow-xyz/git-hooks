@@ -64,6 +64,6 @@ Describe 'lib/common/log.sh'
       git_hooks_log_skip_missing_tool "check" "tool" "install tool"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip check; missing tool: tool; install: install tool'
+    The stderr should include 'warn: skip check: missing tool; install: install tool'
   End
 End

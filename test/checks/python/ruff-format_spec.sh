@@ -53,7 +53,7 @@ Describe 'lib/checks/python/ruff-format.sh'
       sh "$ROOT/lib/checks/python/ruff-format.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip ruff-format; missing tool: ruff; install: uv add --dev ruff'
+    The stderr should include 'warn: skip ruff-format: missing ruff; install: uv add --dev ruff'
   End
 
   It 'runs ruff format check and keeps success silent'

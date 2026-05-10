@@ -33,7 +33,7 @@ Describe 'lib/checks/golang/go-mod-tidy.sh'
       sh "$ROOT/lib/checks/golang/go-mod-tidy.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip go-mod-tidy; missing tool: go; install: install Go from https://go.dev/dl/'
+    The stderr should include 'warn: skip go-mod-tidy: missing go; install: install Go from https://go.dev/dl/'
   End
 
   It 'keeps clean success silent'

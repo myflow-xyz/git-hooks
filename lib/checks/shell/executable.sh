@@ -16,13 +16,12 @@ if [ -z "$git_hooks_shell_executable_files" ]; then
   exit 0
 fi
 
-while IFS= read -r git_hooks_shell_executable_file || [ -n "$git_hooks_shell_executable_file" ]
-do
+while IFS= read -r git_hooks_shell_executable_file || [ -n "$git_hooks_shell_executable_file" ]; do
   [ -n "$git_hooks_shell_executable_file" ] || continue
 
   if git_hooks_shell_staged_file_is_executable "$git_hooks_shell_executable_file" &&
     ! git_hooks_shell_staged_file_has_shell_shebang "$git_hooks_shell_executable_file"; then
-    git_hooks_log_error "shell-executable failed; path=$git_hooks_shell_executable_file; reason=executable shell file missing supported shell shebang"
+    git_hooks_log_error "shell-executable: $git_hooks_shell_executable_file; missing supported shebang"
     git_hooks_shell_executable_status=1
   fi
 done <<EOF

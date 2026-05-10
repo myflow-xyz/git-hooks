@@ -54,7 +54,7 @@ Describe 'lib/checks/frontend/oxlint.sh'
       sh "$ROOT/lib/checks/frontend/oxlint.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip oxlint; missing tool: pnpm; install: corepack enable pnpm'
+    The stderr should include 'warn: skip oxlint: missing pnpm; install: corepack enable pnpm'
   End
 
   It 'skips with a dev dependency install hint when the repo-local oxlint bin is missing'
@@ -76,7 +76,7 @@ Describe 'lib/checks/frontend/oxlint.sh'
       sh "$ROOT/lib/checks/frontend/oxlint.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip oxlint; missing tool: node_modules/.bin/oxlint; install: pnpm add -D oxlint'
+    The stderr should include 'warn: skip oxlint: missing node_modules/.bin/oxlint; install: pnpm add -D oxlint'
   End
 
   It 'suppresses noisy successful oxlint output'

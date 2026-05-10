@@ -49,7 +49,12 @@ git_hooks_log_skip_missing_tool() {
     return 2
   fi
 
-  git_hooks_log_warn "skip $1; missing tool: $2; install: $3"
+  if [ "$1" = "$2" ]; then
+    git_hooks_log_warn "skip $1: missing tool; install: $3"
+    return 0
+  fi
+
+  git_hooks_log_warn "skip $1: missing $2; install: $3"
 }
 
 git_hooks_log_check_start() {

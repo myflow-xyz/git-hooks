@@ -36,7 +36,7 @@ Describe 'lib/checks/golang/goimports.sh'
       sh "$ROOT/lib/checks/golang/goimports.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip goimports; missing tool: goimports; install: go install golang.org/x/tools/cmd/goimports@latest'
+    The stderr should include 'warn: skip goimports: missing tool; install: go install golang.org/x/tools/cmd/goimports@latest'
   End
 
   It 'keeps clean success silent'

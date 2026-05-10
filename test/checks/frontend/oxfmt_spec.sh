@@ -54,7 +54,7 @@ Describe 'lib/checks/frontend/oxfmt.sh'
       sh "$ROOT/lib/checks/frontend/oxfmt.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip oxfmt; missing tool: pnpm; install: corepack enable pnpm'
+    The stderr should include 'warn: skip oxfmt: missing pnpm; install: corepack enable pnpm'
   End
 
   It 'skips with a dev dependency install hint when the repo-local oxfmt bin is missing'
@@ -76,7 +76,7 @@ Describe 'lib/checks/frontend/oxfmt.sh'
       sh "$ROOT/lib/checks/frontend/oxfmt.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip oxfmt; missing tool: node_modules/.bin/oxfmt; install: pnpm add -D oxfmt'
+    The stderr should include 'warn: skip oxfmt: missing node_modules/.bin/oxfmt; install: pnpm add -D oxfmt'
   End
 
   It 'suppresses noisy successful oxfmt output'

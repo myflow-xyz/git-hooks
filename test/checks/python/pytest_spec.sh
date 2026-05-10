@@ -33,7 +33,7 @@ Describe 'lib/checks/python/pytest.sh'
       sh "$ROOT/lib/checks/python/pytest.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip pytest; missing tool: pytest; install: uv add --dev pytest'
+    The stderr should include 'warn: skip pytest: missing tool; install: uv add --dev pytest'
   End
 
   It 'runs pytest and keeps success silent'

@@ -33,7 +33,7 @@ Describe 'lib/checks/python/pytest-cov.sh'
       sh "$ROOT/lib/checks/python/pytest-cov.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip pytest-cov; missing tool: pytest; install: uv add --dev pytest pytest-cov'
+    The stderr should include 'warn: skip pytest-cov: missing pytest; install: uv add --dev pytest pytest-cov'
   End
 
   It 'skips when pytest-cov is missing'
@@ -55,7 +55,7 @@ Describe 'lib/checks/python/pytest-cov.sh'
       sh "$ROOT/lib/checks/python/pytest-cov.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip pytest-cov; missing tool: pytest-cov; install: uv add --dev pytest-cov'
+    The stderr should include 'warn: skip pytest-cov: missing tool; install: uv add --dev pytest-cov'
   End
 
   It 'runs pytest with coverage and keeps success silent'

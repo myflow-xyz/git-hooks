@@ -31,7 +31,7 @@ Describe 'lib/checks/frontend/vitest.sh'
       sh "$ROOT/lib/checks/frontend/vitest.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip vitest; missing tool: pnpm; install: corepack enable pnpm'
+    The stderr should include 'warn: skip vitest: missing pnpm; install: corepack enable pnpm'
   End
 
   It 'skips with a dev dependency install hint when the repo-local vitest bin is missing'
@@ -51,7 +51,7 @@ Describe 'lib/checks/frontend/vitest.sh'
       sh "$ROOT/lib/checks/frontend/vitest.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip vitest; missing tool: node_modules/.bin/vitest; install: pnpm add -D vitest'
+    The stderr should include 'warn: skip vitest: missing node_modules/.bin/vitest; install: pnpm add -D vitest'
   End
 
   It 'suppresses noisy successful vitest output'

@@ -56,7 +56,7 @@ Describe 'lib/checks/shell/shellcheck.sh'
       sh "$ROOT/lib/checks/shell/shellcheck.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stderr should include 'warn: skip shellcheck; missing tool: shellcheck; install: brew install shellcheck'
+    The stderr should include 'warn: skip shellcheck: missing tool; install: brew install shellcheck'
   End
 
   It 'uses sh and bash dialects from extension or shebang'
