@@ -62,4 +62,65 @@ Describe 'lib/checks/golang/runtime.sh'
     The stdout should eq ''
     The stderr should include 'git-hooks: error: GOCACHE is not a directory:'
   End
+
+  It 'detects Go source files tracked by Git'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-golang-runtime.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME"
+      cd "$tmpdir"
+      git init -q
+      printf "package main\n" > main.go
+      git add main.go
+      . "$ROOT/lib/common/env.sh"
+      . "$ROOT/lib/checks/golang/runtime.sh"
+      git_hooks_golang_has_go_files
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'detects untracked Go source files not ignored by Git'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-golang-runtime.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME"
+      cd "$tmpdir"
+      git init -q
+      printf "package main\n" > main.go
+      . "$ROOT/lib/common/env.sh"
+      . "$ROOT/lib/checks/golang/runtime.sh"
+      git_hooks_golang_has_go_files
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'ignores repos without Go source files'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-golang-runtime.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME"
+      cd "$tmpdir"
+      git init -q
+      printf "# Title\n" > README.md
+      . "$ROOT/lib/common/env.sh"
+      . "$ROOT/lib/checks/golang/runtime.sh"
+      git_hooks_golang_has_go_files
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stdout should eq ''
+    The stderr should eq ''
+  End
 End

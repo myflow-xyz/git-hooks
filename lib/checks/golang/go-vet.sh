@@ -14,6 +14,11 @@ if [ ! -f go.mod ] && [ ! -f go.work ]; then
   exit 0
 fi
 
+if ! git_hooks_golang_has_go_files; then
+  git_hooks_log_skip 'go-vet; no Go files'
+  exit 0
+fi
+
 if ! command -v go >/dev/null 2>&1; then
   git_hooks_log_skip_missing_tool 'go-vet' 'go' 'install Go from https://go.dev/dl/'
   exit 0

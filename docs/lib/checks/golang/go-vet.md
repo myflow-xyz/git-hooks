@@ -9,6 +9,8 @@ Go vet check for `pre-push`.
 - Intended for the opt-in `golang` profile, not the common baseline.
 - Uses user-level `go` from `PATH`.
 - Skips silently when neither `go.mod` nor `go.work` exists.
+- Skips silently when the repo has no tracked or untracked, non-ignored Go
+  source files.
 - Prepares configured Go runtime directories such as `GOCACHE` and `GOTMPDIR`
   before invoking `go`.
 - Runs `go vet ./...`.
@@ -30,6 +32,7 @@ Run only this script's tests:
 | Status | Environment | Scenario |
 | --- | --- | --- |
 | Existing | `git-hooks` | skips outside Go modules or workspaces |
+| Existing | `git-hooks` | skips modules with no Go files |
 | Existing | `git-hooks` | skips with an install hint when missing |
 | Existing | `git-hooks` | creates missing configured Go runtime directories |
 | Existing | `git-hooks` | keeps clean success silent |

@@ -269,6 +269,8 @@ EOF
       cd "$tmpdir/repo"
       git init -q
       printf "module example.com/app\n" > go.mod
+      printf "package main\n" > main.go
+      git add go.mod main.go
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       cat "$GOLANGCI_LOG"
       cat "$GO_LOG"

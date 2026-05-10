@@ -17,6 +17,28 @@ Describe 'lib/checks/golang/go-test.sh'
     The stderr should eq ''
   End
 
+  It 'skips modules with no Go files'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-go-test.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      unset GOCACHE GOTMPDIR
+      mkdir -p "$HOME" "$tmpdir/bin"
+      printf "%s\n" "#!/usr/bin/env sh" "printf unexpected" "exit 1" > "$tmpdir/bin/go"
+      chmod +x "$tmpdir/bin/go"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      printf "module example.com/app\n" > go.mod
+      sh "$ROOT/lib/checks/golang/go-test.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
   It 'skips with an install hint when go is missing'
     When run sh -u -c '
       ROOT=$1
@@ -30,6 +52,7 @@ Describe 'lib/checks/golang/go-test.sh'
       cd "$tmpdir"
       git init -q
       printf "module example.com/app\n" > go.mod
+      printf "package main\n" > main.go
       sh "$ROOT/lib/checks/golang/go-test.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -56,6 +79,7 @@ EOF
       cd "$tmpdir"
       git init -q
       printf "module example.com/app\n" > go.mod
+      printf "package main\n" > main.go
       sh "$ROOT/lib/checks/golang/go-test.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -85,6 +109,7 @@ EOF
       cd "$tmpdir"
       git init -q
       printf "module example.com/app\n" > go.mod
+      printf "package main\n" > main.go
       sh "$ROOT/lib/checks/golang/go-test.sh"
       test -d "$GOCACHE"
       test -d "$GOTMPDIR"
@@ -113,6 +138,7 @@ EOF
       cd "$tmpdir"
       git init -q
       printf "module example.com/app\n" > go.mod
+      printf "package main\n" > main.go
       sh "$ROOT/lib/checks/golang/go-test.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 6

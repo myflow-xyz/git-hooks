@@ -35,3 +35,11 @@ git_hooks_golang_prepare_runtime_dirs() {
   git_hooks_golang_prepare_runtime_dir GOCACHE "${GOCACHE:-}" || return $?
   git_hooks_golang_prepare_runtime_dir GOTMPDIR "${GOTMPDIR:-}" || return $?
 }
+
+git_hooks_golang_has_go_files() {
+  if [ -n "$(command git ls-files -- '*.go' 2>/dev/null)" ]; then
+    return 0
+  fi
+
+  [ -n "$(command git ls-files --others --exclude-standard -- '*.go' 2>/dev/null)" ]
+}

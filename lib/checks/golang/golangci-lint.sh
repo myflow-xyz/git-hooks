@@ -47,6 +47,11 @@ if ! git_hooks_golangci_has_go_context; then
   exit 0
 fi
 
+if ! git_hooks_golang_has_go_files; then
+  git_hooks_log_skip 'golangci-lint; no Go files'
+  exit 0
+fi
+
 if ! command -v golangci-lint >/dev/null 2>&1; then
   git_hooks_log_skip_missing_tool 'golangci-lint' 'golangci-lint' 'install upstream binary from golangci-lint releases; avoid Homebrew Go runtime shims'
   exit 0
