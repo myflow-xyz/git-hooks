@@ -15,6 +15,52 @@ Describe 'install.sh'
     The stdout should include 'installed;'
   End
 
+  It 'rejects install when git is missing'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      shell_path=$(command -v sh)
+      mkdir -p "$tmpdir/bin"
+      PATH="$tmpdir/bin" "$shell_path" "$ROOT/install.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'required command not found: git'
+    The stderr should include 'Git >= 2.9.0'
+  End
+
+  It 'rejects install when git version cannot be detected'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      shell_path=$(command -v sh)
+      mkdir -p "$tmpdir/bin"
+      printf "%s\n" "#!$shell_path" "exit 1" > "$tmpdir/bin/git"
+      chmod +x "$tmpdir/bin/git"
+      PATH="$tmpdir/bin" "$shell_path" "$ROOT/install.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'git version not found'
+    The stderr should include 'Git >= 2.9.0'
+  End
+
+  It 'rejects install when git is too old for core.hooksPath'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      shell_path=$(command -v sh)
+      mkdir -p "$tmpdir/bin"
+      printf "%s\n" "#!$shell_path" "printf \"%s\\n\" \"git version 2.8.5\"" > "$tmpdir/bin/git"
+      chmod +x "$tmpdir/bin/git"
+      PATH="$tmpdir/bin" "$shell_path" "$ROOT/install.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'git version too old: 2.8.5'
+    The stderr should include 'Git >= 2.9.0'
+  End
+
   It 'checks an existing XDG runtime symlink'
     When run sh -u -c '
       ROOT=$1

@@ -15,6 +15,7 @@ install.sh [--check|--fix-links]
 
 ## Behavior
 
+- Requires Git >= 2.9.0 because repo setup uses `core.hooksPath`.
 - Resolves the source runtime from the checkout directory containing
   `install.sh`.
 - Resolves the source runtime through physical paths, so running
@@ -47,6 +48,9 @@ Run only this script's tests:
 | Status | Environment | Scenario |
 | --- | --- | --- |
 | Existing | `git-hooks` | installs the runtime into XDG config home |
+| Existing | `git-hooks` | rejects install when `git` is missing |
+| Existing | `git-hooks` | rejects install when Git version cannot be detected |
+| Existing | `git-hooks` | rejects install when Git is too old for `core.hooksPath` |
 | Existing | `git-hooks` | checks an existing XDG runtime symlink |
 | Existing | `git-hooks` | checks successfully when invoked through the installed XDG symlink |
 | Existing | `git-hooks` | does not rewrite the runtime link when fix is invoked through the installed XDG symlink |

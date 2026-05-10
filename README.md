@@ -31,6 +31,9 @@ The installed runtime is a symlink to this source checkout. Update the source
 checkout through Git, then rerun `install.sh --check` when needed to verify the
 XDG target still points to the expected source.
 
+Git >= 2.9.0 is required for `core.hooksPath`; `install.sh` rejects missing,
+unparseable, or older Git before changing the XDG target.
+
 Projects keep repo-local `.githooks` wrappers and configure:
 
 ```sh

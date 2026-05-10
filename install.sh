@@ -18,6 +18,66 @@ git_hooks_install_info() {
   printf 'git-hooks: %s\n' "$*"
 }
 
+git_hooks_install_min_git_version=2.9.0
+
+git_hooks_install_git_version_not_found() {
+  git_hooks_install_error "git version not found; install Git >= $git_hooks_install_min_git_version for core.hooksPath support"
+}
+
+git_hooks_install_require_git() {
+  if ! command -v git >/dev/null 2>&1; then
+    git_hooks_install_error "required command not found: git; install Git >= $git_hooks_install_min_git_version for core.hooksPath support"
+    return 1
+  fi
+
+  git_hooks_install_git_version_output=$(command git --version 2>/dev/null || printf '')
+
+  case "$git_hooks_install_git_version_output" in
+  'git version '*)
+    git_hooks_install_git_version=${git_hooks_install_git_version_output#git version }
+    git_hooks_install_git_version=${git_hooks_install_git_version%% *}
+    ;;
+  *)
+    git_hooks_install_git_version_not_found
+    return 1
+    ;;
+  esac
+
+  git_hooks_install_git_major=${git_hooks_install_git_version%%.*}
+  git_hooks_install_git_rest=${git_hooks_install_git_version#*.}
+  if [ "$git_hooks_install_git_rest" = "$git_hooks_install_git_version" ]; then
+    git_hooks_install_git_version_not_found
+    return 1
+  fi
+  git_hooks_install_git_minor=${git_hooks_install_git_rest%%.*}
+
+  case "$git_hooks_install_git_major" in
+  '' | *[!0-9]*)
+    git_hooks_install_git_version_not_found
+    return 1
+    ;;
+  esac
+
+  case "$git_hooks_install_git_minor" in
+  '' | *[!0-9]*)
+    git_hooks_install_git_version_not_found
+    return 1
+    ;;
+  esac
+
+  if [ "$git_hooks_install_git_major" -lt 2 ]; then
+    git_hooks_install_error "git version too old: $git_hooks_install_git_version; install Git >= $git_hooks_install_min_git_version for core.hooksPath support"
+    return 1
+  fi
+
+  if [ "$git_hooks_install_git_major" -eq 2 ] && [ "$git_hooks_install_git_minor" -lt 9 ]; then
+    git_hooks_install_error "git version too old: $git_hooks_install_git_version; install Git >= $git_hooks_install_min_git_version for core.hooksPath support"
+    return 1
+  fi
+
+  return 0
+}
+
 git_hooks_install_source_home() {
   CDPATH='' cd -- "$(dirname "$0")" && command pwd -P
 }
@@ -60,24 +120,24 @@ git_hooks_install_report_state() {
   git_hooks_install_target=$3
 
   case "$git_hooks_install_state" in
-    0)
-      git_hooks_install_info "check ok; target=$git_hooks_install_target; source=$git_hooks_install_source"
-      ;;
-    1)
-      git_hooks_install_error "source directory missing: $git_hooks_install_source"
-      ;;
-    3)
-      git_hooks_install_info "missing; target=$git_hooks_install_target; source=$git_hooks_install_source"
-      ;;
-    4)
-      git_hooks_install_error "target exists and is not a symlink: $git_hooks_install_target"
-      ;;
-    5)
-      git_hooks_install_error "target symlink points elsewhere: $git_hooks_install_target -> $git_hooks_install_existing"
-      ;;
-    127)
-      git_hooks_install_error 'required command not found: readlink'
-      ;;
+  0)
+    git_hooks_install_info "check ok; target=$git_hooks_install_target; source=$git_hooks_install_source"
+    ;;
+  1)
+    git_hooks_install_error "source directory missing: $git_hooks_install_source"
+    ;;
+  3)
+    git_hooks_install_info "missing; target=$git_hooks_install_target; source=$git_hooks_install_source"
+    ;;
+  4)
+    git_hooks_install_error "target exists and is not a symlink: $git_hooks_install_target"
+    ;;
+  5)
+    git_hooks_install_error "target symlink points elsewhere: $git_hooks_install_target -> $git_hooks_install_existing"
+    ;;
+  127)
+    git_hooks_install_error 'required command not found: readlink'
+    ;;
   esac
 }
 
@@ -109,30 +169,32 @@ git_hooks_install_link() {
 git_hooks_install_mode=apply
 
 case "${1:-}" in
-  '')
-    ;;
-  --check)
-    git_hooks_install_mode=check
-    shift
-    ;;
-  --fix-links)
-    git_hooks_install_mode=fix
-    shift
-    ;;
-  -h|--help)
-    git_hooks_install_usage
-    exit 0
-    ;;
-  *)
-    git_hooks_install_usage >&2
-    exit 2
-    ;;
+'')
+  ;;
+--check)
+  git_hooks_install_mode=check
+  shift
+  ;;
+--fix-links)
+  git_hooks_install_mode=fix
+  shift
+  ;;
+-h | --help)
+  git_hooks_install_usage
+  exit 0
+  ;;
+*)
+  git_hooks_install_usage >&2
+  exit 2
+  ;;
 esac
 
 if [ "$#" -ne 0 ]; then
   git_hooks_install_usage >&2
   exit 2
 fi
+
+git_hooks_install_require_git || exit $?
 
 git_hooks_install_source=$(git_hooks_install_source_home) || exit 1
 git_hooks_install_target=$(git_hooks_install_target_home)
@@ -141,56 +203,56 @@ git_hooks_install_inspect "$git_hooks_install_source" "$git_hooks_install_target
 git_hooks_install_state=$?
 
 case "$git_hooks_install_mode:$git_hooks_install_state" in
-  check:0)
-    git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
-    exit 0
-    ;;
-  check:*)
-    git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+check:0)
+  git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+  exit 0
+  ;;
+check:*)
+  git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+  exit 1
+  ;;
+apply:0)
+  git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+  exit 0
+  ;;
+apply:3)
+  git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
+  exit $?
+  ;;
+apply:1 | apply:127)
+  git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+  exit 1
+  ;;
+apply:4 | apply:5)
+  git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+  git_hooks_install_error 'run install.sh --fix-links to repair the target explicitly'
+  exit 1
+  ;;
+fix:0)
+  git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+  exit 0
+  ;;
+fix:1 | fix:127)
+  git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
+  exit 1
+  ;;
+fix:3)
+  git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
+  exit $?
+  ;;
+fix:4)
+  git_hooks_install_backup_target "$git_hooks_install_target" || exit $?
+  git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
+  exit $?
+  ;;
+fix:5)
+  command rm -f "$git_hooks_install_target" || {
+    git_hooks_install_error "failed to remove wrong symlink: $git_hooks_install_target"
     exit 1
-    ;;
-  apply:0)
-    git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
-    exit 0
-    ;;
-  apply:3)
-    git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
-    exit $?
-    ;;
-  apply:1|apply:127)
-    git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
-    exit 1
-    ;;
-  apply:4|apply:5)
-    git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
-    git_hooks_install_error 'run install.sh --fix-links to repair the target explicitly'
-    exit 1
-    ;;
-  fix:0)
-    git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
-    exit 0
-    ;;
-  fix:1|fix:127)
-    git_hooks_install_report_state "$git_hooks_install_state" "$git_hooks_install_source" "$git_hooks_install_target"
-    exit 1
-    ;;
-  fix:3)
-    git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
-    exit $?
-    ;;
-  fix:4)
-    git_hooks_install_backup_target "$git_hooks_install_target" || exit $?
-    git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
-    exit $?
-    ;;
-  fix:5)
-    command rm -f "$git_hooks_install_target" || {
-      git_hooks_install_error "failed to remove wrong symlink: $git_hooks_install_target"
-      exit 1
-    }
-    git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
-    exit $?
-    ;;
+  }
+  git_hooks_install_link "$git_hooks_install_source" "$git_hooks_install_target"
+  exit $?
+  ;;
 esac
 
 exit 1
