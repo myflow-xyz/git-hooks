@@ -6,7 +6,7 @@ git_hooks_home=${GIT_HOOKS_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/git-hooks}
 git_hooks_dispatcher=$git_hooks_home/lib/dispatcher/run-hook.sh
 
 if [ ! -x "$git_hooks_dispatcher" ]; then
-  printf 'git-hooks: dispatcher is not executable: %s\n' "$git_hooks_dispatcher" >&2
+  printf 'commit-msg: error: dispatcher is not executable: %s\n' "$git_hooks_dispatcher" >&2
   exit 127
 fi
 

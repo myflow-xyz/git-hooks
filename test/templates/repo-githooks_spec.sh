@@ -41,7 +41,7 @@ Describe 'templates/repo-githooks'
       "$ROOT/templates/repo-githooks/pre-commit"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 127
-    The stderr should include 'git-hooks: dispatcher is not executable:'
+    The stderr should include 'pre-commit: error: dispatcher is not executable:'
     The stderr should include '/lib/dispatcher/run-hook.sh'
   End
 End

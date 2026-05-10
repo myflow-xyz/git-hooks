@@ -8,6 +8,7 @@ Consistent terminal output for Git hooks.
 
 - Keep successful checks quiet by default.
 - Print skip/progress messages only when `GIT_HOOK_VERBOSE` is `1` or `true`.
+- Prefix runtime output with `GIT_HOOK_PHASE` when set, otherwise `git-hooks`.
 - Treat `GIT_HOOK_VERBOSE=0`, `false`, unset, and unknown values as quiet mode.
 - Parse `true` and `false` case-insensitively for portable hook env usage.
 - Print short actionable errors with the failing check/path and reason.
@@ -18,6 +19,7 @@ Consistent terminal output for Git hooks.
 ## Public Functions
 
 - `git_hooks_log_is_verbose`
+- `git_hooks_log_prefix`
 - `git_hooks_log_info <message>`
 - `git_hooks_log_skip <message>`
 - `git_hooks_log_error <message>`
@@ -41,6 +43,7 @@ Run only this script's tests:
 | --- | --- | --- |
 | Existing | `git-hooks` | keeps info output silent by default |
 | Existing | `git-hooks` | prints info output when verbose |
+| Existing | `git-hooks` | uses the hook phase as the runtime log prefix |
 | Existing | `git-hooks` | parses verbose env values robustly |
 | Existing | `git-hooks` | prints skipped missing-tool warnings to stderr |
 | Recommended | `git-hooks` | Cover skip output in quiet and verbose modes. |

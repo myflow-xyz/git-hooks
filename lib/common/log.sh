@@ -2,36 +2,45 @@
 
 # Terminal output helpers. Keep normal success/skip output quiet by default.
 
+git_hooks_log_prefix() {
+  if [ -n "${GIT_HOOK_PHASE:-}" ]; then
+    printf '%s\n' "$GIT_HOOK_PHASE"
+    return 0
+  fi
+
+  printf '%s\n' git-hooks
+}
+
 git_hooks_log_is_verbose() {
   case "${GIT_HOOK_VERBOSE:-0}" in
-    1|[Tt][Rr][Uu][Ee])
-      return 0
-      ;;
-    0|[Ff][Aa][Ll][Ss][Ee]|'')
-      return 1
-      ;;
-    *)
-      return 1
-      ;;
+  1 | [Tt][Rr][Uu][Ee])
+    return 0
+    ;;
+  0 | [Ff][Aa][Ll][Ss][Ee] | '')
+    return 1
+    ;;
+  *)
+    return 1
+    ;;
   esac
 }
 
 git_hooks_log_info() {
   git_hooks_log_is_verbose || return 0
-  printf 'git-hooks: %s\n' "$*"
+  printf '%s: %s\n' "$(git_hooks_log_prefix)" "$*"
 }
 
 git_hooks_log_skip() {
   git_hooks_log_is_verbose || return 0
-  printf 'git-hooks: skip: %s\n' "$*"
+  printf '%s: skip: %s\n' "$(git_hooks_log_prefix)" "$*"
 }
 
 git_hooks_log_error() {
-  printf 'git-hooks: error: %s\n' "$*" >&2
+  printf '%s: error: %s\n' "$(git_hooks_log_prefix)" "$*" >&2
 }
 
 git_hooks_log_warn() {
-  printf 'git-hooks: warn: %s\n' "$*" >&2
+  printf '%s: warn: %s\n' "$(git_hooks_log_prefix)" "$*" >&2
 }
 
 git_hooks_log_skip_missing_tool() {

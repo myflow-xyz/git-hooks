@@ -20,6 +20,17 @@ Describe 'lib/common/log.sh'
     The stdout should include 'git-hooks: hello'
   End
 
+  It 'uses the hook phase as the runtime log prefix'
+    When run sh -u -c '
+      ROOT=$1
+      export GIT_HOOK_PHASE=pre-commit
+      . "$ROOT/lib/common/log.sh"
+      git_hooks_log_error "failed"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stderr should include 'pre-commit: error: failed'
+  End
+
   It 'parses verbose env values robustly'
     When run sh -u -c '
       ROOT=$1

@@ -151,7 +151,7 @@ Describe 'lib/dispatcher/run-hook.sh'
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should eq 'one'
-    The stderr should include 'git-hooks: warn: skip duplicate profile: one'
+    The stderr should include 'pre-commit: warn: skip duplicate profile: one'
   End
 
   It 'rejects unknown profiles from project config'
@@ -169,7 +169,7 @@ Describe 'lib/dispatcher/run-hook.sh'
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
-    The stderr should include 'git-hooks: error: unknown profile: golagn'
+    The stderr should include 'pre-commit: error: unknown profile: golagn'
   End
 
   It 'runs react-vite pre-commit profile checks'

@@ -8,6 +8,7 @@ Phase dispatcher for repo-local Git hook wrappers.
 
 - Validate the hook phase: `pre-commit`, `pre-push`, or `commit-msg`.
 - Bootstrap runtime environment through `lib/common/env.sh`.
+- Export `GIT_HOOK_PHASE` so runtime logs identify the selected hook phase.
 - Load profile phase lists such as `profiles/common/pre-commit.list`.
 - Resolve check IDs through `lib/common/path.sh`.
 - Run check entrypoints in order and stop on the first failure.
