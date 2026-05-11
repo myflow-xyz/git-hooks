@@ -219,6 +219,80 @@ EOF
     The stdout should include 'config/markdownlint/markdownlint.yaml'
   End
 
+  It 'uses bundled config that allows long table and code block lines'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-md.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export XDG_CONFIG_HOME="$tmpdir/xdg"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/markdownlint-cli2" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+config=
+target=
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --config)
+      shift
+      config=$1
+      ;;
+    --no-globs)
+      ;;
+    *)
+      target=$1
+      ;;
+  esac
+  shift
+done
+
+grep -q "line_length: 140" "$config" || {
+  printf "%s\n" "missing line_length: 140" >&2
+  exit 10
+}
+grep -q "code_blocks: false" "$config" || {
+  printf "%s\n" "missing code_blocks: false" >&2
+  exit 11
+}
+grep -q "tables: false" "$config" || {
+  printf "%s\n" "missing tables: false" >&2
+  exit 12
+}
+
+awk '"'"'
+  /^```/ { code = !code; next }
+  code && length($0) > 140 { long_code = 1 }
+  /^\|/ && length($0) > 140 { long_table = 1 }
+  END { exit (long_code && long_table) ? 0 : 1 }
+'"'"' "$target" || {
+  printf "%s\n" "missing long table or code block line" >&2
+  exit 13
+}
+EOF
+      chmod +x "$tmpdir/bin/markdownlint-cli2"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      {
+        printf "%s\n" "# Title" ""
+        printf "%s\n" "| Name | Value |" "| --- | --- |"
+        printf "| fixture | "
+        awk '"'"'BEGIN { for (i = 0; i < 150; i++) printf "t"; print " |" }'"'"'
+        printf "%s\n" ""
+        printf "\140\140\140text\n"
+        awk '"'"'BEGIN { for (i = 0; i < 150; i++) printf "c"; print "" }'"'"'
+        printf "\140\140\140\n"
+      } > README.md
+      git add README.md
+      sh "$ROOT/lib/checks/common/md-lint.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
   It 'falls back to built-in defaults when no config is available'
     When run sh -u -c '
       ROOT=$1

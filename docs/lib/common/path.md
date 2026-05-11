@@ -29,6 +29,7 @@ Do not add Git queries here. Use `lib/common/git.sh` for repository state.
 ## Test Cases
 
 Run only this script's tests:
+
 - `shellspec test/common/path_spec.sh`
 
 | Status | Environment | Scenario |

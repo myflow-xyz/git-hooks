@@ -18,6 +18,7 @@ Fast staged whitespace check for `pre-commit`.
 ## Test Cases
 
 Run only this script's tests:
+
 - `shellspec test/checks/common/whitespace_spec.sh`
 
 | Status | Environment | Scenario |
