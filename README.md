@@ -12,18 +12,20 @@ This is private proprietary tooling. Authorized collaborators may use it for
 approved internal projects; redistribution or publication requires explicit
 owner approval. See [License](LICENSE).
 
-General policy lives in [Design](docs/design.md) and
-[Repo Setup](docs/setup-repo.md). In short: keep `pre-commit` lightweight and
-staged-area focused, put heavier full-repo or advisory checks in `pre-push`,
-keep hooks portable, keep output concise, and maintain tests plus per-hook
-design docs.
+General policy lives in [Design](docs/design.md), [Repo Setup](docs/setup-repo.md),
+and [Config Setup](docs/setup-config.md). In short: keep `pre-commit`
+lightweight and staged-area focused, put heavier full-repo or advisory checks
+in `pre-push`, keep hooks portable, keep output concise, and maintain tests
+plus per-hook design docs.
 
 ## Install Model
 
-There are two separate setup steps:
+There are three separate setup steps:
 
 - `install.sh` installs this shared runtime to `$XDG_CONFIG_HOME/git-hooks`.
 - `setup-repo.sh` bootstraps one target repo with tiny `.githooks` wrappers.
+- `setup-config.sh` copies supported bundled tool configs into a target repo
+  for explicit repo-local overrides.
 - `install.sh` is intentionally self-contained and owns its small link/check/fix
   behavior directly.
 
@@ -59,6 +61,8 @@ config files for the normal case. Optional project policy can live in
    checks, for example `--profiles "common golang"`.
 6. Add `.githooks/project.conf` or `.githooks/hooks.env` only when the repo
    needs non-default policy, extra checks, or local overrides.
+7. Use `$XDG_CONFIG_HOME/git-hooks/setup-config.sh <check-id>` only when the
+   repo needs to fork a supported bundled tool config.
 
 ## Setup Examples
 
@@ -110,6 +114,17 @@ invalid for setup/check, but runtime skips repeated profiles with a warning for
 existing repo configs. Omit empty variables; missing extra-check variables
 default to empty.
 
+Copy bundled tool config for repo-local edits:
+
+```sh
+$XDG_CONFIG_HOME/git-hooks/setup-config.sh common/md-lint
+$XDG_CONFIG_HOME/git-hooks/setup-config.sh golang/golangci-lint
+```
+
+Only checks that explicitly support repo-local config are accepted. The copied
+file overrides bundled defaults, so future bundled config updates must be
+tracked manually for that repo-local copy.
+
 ## Layout
 
 ```text
@@ -118,6 +133,7 @@ git-hooks/
   CHANGELOG.md
   LICENSE
   install.sh
+  setup-config.sh
   setup-repo.sh
   config/
   docs/
