@@ -58,7 +58,8 @@ config files for the normal case. Optional project policy can live in
 4. Verify the repo bootstrap with
    `$XDG_CONFIG_HOME/git-hooks/setup-repo.sh --check`.
 5. Select built-in profiles when a repo needs language or stack-specific
-   checks, for example `--profiles "common golang"`.
+   checks, for example `--profiles "common golang"` or
+   `--profiles "common pmem"`.
 6. Add `.githooks/project.conf` or `.githooks/hooks.env` only when the repo
    needs non-default policy, extra checks, or local overrides.
 7. Use `$XDG_CONFIG_HOME/git-hooks/setup-config.sh <check-id>` only when the
@@ -104,6 +105,16 @@ GIT_HOOK_PROFILES="common"
 GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS="frontend/oxfmt frontend/oxlint"
 GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest"
 ```
+
+Project Memory (`pmem`) managed repo:
+
+```sh
+$XDG_CONFIG_HOME/git-hooks/setup-repo.sh \
+  --profiles "common pmem"
+```
+
+The `pmem` profile is for Project Memory managed repos. It requires
+`.pmem/env` with `PMEM_PROJECT_KEY=<key>` and a `Ref` footer on every commit.
 
 `--hooks` selects which Git wrapper phases exist in the repo. `--profiles`
 selects built-in check lists. Multiple profiles are merged by running each
@@ -184,6 +195,8 @@ git-hooks/
   - [pytest](docs/lib/checks/python/pytest.md)
   - [pytest-cov](docs/lib/checks/python/pytest-cov.md)
   - [pip-audit](docs/lib/checks/python/pip-audit.md)
+- Project Memory (`pmem`) checks:
+  - [ref-footer](docs/lib/checks/pmem/ref-footer.md)
 - Shell checks:
   - [files](docs/lib/checks/shell/files.md)
   - [shfmt](docs/lib/checks/shell/shfmt.md)

@@ -337,6 +337,24 @@ EOF
     The stdout should include '.'
   End
 
+  It 'runs pmem commit-msg profile checks'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME" "$tmpdir/repo/.githooks" "$tmpdir/repo/.pmem"
+      printf "%s\n" "GIT_HOOK_PROFILES=pmem" > "$tmpdir/repo/.githooks/project.conf"
+      printf "%s\n" "PMEM_PROJECT_KEY=APP" > "$tmpdir/repo/.pmem/env"
+      printf "%s\n\n%s\n" "feat(pmem): add footer" "Ref: SPEC-123" > "$tmpdir/repo/COMMIT_EDITMSG"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/lib/dispatcher/run-hook.sh" commit-msg COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+  End
+
   It 'runs phase-specific extra checks after profile checks'
     When run sh -u -c '
       ROOT=$1

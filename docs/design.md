@@ -114,6 +114,7 @@ $XDG_CONFIG_HOME/git-hooks/
   lib/checks/common/       # reusable check entrypoints
   lib/checks/frontend/     # opt-in frontend stack checks
   lib/checks/golang/       # opt-in Golang checks
+  lib/checks/pmem/         # opt-in Project Memory workflow checks
   lib/checks/python/       # opt-in Python checks
   lib/checks/shell/        # opt-in shell script checks
   lib/dispatcher/          # phase/profile orchestration
@@ -126,6 +127,7 @@ Current profile names:
 - `common`
 - `react-vite`
 - `golang`
+- `pmem`
 - `python`
 - `shell`
 
@@ -203,6 +205,14 @@ are concrete enough to maintain.
 - Python coverage and dependency audit checks are explicit extras by default:
   coverage can duplicate test execution, while dependency audit can be slower
   or require advisory/database access.
+- Project Memory (`pmem`) hooks are opt-in and should stay in `commit-msg`
+  until there is a concrete need for repo-content checks. A repo using the
+  `pmem` profile must contain `.pmem/env` with `PMEM_PROJECT_KEY=<key>`. The
+  Project Memory commit-message check currently validates only local footer
+  syntax, the project-key gate, and temporary ID length bounds. A Project
+  Memory lookup that proves the referenced ticket, spec, task, issue, or other
+  PMem record exists under the project key is required future work before the
+  ID can be treated as fully valid.
 - Shell hooks use explicit extensions only: `.sh`, `.bash`, and `.zsh`.
 - Shell `pre-commit` checks should operate on staged shell files wherever those
   files live in the repository.

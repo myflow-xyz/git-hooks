@@ -37,6 +37,9 @@ setup-repo.sh [--check] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>
   required.
 - Add `python/pip-audit` as a `pre-push` extra check when dependency audit is
   required.
+- Use `--profiles "common pmem"` for repositories managed by Project Memory.
+- The `pmem` profile requires `.pmem/env` with `PMEM_PROJECT_KEY=<key>` and
+  enforces a `Ref` footer during `commit-msg`.
 - Use `--profiles "common shell"` for repositories with shell scripts.
 - The `shell` profile runs `shfmt`, `shellcheck`, and executable-bit
   consistency checks during `pre-commit`, then ShellSpec during `pre-push`.
@@ -129,6 +132,13 @@ Python coverage and audit extra checks:
 ```sh
 GIT_HOOK_PROFILES="common python"
 GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="python/pytest-cov python/pip-audit"
+```
+
+Project Memory (`pmem`) managed repo:
+
+```sh
+setup-repo.sh \
+  --profiles "common pmem"
 ```
 
 Force uv for Python hooks:

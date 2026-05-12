@@ -49,6 +49,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | skips duplicate profiles with a warning |
 | Existing | `git-hooks` | rejects unknown profiles from project config |
 | Existing | `git-hooks` | runs python profile checks |
+| Existing | `git-hooks` | runs pmem reference footer profile checks |
 | Existing | `git-hooks` | runs extra checks after profile checks |
 | Existing | `git-hooks` | stops on the first failing check |
 | Existing | `git-hooks` | stops immediately when interrupted |
