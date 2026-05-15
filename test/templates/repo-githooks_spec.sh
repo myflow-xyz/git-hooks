@@ -28,7 +28,7 @@ Describe 'templates/repo-githooks'
     The stdout should include 'COMMIT_EDITMSG'
   End
 
-  It 'fails clearly when the dispatcher is missing'
+  It 'warns and skips checks when the shared runtime dispatcher is missing'
     When run sh -u -c '
       ROOT=$1
       set -e
@@ -39,9 +39,17 @@ Describe 'templates/repo-githooks'
       mkdir -p "$HOME"
 
       "$ROOT/templates/repo-githooks/pre-commit"
+      "$ROOT/templates/repo-githooks/pre-push" origin main
+      "$ROOT/templates/repo-githooks/commit-msg" "$tmpdir/COMMIT_EDITMSG"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
-    The status should eq 127
-    The stderr should include 'pre-commit: error: dispatcher is not executable:'
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should include 'pre-commit: warn: git-hooks runtime not installed; skipping checks'
+    The stderr should include 'pre-push: warn: git-hooks runtime not installed; skipping checks'
+    The stderr should include 'commit-msg: warn: git-hooks runtime not installed; skipping checks'
     The stderr should include '/lib/dispatcher/run-hook.sh'
+    The stderr should include 'info: expected executable:'
+    The stderr should include '; install the shared runtime before relying on git hooks'
+    The stderr should not include 'error: dispatcher is not executable'
   End
 End

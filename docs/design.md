@@ -45,6 +45,9 @@ repos should pin reviewed tags or commits instead of tracking a moving branch.
   `pre-push`, and `commit-msg` from the `common` profile.
 - Git uses repo-local `core.hooksPath=.githooks`.
 - Wrappers call `lib/dispatcher/run-hook.sh <phase>`.
+- If the shared dispatcher executable is missing, wrappers warn and skip checks
+  instead of blocking Git commands. This surfaces missing local runtime setup
+  without making cloned repos unusable.
 - The dispatcher loads runtime helpers, repo-local env/config, profile lists,
   then runs reusable check entrypoints.
 - Profile and extra-check lists use stable check IDs such as `common/gitleaks`,
@@ -138,6 +141,9 @@ are concrete enough to maintain.
 
 - Prefer repo-local `core.hooksPath`; do not rely on a global Git hook path.
 - Keep repo-local hook files tiny and boring.
+- Fail open only before the shared runtime starts, when the dispatcher
+  executable is missing. Once the dispatcher starts, runtime bootstrap errors
+  and check failures must still fail closed.
 - Keep `lib/common` for helpers only; real checks belong under `lib/checks`.
 - Use check IDs in profile lists. Do not store full `lib/checks/...` paths
   there, and do not recursively search by filename because duplicate check names

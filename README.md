@@ -43,6 +43,8 @@ git config --local core.hooksPath .githooks
 ```
 
 Those wrappers call the shared dispatcher under `$XDG_CONFIG_HOME/git-hooks`.
+If the shared runtime is missing, wrappers warn and skip checks instead of
+blocking Git commands; install the runtime before relying on hook enforcement.
 Default `common` policy is provided by the shared runtime, so repos do not need
 config files for the normal case. Optional project policy can live in
 `.githooks/project.conf`; optional local machine overrides can live in
