@@ -7,13 +7,16 @@ Bootstrap repo-local Git hook wrappers and policy for a project.
 ## Usage
 
 ```sh
-setup-repo.sh [--check] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>]
+setup-repo.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>]
 ```
 
 ## Behavior
 
 - Resolves the target repository from `--repo` or the current Git repository.
 - Creates selected repo-local wrappers from the shared templates.
+- `--update` refreshes existing supported repo-local wrappers from the shared
+  templates without creating missing wrappers, changing `core.hooksPath`, or
+  writing `.githooks/project.conf`.
 - Infers default wrappers from selected profiles when `--hooks` is omitted.
 - Defaults to `pre-commit pre-push commit-msg` for the `common` profile.
 - Adds `pre-push` by default when any selected profile has `pre-push` checks.
@@ -62,6 +65,8 @@ setup-repo.sh [--check] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>
 - Profiles with `pre-push.list` add `pre-push` to inferred wrappers.
 - Passing `--hooks` replaces inferred hook selection for that run.
 - Existing repo wrappers are not deleted when a later run selects fewer hooks.
+- Existing repo wrappers outside the selected hook set are not refreshed during
+  install. Use `--update` for a wrapper-only refresh.
 - `--profiles` selects built-in profile check lists.
 - Default profile is `common`.
 - `GIT_HOOK_PROFILES` may be omitted when the default `common` profile is enough.
@@ -119,6 +124,12 @@ setup-repo.sh \
   --profiles "common shell"
 ```
 
+Wrapper-only update example:
+
+```sh
+setup-repo.sh --update
+```
+
 Custom extra checks example:
 
 ```sh
@@ -155,6 +166,7 @@ Output is short and machine-readable enough for humans or LLM agents:
 
 - Success: `git-hooks: installed; repo=<path>; hooks=<hooks>; profiles=<profiles>`
 - Check success: `git-hooks: check ok; repo=<path>; hooks=<hooks>; profiles=<profiles>`
+- Update success: `git-hooks: updated; repo=<path>; wrappers=<wrappers>`
 - Failure: `git-hooks: error: <reason>`
 
 ## Test Cases
@@ -170,8 +182,13 @@ Run only this script's tests:
 | Existing | `git-hooks` | supports project profile config |
 | Existing | `git-hooks` | infers `pre-push` from selected profiles |
 | Existing | `git-hooks` | lets explicit hooks override inference |
+| Existing | `git-hooks` | does not refresh unselected wrappers during install |
 | Existing | `git-hooks` | writes only non-empty project policy variables |
 | Existing | `git-hooks` | accepts project config with only extra checks |
+| Existing | `git-hooks` | updates existing wrappers only |
+| Existing | `git-hooks` | reports no wrappers when wrapper update has nothing to update |
+| Existing | `git-hooks` | rejects hook selection during wrapper update |
+| Existing | `git-hooks` | rejects profile selection during wrapper update |
 | Existing | `git-hooks` | checks an existing bootstrap |
 | Existing | `git-hooks` | fails check when `core.hooksPath` is missing |
 | Existing | `git-hooks` | supports `--repo <path>` outside target repo |

@@ -4,7 +4,7 @@ set -u
 
 git_hooks_install_usage() {
   cat <<'EOF'
-Usage: setup-repo.sh [--check] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>]
+Usage: setup-repo.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>]
 
 Bootstrap repo-local Git hooks for a project.
 
@@ -12,11 +12,13 @@ Typical example:
   setup-repo.sh
   setup-repo.sh --profiles "common shell"
   setup-repo.sh --check --profiles "common shell"
+  setup-repo.sh --update
   setup-repo.sh --repo /path/to/repo --profiles "common shell"
   setup-repo.sh --hooks "pre-commit commit-msg" --profiles "common shell"
 
 Options:
   --check                 verify repo-local hook setup without changing files
+  --update                refresh existing repo-local wrappers only
   --repo <path>           target repository; defaults to current Git repo
   --hooks <hooks>         explicit wrapper phases; default is inferred
                           from profiles when omitted
@@ -182,10 +184,17 @@ git_hooks_install_check_core_hooks_path() {
 
 git_hooks_install_copy_wrapper() {
   git_hooks_install_hook_name=$1
+  git_hooks_install_dest=$git_hooks_install_repo_hooks/$git_hooks_install_hook_name
+
+  if [ -e "$git_hooks_install_dest" ] && [ ! -f "$git_hooks_install_dest" ]; then
+    git_hooks_install_error "wrapper path is not a file: $git_hooks_install_dest"
+    return 1
+  fi
+
   command cp \
     "$git_hooks_install_home/templates/repo-githooks/$git_hooks_install_hook_name" \
-    "$git_hooks_install_repo_hooks/$git_hooks_install_hook_name" || return $?
-  command chmod +x "$git_hooks_install_repo_hooks/$git_hooks_install_hook_name"
+    "$git_hooks_install_dest" || return $?
+  command chmod +x "$git_hooks_install_dest"
 }
 
 git_hooks_install_check_wrappers() {
@@ -200,16 +209,43 @@ git_hooks_install_check_wrappers() {
   return "$git_hooks_install_status"
 }
 
+git_hooks_install_update_wrappers() {
+  git_hooks_install_updated_wrappers=
+
+  if [ ! -d "$git_hooks_install_repo_hooks" ]; then
+    return 0
+  fi
+
+  for git_hooks_install_hook_name in pre-commit pre-push commit-msg; do
+    [ -e "$git_hooks_install_repo_hooks/$git_hooks_install_hook_name" ] || continue
+    git_hooks_install_copy_wrapper "$git_hooks_install_hook_name" || return $?
+    git_hooks_install_updated_wrappers="${git_hooks_install_updated_wrappers:+$git_hooks_install_updated_wrappers }$git_hooks_install_hook_name"
+  done
+}
+
 git_hooks_install_mode=apply
 git_hooks_install_hooks=
 git_hooks_install_hooks_explicit=0
 git_hooks_install_profiles=common
+git_hooks_install_profiles_explicit=0
 git_hooks_install_repo=
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
   --check)
+    if [ "$git_hooks_install_mode" = update ]; then
+      git_hooks_install_error 'choose only one mode: --check or --update'
+      exit 2
+    fi
     git_hooks_install_mode=check
+    shift
+    ;;
+  --update)
+    if [ "$git_hooks_install_mode" = check ]; then
+      git_hooks_install_error 'choose only one mode: --check or --update'
+      exit 2
+    fi
+    git_hooks_install_mode=update
     shift
     ;;
   --repo)
@@ -235,6 +271,7 @@ while [ "$#" -gt 0 ]; do
       exit 2
     fi
     git_hooks_install_profiles=$2
+    git_hooks_install_profiles_explicit=1
     shift 2
     ;;
   -h | --help)
@@ -249,17 +286,32 @@ while [ "$#" -gt 0 ]; do
 done
 
 git_hooks_install_home=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
-git_hooks_install_validate_profiles || exit $?
+
+if [ "$git_hooks_install_mode" = update ]; then
+  if [ "$git_hooks_install_hooks_explicit" -ne 0 ]; then
+    git_hooks_install_error '--hooks cannot be used with --update'
+    exit 2
+  fi
+
+  if [ "$git_hooks_install_profiles_explicit" -ne 0 ]; then
+    git_hooks_install_error '--profiles cannot be used with --update'
+    exit 2
+  fi
+else
+  git_hooks_install_validate_profiles || exit $?
+fi
 
 git_hooks_install_root=$(git_hooks_install_repo_root) || {
   git_hooks_install_error 'not inside a git repository; pass --repo <path>'
   exit 1
 }
 
-if [ "$git_hooks_install_hooks_explicit" -eq 0 ]; then
-  git_hooks_install_hooks=$(git_hooks_install_default_hooks_for_profiles)
+if [ "$git_hooks_install_mode" != update ]; then
+  if [ "$git_hooks_install_hooks_explicit" -eq 0 ]; then
+    git_hooks_install_hooks=$(git_hooks_install_default_hooks_for_profiles)
+  fi
+  git_hooks_install_validate_hooks || exit $?
 fi
-git_hooks_install_validate_hooks || exit $?
 
 git_hooks_install_repo_hooks=$git_hooks_install_root/.githooks
 git_hooks_install_project_conf=$git_hooks_install_repo_hooks/project.conf
@@ -286,10 +338,18 @@ check)
   fi
   exit "$git_hooks_install_status"
   ;;
+update)
+  git_hooks_install_update_wrappers || exit $?
+  git_hooks_install_updated_wrappers_label=$git_hooks_install_updated_wrappers
+  if [ -z "$git_hooks_install_updated_wrappers_label" ]; then
+    git_hooks_install_updated_wrappers_label='(none)'
+  fi
+  git_hooks_install_info "updated; repo=$git_hooks_install_root; wrappers=$git_hooks_install_updated_wrappers_label"
+  exit 0
+  ;;
 esac
 
 command mkdir -p "$git_hooks_install_repo_hooks" || exit $?
-
 for git_hooks_install_hook_name in $git_hooks_install_hooks; do
   git_hooks_install_copy_wrapper "$git_hooks_install_hook_name" || exit $?
 done

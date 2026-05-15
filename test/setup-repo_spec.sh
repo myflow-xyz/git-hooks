@@ -103,6 +103,28 @@ Describe 'setup-repo.sh'
     The stdout should include 'hooks=pre-commit commit-msg'
   End
 
+  It 'does not refresh existing wrappers outside the selected hook set during install'
+    When run sh -u -c '
+      set -e
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      mkdir -p "$HOME" "$tmpdir/repo/.githooks"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n" "#!/usr/bin/env sh" "echo stale-pre-push" > .githooks/pre-push
+      chmod +x .githooks/pre-push
+      sh "$ROOT/setup-repo.sh" --hooks "pre-commit commit-msg"
+      [ -x .githooks/pre-commit ]
+      [ -x .githooks/commit-msg ]
+      grep -F "echo stale-pre-push" .githooks/pre-push >/dev/null
+      ! cmp -s "$ROOT/templates/repo-githooks/pre-push" .githooks/pre-push
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should include 'hooks=pre-commit commit-msg'
+  End
+
   It 'checks project config that omits default profile and sets only extra checks'
     When run sh -u -c '
       ROOT=$1
@@ -118,6 +140,82 @@ Describe 'setup-repo.sh'
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should include 'check ok;'
+  End
+
+  It 'updates existing wrappers only'
+    When run sh -u -c '
+      set -e
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      mkdir -p "$HOME" "$tmpdir/repo/.githooks"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n" "#!/usr/bin/env sh" "echo stale-pre-commit" > .githooks/pre-commit
+      chmod +x .githooks/pre-commit
+      printf "%s\n" "GIT_HOOK_PROFILES=\"common shell\"" > .githooks/project.conf
+      printf "%s\n" "GIT_HOOK_VERBOSE=1" > .githooks/hooks.env
+      git config --local core.hooksPath custom-hooks
+      sh "$ROOT/setup-repo.sh" --update
+      cmp -s "$ROOT/templates/repo-githooks/pre-commit" .githooks/pre-commit
+      [ ! -e .githooks/pre-push ]
+      [ ! -e .githooks/commit-msg ]
+      grep -F "GIT_HOOK_PROFILES=\"common shell\"" .githooks/project.conf >/dev/null
+      grep -F "GIT_HOOK_VERBOSE=1" .githooks/hooks.env >/dev/null
+      [ "$(git config --local --get core.hooksPath)" = "custom-hooks" ]
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should include 'updated;'
+    The stdout should include 'wrappers=pre-commit'
+  End
+
+  It 'reports no wrappers during wrapper update when none exist'
+    When run sh -u -c '
+      set -e
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      mkdir -p "$HOME" "$tmpdir/repo"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/setup-repo.sh" --update
+      [ ! -e .githooks ]
+      ! git config --local --get core.hooksPath >/dev/null
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should include 'wrappers=(none)'
+  End
+
+  It 'rejects hook selection during wrapper update'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      mkdir -p "$HOME" "$tmpdir/repo"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/setup-repo.sh" --update --hooks pre-commit
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 2
+    The stderr should include '--hooks cannot be used with --update'
+  End
+
+  It 'rejects profile selection during wrapper update'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-install.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      mkdir -p "$HOME" "$tmpdir/repo"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/setup-repo.sh" --update --profiles "common shell"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 2
+    The stderr should include '--profiles cannot be used with --update'
   End
 
   It 'checks an existing bootstrap'
