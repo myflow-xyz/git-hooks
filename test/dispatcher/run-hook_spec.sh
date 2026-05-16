@@ -204,6 +204,38 @@ EOF
     The stdout should include 'exec oxlint --type-aware --report-unused-disable-directives --max-warnings 0'
   End
 
+  It 'runs react-vite pre-push profile checks'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export PNPM_LOG="$tmpdir/pnpm-log"
+      mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/repo/.githooks" "$tmpdir/repo/node_modules/.bin"
+      cat > "$tmpdir/bin/pnpm" <<EOF
+#!/usr/bin/env sh
+printf "%s\n" "\$*" >> "$PNPM_LOG"
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/pnpm"
+      printf "%s\n" "#!/usr/bin/env sh" "exit 0" > "$tmpdir/repo/node_modules/.bin/vitest"
+      printf "%s\n" "#!/usr/bin/env sh" "exit 0" > "$tmpdir/repo/node_modules/.bin/playwright"
+      chmod +x "$tmpdir/repo/node_modules/.bin/vitest" "$tmpdir/repo/node_modules/.bin/playwright"
+      export PATH="$tmpdir/bin:$PATH"
+      printf "%s\n" "GIT_HOOK_PROFILES=react-vite" > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "{}\n" > package.json
+      printf "export default {}\n" > playwright.config.ts
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
+      cat "$PNPM_LOG"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should include 'exec vitest run'
+    The stdout should include 'exec playwright test'
+  End
+
   It 'runs golang pre-commit profile checks'
     When run sh -u -c '
       ROOT=$1
