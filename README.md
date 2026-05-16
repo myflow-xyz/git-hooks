@@ -105,7 +105,7 @@ Custom extra checks in `.githooks/project.conf`:
 ```sh
 GIT_HOOK_PROFILES="common"
 GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS="frontend/oxfmt frontend/oxlint"
-GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest"
+GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest frontend/e2e-playwright"
 ```
 
 Project Memory (`pmem`) managed repo:
@@ -178,6 +178,7 @@ git-hooks/
   - [commit-msg](docs/lib/checks/common/commit-msg.md)
   - [repo-hygiene](docs/lib/checks/common/repo-hygiene.md)
 - Frontend checks:
+  - [e2e-playwright](docs/lib/checks/frontend/e2e-playwright.md)
   - [oxlint](docs/lib/checks/frontend/oxlint.md)
   - [oxfmt](docs/lib/checks/frontend/oxfmt.md)
   - [vitest](docs/lib/checks/frontend/vitest.md)

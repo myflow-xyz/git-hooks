@@ -183,6 +183,9 @@ are concrete enough to maintain.
 - Frontend stack checks should require repo-local `node_modules/.bin/<tool>`
   binaries. Global installs are ignored so hook behavior follows project
   dependencies and stays reproducible across machines and CI.
+- React/Vite E2E checks should run in `pre-push`, require repo-local
+  Playwright when E2E tests are present, and skip when the repo has no E2E test
+  cases.
 - Go stack checks use user-level Go tooling from `PATH`. Tools installed with
   the configured Go toolchain, such as `go install ...`, are acceptable.
   External Go-related binaries such as `golangci-lint` should prefer upstream

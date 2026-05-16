@@ -22,9 +22,12 @@ setup-repo.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles
 - Adds `pre-push` by default when any selected profile has `pre-push` checks.
 - Defaults to `--profiles common`, which requires no repo-local config file.
 - Use `--profiles "common react-vite"` for pnpm-based React/Vite projects.
-- The `react-vite` profile requires repo-local dev dependencies. Install them
-  with `pnpm add -D oxlint oxfmt vitest`; global installs are intentionally
-  ignored.
+- The `react-vite` profile requires repo-local dev dependencies. Install the
+  core checks with `pnpm add -D oxlint oxfmt vitest`; add `@playwright/test`
+  when the repo has E2E tests. Global installs are intentionally ignored.
+- The Playwright E2E check skips when the repo has no Playwright config or
+  tracked conventional E2E test files. When E2E exists but Playwright is not
+  installed, it skips with an install hint.
 - Use `--profiles "common golang"` for Go projects.
 - The `golang` profile runs `goimports` and fast `golangci-lint` during
   `pre-commit`, then `go mod tidy -diff`, full `golangci-lint`, `go vet`, and
@@ -135,7 +138,7 @@ Custom extra checks example:
 ```sh
 GIT_HOOK_PROFILES="common"
 GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS="frontend/oxfmt frontend/oxlint"
-GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest"
+GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest frontend/e2e-playwright"
 ```
 
 Python coverage and audit extra checks:
