@@ -93,6 +93,7 @@ Describe 'lib/checks/frontend/e2e-playwright.sh'
 [ "\$1" = exec ] || exit 8
 [ "\$2" = playwright ] || exit 8
 [ "\$3" = test ] || exit 8
+[ "\$4" = --pass-with-no-tests ] || exit 8
 [ -z "\${GIT_HOOK_PHASE:-}" ] || exit 9
 printf "%s\n" "playwright noisy success stdout"
 printf "%s\n" "playwright noisy success stderr" >&2
@@ -114,7 +115,7 @@ EOF
     The stderr should eq ''
   End
 
-  It 'skips when Playwright reports no test files'
+  It 'passes Playwright no-test handling through the official option'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-playwright.XXXXXX")
@@ -124,8 +125,12 @@ EOF
       mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/node_modules/.bin"
       cat > "$tmpdir/bin/pnpm" <<EOF
 #!/usr/bin/env sh
-printf "%s\n" "Error: No tests found"
-exit 1
+[ "\$1" = exec ] || exit 8
+[ "\$2" = playwright ] || exit 8
+[ "\$3" = test ] || exit 8
+[ "\$4" = --pass-with-no-tests ] || exit 8
+printf "%s\n" "no tests, but Playwright exits 0 with --pass-with-no-tests"
+exit 0
 EOF
       chmod +x "$tmpdir/bin/pnpm"
       printf "%s\n" "#!/usr/bin/env sh" "exit 0" > "$tmpdir/node_modules/.bin/playwright"
@@ -143,7 +148,7 @@ EOF
     The stderr should eq ''
   End
 
-  It 'skips verbosely when Playwright reports no test files'
+  It 'prints successful Playwright output in verbose mode'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-playwright.XXXXXX")
@@ -154,8 +159,12 @@ EOF
       mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/node_modules/.bin"
       cat > "$tmpdir/bin/pnpm" <<EOF
 #!/usr/bin/env sh
-printf "%s\n" "Error: No tests found"
-exit 1
+[ "\$1" = exec ] || exit 8
+[ "\$2" = playwright ] || exit 8
+[ "\$3" = test ] || exit 8
+[ "\$4" = --pass-with-no-tests ] || exit 8
+printf "%s\n" "playwright success"
+exit 0
 EOF
       chmod +x "$tmpdir/bin/pnpm"
       printf "%s\n" "#!/usr/bin/env sh" "exit 0" > "$tmpdir/node_modules/.bin/playwright"
@@ -169,7 +178,7 @@ EOF
       sh "$ROOT/lib/checks/frontend/e2e-playwright.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stdout should include 'git-hooks: skip: playwright; no e2e test files found'
+    The stdout should include 'playwright success'
     The stderr should eq ''
   End
 

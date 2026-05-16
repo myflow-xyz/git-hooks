@@ -13,8 +13,8 @@ React/Vite Playwright E2E check for `pre-push`.
   `playwright/`.
 - When E2E exists, requires the repo-local `node_modules/.bin/playwright`;
   global installs are not treated as valid for this hook.
-- Runs `pnpm exec playwright test`.
-- Skips when Playwright reports no tests found.
+- Runs `pnpm exec playwright test --pass-with-no-tests`, using Playwright's
+  documented no-tests option instead of parsing command output.
 - Captures output and keeps successful test runs silent unless
   `GIT_HOOK_VERBOSE=1`.
 - Clears `GIT_HOOK_*` runtime variables before invoking Playwright so project
@@ -25,7 +25,8 @@ React/Vite Playwright E2E check for `pre-push`.
 - Skips with an install hint when `pnpm` is unavailable.
 - Skips with visible info when repo-local `node_modules/.bin/playwright` is
   unavailable.
-- Skips when Playwright exits `1` because no test files were found.
+- Lets Playwright exit successfully when no tests are found via
+  `--pass-with-no-tests`.
 - Returns the Playwright exit code when tests fail and prints capped failure
   output.
 
@@ -42,6 +43,6 @@ Run only this script's tests:
 | Existing | `git-hooks` | skips with an install hint when `pnpm` is missing |
 | Existing | `git-hooks` | skips with repo-local bin info and install hint |
 | Existing | `git-hooks` | suppresses noisy successful Playwright output |
-| Existing | `git-hooks` | skips when Playwright reports no test files |
-| Existing | `git-hooks` | skips verbosely when Playwright reports no test files |
+| Existing | `git-hooks` | passes Playwright no-test handling through the official option |
+| Existing | `git-hooks` | prints successful Playwright output in verbose mode |
 | Existing | `git-hooks` | returns status and prints output when tests fail |

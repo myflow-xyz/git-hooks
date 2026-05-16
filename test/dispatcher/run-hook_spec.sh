@@ -233,7 +233,7 @@ EOF
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should include 'exec vitest run'
-    The stdout should include 'exec playwright test'
+    The stdout should include 'exec playwright test --pass-with-no-tests'
   End
 
   It 'runs golang pre-commit profile checks'

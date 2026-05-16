@@ -35,12 +35,6 @@ git_hooks_playwright_has_e2e_signal() {
   git_hooks_playwright_has_config || git_hooks_playwright_has_tracked_e2e_tests
 }
 
-git_hooks_playwright_no_test_files() {
-  [ "$#" -eq 2 ] || return 2
-  [ "$1" -eq 1 ] || return 1
-  command grep -F 'No tests found' "$2" >/dev/null 2>&1
-}
-
 git_hooks_playwright_run() (
   unset GIT_HOOK_PHASE
   unset GIT_HOOKS_HOME
@@ -56,7 +50,7 @@ git_hooks_playwright_run() (
   unset GIT_HOOK_EXTRA_CHECKS
   unset GIT_HOOK_VERBOSE
 
-  command pnpm exec playwright test
+  command pnpm exec playwright test --pass-with-no-tests
 )
 
 if ! git_hooks_playwright_has_e2e_signal; then
@@ -103,11 +97,6 @@ if [ "$git_hooks_playwright_status" -eq 0 ]; then
   if [ "$git_hooks_playwright_verbose" -eq 1 ] && [ -s "$git_hooks_playwright_output" ]; then
     command cat "$git_hooks_playwright_output"
   fi
-  exit 0
-fi
-
-if git_hooks_playwright_no_test_files "$git_hooks_playwright_status" "$git_hooks_playwright_output"; then
-  git_hooks_log_skip 'playwright; no e2e test files found'
   exit 0
 fi
 
