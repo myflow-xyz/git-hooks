@@ -177,6 +177,10 @@ are concrete enough to maintain.
 - Checks that run project test suites should make the suite environment match
   manual local execution or CI worker execution. This prevents hook-only
   behavior, recursive hook policy inheritance, and agent/local drift.
+- The dispatcher should restore the hook-entry index snapshot when `pre-commit`
+  fails or is interrupted. This protects against hook-side staging changes, but
+  it does not undo staging Git performed before the hook, such as
+  `git commit -a`.
 - Stack profiles may declare package-manager policy. The `react-vite` profile
   uses `pnpm` project dependencies and should not fall back to `npm`, `npx`, or
   global Node tools.

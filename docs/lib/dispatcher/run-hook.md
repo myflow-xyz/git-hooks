@@ -13,6 +13,8 @@ Phase dispatcher for repo-local Git hook wrappers.
 - Resolve check IDs through `lib/common/path.sh`.
 - Run check entrypoints in order and stop on the first failure.
 - Stop the whole hook chain immediately on `SIGHUP`, `SIGINT`, or `SIGTERM`.
+- Snapshot the index at `pre-commit` entry and restore that snapshot when the
+  hook fails or is interrupted.
 - Pass Git hook arguments through to each check entrypoint.
 - Run phase-specific extra checks from project config.
 - Ignore blank and comment lines in profile lists.
@@ -25,6 +27,20 @@ Phase dispatcher for repo-local Git hook wrappers.
 - It should not contain Git query logic.
 - It should not contain check-specific behavior.
 - It should not print noisy success output unless verbose logging is enabled.
+- It cannot restore the index state that existed before Git itself changed the
+  index. For example, `git commit -a` and `git commit --all` stage modified and
+  deleted tracked files before `pre-commit` starts, so the guard preserves only
+  the hook-entry state.
+
+## Index Safety
+
+`pre-commit` records the exact index file at dispatcher entry. If a check
+fails, exits with interrupt status, or the hook receives `SIGHUP`, `SIGINT`, or
+`SIGTERM`, the dispatcher restores that snapshot before exiting.
+
+This protects the user's staged selection from hook-side index changes. It does
+not make `git commit -a` safe for partial staging because Git has already staged
+modified and deleted tracked files before invoking `pre-commit`.
 
 ## Typical Usage
 
@@ -52,6 +68,8 @@ Run only this script's tests:
 | Existing | `git-hooks` | runs pmem reference footer profile checks |
 | Existing | `git-hooks` | runs extra checks after profile checks |
 | Existing | `git-hooks` | stops on the first failing check |
+| Existing | `git-hooks` | restores pre-commit index snapshot after check failure |
+| Existing | `git-hooks` | restores pre-commit index snapshot after interrupt status |
 | Existing | `git-hooks` | stops immediately when interrupted |
 | Existing | `git-hooks` | passes when the selected phase list is missing |
 | Existing | `git-hooks` | fails when a check exists but is not executable |

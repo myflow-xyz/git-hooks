@@ -434,6 +434,88 @@ EOF
     The stdout should not include 'later'
   End
 
+  It 'restores the pre-commit index snapshot when a check fails'
+    When run sh -u -c '
+      set -e
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/test" "$GIT_HOOKS_HOME/lib/checks/test" "$tmpdir/repo/.githooks"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      cat > "$GIT_HOOKS_HOME/lib/checks/test/stage-all-fail.sh" <<EOF
+#!/usr/bin/env sh
+git add .
+exit 7
+EOF
+      chmod +x "$GIT_HOOKS_HOME/lib/checks/test/stage-all-fail.sh"
+      printf "%s\n" "test/stage-all-fail" > "$GIT_HOOKS_HOME/profiles/test/pre-commit.list"
+      printf "%s\n" "GIT_HOOK_PROFILES=test" > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      git config user.email test@example.com
+      git config user.name "Test User"
+      printf "%s\n" old > intended.txt
+      printf "%s\n" old > other.txt
+      git add intended.txt other.txt
+      git commit -qm init
+      printf "%s\n" changed > intended.txt
+      printf "%s\n" changed > other.txt
+      git add intended.txt
+      git status --short > "$tmpdir/before"
+      set +e
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
+      hook_status=$?
+      set -e
+      git status --short > "$tmpdir/after"
+      cmp -s "$tmpdir/before" "$tmpdir/after"
+      exit "$hook_status"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 7
+  End
+
+  It 'restores the pre-commit index snapshot when a check exits with interrupt status'
+    When run sh -u -c '
+      set -e
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/test" "$GIT_HOOKS_HOME/lib/checks/test" "$tmpdir/repo/.githooks"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      cat > "$GIT_HOOKS_HOME/lib/checks/test/stage-all-interrupt.sh" <<EOF
+#!/usr/bin/env sh
+git add .
+exit 130
+EOF
+      chmod +x "$GIT_HOOKS_HOME/lib/checks/test/stage-all-interrupt.sh"
+      printf "%s\n" "test/stage-all-interrupt" > "$GIT_HOOKS_HOME/profiles/test/pre-commit.list"
+      printf "%s\n" "GIT_HOOK_PROFILES=test" > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      git config user.email test@example.com
+      git config user.name "Test User"
+      printf "%s\n" old > intended.txt
+      printf "%s\n" old > other.txt
+      git add intended.txt other.txt
+      git commit -qm init
+      printf "%s\n" changed > intended.txt
+      printf "%s\n" changed > other.txt
+      git add intended.txt
+      git status --short > "$tmpdir/before"
+      set +e
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
+      hook_status=$?
+      set -e
+      git status --short > "$tmpdir/after"
+      cmp -s "$tmpdir/before" "$tmpdir/after"
+      exit "$hook_status"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 130
+  End
+
   It 'stops immediately when a check exits with interrupt status'
     When run sh -u -c '
       ROOT=$1

@@ -63,6 +63,76 @@ git_hooks_dispatcher_profile_exists() {
   [ -d "$(git_hooks_paths_join "$GIT_HOOKS_HOME" profiles "$1")" ]
 }
 
+git_hooks_dispatcher_index_guard_active=0
+git_hooks_dispatcher_index_guard_restore=0
+git_hooks_dispatcher_index_guard_had_index=0
+git_hooks_dispatcher_index_guard_index_path=
+git_hooks_dispatcher_index_guard_snapshot=
+
+git_hooks_dispatcher_index_guard_path() {
+  if [ -n "${GIT_INDEX_FILE:-}" ]; then
+    printf '%s\n' "$GIT_INDEX_FILE"
+    return 0
+  fi
+
+  command git -C "$GIT_HOOK_REPO_ROOT" rev-parse --git-path index
+}
+
+git_hooks_dispatcher_index_guard_restore_snapshot() {
+  [ "$git_hooks_dispatcher_index_guard_active" -eq 1 ] || return 0
+
+  if [ "$git_hooks_dispatcher_index_guard_had_index" -eq 1 ]; then
+    command cp "$git_hooks_dispatcher_index_guard_snapshot" "$git_hooks_dispatcher_index_guard_index_path"
+    return $?
+  fi
+
+  command rm -f "$git_hooks_dispatcher_index_guard_index_path"
+}
+
+git_hooks_dispatcher_index_guard_cleanup() {
+  if [ "$git_hooks_dispatcher_index_guard_restore" -eq 1 ]; then
+    if git_hooks_dispatcher_index_guard_restore_snapshot; then
+      git_hooks_log_info 'restored pre-commit index snapshot'
+    else
+      git_hooks_log_warn 'failed to restore pre-commit index snapshot'
+    fi
+  fi
+
+  if [ -n "$git_hooks_dispatcher_index_guard_snapshot" ]; then
+    command rm -f "$git_hooks_dispatcher_index_guard_snapshot"
+  fi
+
+  return 0
+}
+
+git_hooks_dispatcher_index_guard_start() {
+  [ "$GIT_HOOK_PHASE" = pre-commit ] || return 0
+
+  if ! command -v mktemp >/dev/null 2>&1; then
+    git_hooks_log_error 'required command not found: mktemp'
+    return 127
+  fi
+
+  git_hooks_dispatcher_index_guard_index_path=$(git_hooks_dispatcher_index_guard_path) || return $?
+  git_hooks_dispatcher_index_guard_snapshot=$(mktemp "${TMPDIR:-/tmp}/git-hooks-index.XXXXXX") || {
+    git_hooks_log_error 'failed to create temporary file for pre-commit index snapshot'
+    return 2
+  }
+  git_hooks_dispatcher_index_guard_active=1
+  git_hooks_env_install_abort_traps git_hooks_dispatcher_index_guard_cleanup
+
+  if [ -f "$git_hooks_dispatcher_index_guard_index_path" ]; then
+    command cp "$git_hooks_dispatcher_index_guard_index_path" "$git_hooks_dispatcher_index_guard_snapshot" || return $?
+    git_hooks_dispatcher_index_guard_had_index=1
+  fi
+
+  git_hooks_dispatcher_index_guard_restore=1
+}
+
+git_hooks_dispatcher_index_guard_disarm() {
+  git_hooks_dispatcher_index_guard_restore=0
+}
+
 if [ "$#" -lt 1 ]; then
   git_hooks_dispatcher_usage >&2
   exit 2
@@ -83,10 +153,12 @@ esac
 GIT_HOOKS_HOME=${GIT_HOOKS_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/git-hooks}
 GIT_HOOKS_COMMON_DIR=$GIT_HOOKS_HOME/lib/common
 
+# shellcheck source=lib/common/env.sh
 . "$GIT_HOOKS_COMMON_DIR/env.sh" || exit $?
 
 git_hooks_env_install_abort_traps || exit $?
 git_hooks_env_bootstrap "$GIT_HOOK_PHASE" || exit $?
+git_hooks_dispatcher_index_guard_start || exit $?
 
 for git_hooks_dispatcher_profile in $GIT_HOOK_PROFILES; do
   if git_hooks_dispatcher_profile_was_seen "$git_hooks_dispatcher_profile"; then
@@ -120,3 +192,5 @@ esac
 for git_hooks_dispatcher_check in $GIT_HOOK_EXTRA_CHECKS; do
   git_hooks_dispatcher_run_check "$git_hooks_dispatcher_check" "$@" || exit $?
 done
+
+git_hooks_dispatcher_index_guard_disarm
