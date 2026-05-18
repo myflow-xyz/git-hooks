@@ -10,8 +10,10 @@ Fast Go static analysis check for `pre-commit`.
 - Uses user-level `golangci-lint` from `PATH`.
 - Skips silently when neither `go.mod` nor `go.work` exists.
 - Skips when there are no staged text `.go` files.
-- Prepares configured Go runtime directories such as `GOCACHE` and `GOTMPDIR`
-  before invoking `golangci-lint`.
+- Prepares Go runtime directories before invoking `golangci-lint`: unset
+  `GOCACHE` defaults to `$REPO/.cache/go-build`, unset `GOTMPDIR` defaults to
+  `$REPO/.tmp/go`, and unset `GOLANGCI_LINT_CACHE` defaults to
+  `$REPO/.cache/golangci-lint`.
 - Requires bundled config at
   `$GIT_HOOKS_HOME/config/golangci-lint/fast.yaml`.
 - Does not load repo-local or user-level config because this is hook fast-mode
@@ -51,6 +53,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | skips with an install hint when missing |
 | Existing | `git-hooks` | skips when bundled fast config is missing |
 | Existing | `git-hooks` | creates missing configured Go runtime directories |
+| Existing | `git-hooks` | defaults unset Go and golangci-lint runtime directories under the repo root |
 | Existing | `git-hooks` | uses patch-scoped bundled fast config |
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | reports lint failure output |

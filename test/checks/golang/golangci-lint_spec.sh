@@ -6,7 +6,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME"
       cd "$tmpdir"
       git init -q
@@ -24,7 +24,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin"
       printf "%s\n" "#!/usr/bin/env sh" "printf unexpected" "exit 1" > "$tmpdir/bin/golangci-lint"
       chmod +x "$tmpdir/bin/golangci-lint"
@@ -47,7 +47,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
       export PATH=/usr/bin:/bin
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME"
       cd "$tmpdir"
       git init -q
@@ -69,7 +69,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       export XDG_CONFIG_HOME="$tmpdir/xdg"
       export GIT_HOOKS_HOME="$ROOT"
       export GOLANGCI_LOG="$tmpdir/golangci.log"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin" "$XDG_CONFIG_HOME/golangci-lint"
       printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$GOLANGCI_LOG\"" > "$tmpdir/bin/golangci-lint"
       chmod +x "$tmpdir/bin/golangci-lint"
@@ -98,7 +98,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       export XDG_CONFIG_HOME="$tmpdir/xdg"
       export GIT_HOOKS_HOME="$ROOT"
       export GOLANGCI_LOG="$tmpdir/golangci.log"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin"
       printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$GOLANGCI_LOG\"" > "$tmpdir/bin/golangci-lint"
       chmod +x "$tmpdir/bin/golangci-lint"
@@ -126,7 +126,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       export XDG_CONFIG_HOME="$tmpdir/xdg"
       export GIT_HOOKS_HOME="$ROOT"
       export GOLANGCI_LOG="$tmpdir/golangci.log"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin" "$XDG_CONFIG_HOME/golangci-lint"
       printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$GOLANGCI_LOG\"" > "$tmpdir/bin/golangci-lint"
       chmod +x "$tmpdir/bin/golangci-lint"
@@ -153,7 +153,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       export XDG_CONFIG_HOME="$tmpdir/xdg"
       export GIT_HOOKS_HOME="$ROOT"
       export GOLANGCI_LOG="$tmpdir/golangci.log"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin"
       printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$GOLANGCI_LOG\"" > "$tmpdir/bin/golangci-lint"
       chmod +x "$tmpdir/bin/golangci-lint"
@@ -179,7 +179,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       export XDG_CONFIG_HOME="$tmpdir/xdg"
       export GIT_HOOKS_HOME="$tmpdir/missing-hooks"
       export GOLANGCI_LOG="$tmpdir/golangci.log"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin"
       printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$GOLANGCI_LOG\"" > "$tmpdir/bin/golangci-lint"
       chmod +x "$tmpdir/bin/golangci-lint"
@@ -202,7 +202,7 @@ Describe 'lib/checks/golang/golangci-lint.sh'
       trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin"
       cat > "$tmpdir/bin/golangci-lint" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
@@ -233,11 +233,13 @@ EOF
       export GIT_HOOK_VERBOSE=0
       export GOCACHE="$tmpdir/cache/go/build"
       export GOTMPDIR="$tmpdir/cache/go/tmp"
+      export GOLANGCI_LINT_CACHE="$tmpdir/cache/golangci-lint"
       mkdir -p "$HOME" "$tmpdir/bin"
       cat > "$tmpdir/bin/golangci-lint" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
 [ -d "$GOCACHE" ] || exit 91
 [ -d "$GOTMPDIR" ] || exit 92
+[ -d "$GOLANGCI_LINT_CACHE" ] || exit 93
 exit 0
 EOF
       chmod +x "$tmpdir/bin/golangci-lint"
@@ -249,6 +251,82 @@ EOF
       sh "$ROOT/lib/checks/golang/golangci-lint.sh"
       test -d "$GOCACHE"
       test -d "$GOTMPDIR"
+      test -d "$GOLANGCI_LINT_CACHE"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'defaults unset Go and golangci-lint runtime directories under the repo root'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-golangci.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_VERBOSE=0
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/golangci-lint" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+[ "$GOCACHE" = "$PWD/.cache/go-build" ] || exit 91
+[ "$GOTMPDIR" = "$PWD/.tmp/go" ] || exit 92
+[ "$GOLANGCI_LINT_CACHE" = "$PWD/.cache/golangci-lint" ] || exit 93
+[ -d "$GOCACHE" ] || exit 94
+[ -d "$GOTMPDIR" ] || exit 95
+[ -d "$GOLANGCI_LINT_CACHE" ] || exit 96
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/golangci-lint"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      printf "module example.com/app\n" > go.mod
+      printf "package main\n" > main.go
+      sh "$ROOT/lib/checks/golang/golangci-lint.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'preserves repo-local hooks.env cache overrides'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-golangci.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_VERBOSE=0
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/golangci-lint" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+[ "$GOCACHE" = "$PWD/.custom-cache/go-build" ] || exit 91
+[ "$GOTMPDIR" = "$PWD/.custom-tmp/go" ] || exit 92
+[ "$GOLANGCI_LINT_CACHE" = "$PWD/.custom-cache/golangci-lint" ] || exit 93
+[ -d "$GOCACHE" ] || exit 94
+[ -d "$GOTMPDIR" ] || exit 95
+[ -d "$GOLANGCI_LINT_CACHE" ] || exit 96
+test ! -e "$PWD/.cache/go-build"
+test ! -e "$PWD/.tmp/go"
+test ! -e "$PWD/.cache/golangci-lint"
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/golangci-lint"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      mkdir -p .githooks
+      printf "%s\n" \
+        "GOCACHE=\$PWD/.custom-cache/go-build" \
+        "GOTMPDIR=\$PWD/.custom-tmp/go" \
+        "GOLANGCI_LINT_CACHE=\$PWD/.custom-cache/golangci-lint" \
+        > .githooks/hooks.env
+      printf "module example.com/app\n" > go.mod
+      printf "package main\n" > main.go
+      sh "$ROOT/lib/checks/golang/golangci-lint.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should eq ''
@@ -262,7 +340,7 @@ EOF
       trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
-      unset GOCACHE GOTMPDIR
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
       mkdir -p "$HOME" "$tmpdir/bin"
       cat > "$tmpdir/bin/golangci-lint" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh

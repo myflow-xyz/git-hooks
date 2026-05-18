@@ -11,8 +11,9 @@ Go vet check for `pre-push`.
 - Skips silently when neither `go.mod` nor `go.work` exists.
 - Skips silently when the repo has no tracked or untracked, non-ignored Go
   source files.
-- Prepares configured Go runtime directories such as `GOCACHE` and `GOTMPDIR`
-  before invoking `go`.
+- Prepares Go runtime directories before invoking `go`: unset `GOCACHE`
+  defaults to `$REPO/.cache/go-build`, and unset `GOTMPDIR` defaults to
+  `$REPO/.tmp/go`.
 - Runs `go vet ./...`.
 - Quiet mode suppresses clean success output and exits `0`.
 - Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks

@@ -102,9 +102,10 @@ is loaded after the agent process environment.
   checks, full scanner runs, and non-blocking repo hygiene recommendations.
 - `commit-msg` should validate commit messages only. Common policy requires
   conventional commits with mandatory scope.
-- Hooks must not mutate repo files, dependency locks, caches in the repo root,
-  or tool config unless the hook is explicitly documented as a fix/install
-  action.
+- Hooks must not mutate tracked repo files, dependency locks, or tool config
+  unless the hook is explicitly documented as a fix/install action. Documented
+  runtime cache directories are allowed for checks that need persistent local
+  tool caches.
 
 ## Layout Contract
 
@@ -196,10 +197,13 @@ are concrete enough to maintain.
   binary releases over package managers like Homebrew, because package managers
   may install another Go runtime or shim ahead of the selected `GOROOT`.
   Missing optional Go tools should skip with a concise install hint.
-- Go stack checks that invoke the Go toolchain should prepare configured local
-  runtime directories before running the tool. If `GOCACHE` or `GOTMPDIR` is set
-  and missing, create it; if the path exists but is not a directory, fail with a
-  concise error instead of passing a broken environment to Go.
+- Go stack checks that invoke the Go toolchain default unset `GOCACHE` to
+  `$REPO/.cache/go-build` and unset `GOTMPDIR` to `$REPO/.tmp/go`. Repo-local
+  `.githooks/hooks.env` values take priority. Missing directories are created;
+  existing non-directory paths fail with a concise error.
+- `golangci-lint` checks additionally default unset `GOLANGCI_LINT_CACHE` to
+  `$REPO/.cache/golangci-lint`. This default is loaded only by golangci-lint
+  checks, not by generic Go checks.
 - Golang hooks should keep staged formatting and fast lint checks in
   `pre-commit`, then module hygiene, package-wide lint, vet, and test checks in
   `pre-push`.

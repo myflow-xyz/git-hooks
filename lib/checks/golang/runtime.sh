@@ -31,9 +31,55 @@ git_hooks_golang_prepare_runtime_dir() {
   return 1
 }
 
+git_hooks_golang_ensure_repo_root() {
+  if [ -z "${GIT_HOOK_REPO_ROOT:-}" ]; then
+    GIT_HOOK_REPO_ROOT=$(git_hooks_git_repo_root) || {
+      git_hooks_log_error 'not inside a git repository'
+      return 1
+    }
+    export GIT_HOOK_REPO_ROOT
+  fi
+}
+
+git_hooks_golang_default_runtime_dirs() {
+  if [ "${GOCACHE+x}" != x ] || [ "${GOTMPDIR+x}" != x ]; then
+    git_hooks_golang_ensure_repo_root || return $?
+  fi
+
+  if [ "${GOCACHE+x}" != x ]; then
+    GOCACHE=$GIT_HOOK_REPO_ROOT/.cache/go-build
+  fi
+
+  if [ "${GOTMPDIR+x}" != x ]; then
+    GOTMPDIR=$GIT_HOOK_REPO_ROOT/.tmp/go
+  fi
+
+  export GOCACHE
+  export GOTMPDIR
+}
+
+git_hooks_golang_default_lint_runtime_dirs() {
+  if [ "${GOLANGCI_LINT_CACHE+x}" != x ]; then
+    git_hooks_golang_ensure_repo_root || return $?
+  fi
+
+  if [ "${GOLANGCI_LINT_CACHE+x}" != x ]; then
+    GOLANGCI_LINT_CACHE=$GIT_HOOK_REPO_ROOT/.cache/golangci-lint
+  fi
+
+  export GOLANGCI_LINT_CACHE
+}
+
 git_hooks_golang_prepare_runtime_dirs() {
+  git_hooks_golang_default_runtime_dirs || return $?
   git_hooks_golang_prepare_runtime_dir GOCACHE "${GOCACHE:-}" || return $?
   git_hooks_golang_prepare_runtime_dir GOTMPDIR "${GOTMPDIR:-}" || return $?
+}
+
+git_hooks_golang_prepare_lint_runtime_dirs() {
+  git_hooks_golang_prepare_runtime_dirs || return $?
+  git_hooks_golang_default_lint_runtime_dirs || return $?
+  git_hooks_golang_prepare_runtime_dir GOLANGCI_LINT_CACHE "${GOLANGCI_LINT_CACHE:-}" || return $?
 }
 
 git_hooks_golang_has_go_files() {

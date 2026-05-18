@@ -71,7 +71,7 @@ if [ ! -s "$git_hooks_golangci_fast_patch" ]; then
   exit 0
 fi
 
-git_hooks_golang_prepare_runtime_dirs || exit $?
+git_hooks_golang_prepare_lint_runtime_dirs || exit $?
 
 git_hooks_golangci_fast_run_linter() {
   command golangci-lint run \

@@ -118,6 +118,17 @@ $XDG_CONFIG_HOME/git-hooks/setup-repo.sh \
 The `pmem` profile is for Project Memory managed repos. It requires
 `.pmem/env` with `PMEM_PROJECT_KEY=<key>` and a `Ref` footer on every commit.
 
+Go profile cache defaults:
+
+```gitignore
+.cache/
+.tmp/
+```
+
+The `golang` profile creates repo-local runtime cache directories by default:
+`.cache/go-build`, `.cache/golangci-lint`, and `.tmp/go`. Add the ignore rules
+above in Go repos, or override cache locations in `.githooks/hooks.env`.
+
 `--hooks` selects which Git wrapper phases exist in the repo. `--profiles`
 selects built-in check lists. Multiple profiles are merged by running each
 profile in declared order, then phase-specific `GIT_HOOK_*_EXTRA_CHECKS` are

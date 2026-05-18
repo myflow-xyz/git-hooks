@@ -65,7 +65,7 @@ else
   git_hooks_log_info 'golangci-lint config: tool defaults'
 fi
 
-git_hooks_golang_prepare_runtime_dirs || exit $?
+git_hooks_golang_prepare_lint_runtime_dirs || exit $?
 
 if git_hooks_log_is_verbose; then
   git_hooks_golangci_run_linter

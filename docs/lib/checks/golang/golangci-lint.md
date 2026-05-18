@@ -11,8 +11,10 @@ Go static analysis check for `pre-push`.
 - Skips silently when neither `go.mod` nor `go.work` exists.
 - Skips silently when the repo has no tracked or untracked, non-ignored Go
   source files.
-- Prepares configured Go runtime directories such as `GOCACHE` and `GOTMPDIR`
-  before invoking `golangci-lint`.
+- Prepares Go runtime directories before invoking `golangci-lint`: unset
+  `GOCACHE` defaults to `$REPO/.cache/go-build`, unset `GOTMPDIR` defaults to
+  `$REPO/.tmp/go`, and unset `GOLANGCI_LINT_CACHE` defaults to
+  `$REPO/.cache/golangci-lint`.
 - Runs `golangci-lint run` across the repository.
 - Uses the first existing config in this priority order:
 - `$REPO/.golangci.yml`
@@ -72,5 +74,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | falls back to bundled git-hooks config |
 | Existing | `git-hooks` | falls back to built-in defaults |
 | Existing | `git-hooks` | creates missing configured Go runtime directories |
+| Existing | `git-hooks` | defaults unset Go and golangci-lint runtime directories under the repo root |
+| Existing | `git-hooks` | preserves repo-local hooks.env cache overrides |
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | reports lint failure output |
