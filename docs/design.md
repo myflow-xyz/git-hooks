@@ -106,6 +106,12 @@ is loaded after the agent process environment.
   unless the hook is explicitly documented as a fix/install action. Documented
   runtime cache directories are allowed for checks that need persistent local
   tool caches.
+- Hooks that invoke project-owned tools should clear git-hooks runtime variables
+  and Git local repository variables for the child command. The check script
+  should use Git state for its own discovery first, then run the project tool
+  like a manual command from the project root. Tools that intentionally operate
+  on hook Git state, for example staged-diff scanners, should keep the hook Git
+  environment.
 
 ## Layout Contract
 
@@ -240,6 +246,9 @@ are concrete enough to maintain.
   non-executable.
 - ShellSpec checks should run in `pre-push` and discover tracked `.shellspec`
   files anywhere in the repository, running once from each owning directory.
+- ShellSpec project suites must run like manual test commands. Clear Git hook
+  runtime variables and Git local repository variables before invoking
+  `shellspec`, so nested hook tests can create and inspect independent Git repos.
 - Tool config belongs outside check scripts. Checks should load repo-local
   standard config first, user XDG config second, and bundled git-hooks fallback
   config last when the tool supports explicit config files.
@@ -249,6 +258,14 @@ are concrete enough to maintain.
 - Bundled fallback config keeps hooks self-maintained. It should be conservative
   enough for general use and easy for a repo to override with standard config
   filenames used by the underlying tool and CI.
+- Future checks that execute project tools should use
+  `git_hooks_env_run_project_command <tool> [args...]` by default. This prevents
+  hook-local Git variables such as `GIT_DIR`, `GIT_WORK_TREE`, `GIT_COMMON_DIR`,
+  and `GIT_INDEX_FILE` from leaking into nested project tests or tool commands.
+- Do not use `git_hooks_env_run_project_command` for commands that intentionally
+  inspect hook Git state, such as staged-file discovery, staged patch creation,
+  or scanners that run against `--staged` content. Keep those commands in the
+  hook environment and document the reason when it is not obvious.
 - Hook implementation commits should stay reviewable: docs first, then one
   commit per reusable hook, then profile updates.
 - Each hook must include ShellSpec coverage and keep its documented test case

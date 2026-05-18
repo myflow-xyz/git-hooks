@@ -38,7 +38,7 @@ if git_hooks_log_is_verbose; then
   git_hooks_oxfmt_status=0
   while IFS= read -r git_hooks_oxfmt_file || [ -n "$git_hooks_oxfmt_file" ]; do
     [ -n "$git_hooks_oxfmt_file" ] || continue
-    command pnpm exec oxfmt --check "$git_hooks_oxfmt_file"
+    git_hooks_env_run_project_command pnpm exec oxfmt --check "$git_hooks_oxfmt_file"
     git_hooks_oxfmt_current_status=$?
     if [ "$git_hooks_oxfmt_current_status" -ge 128 ] 2>/dev/null; then
       exit "$git_hooks_oxfmt_current_status"
@@ -61,7 +61,7 @@ git_hooks_env_install_abort_traps 'rm -f "$git_hooks_oxfmt_output"' || exit $?
 git_hooks_oxfmt_status=0
 while IFS= read -r git_hooks_oxfmt_file || [ -n "$git_hooks_oxfmt_file" ]; do
   [ -n "$git_hooks_oxfmt_file" ] || continue
-  command pnpm exec oxfmt --check "$git_hooks_oxfmt_file" >>"$git_hooks_oxfmt_output" 2>&1
+  git_hooks_env_run_project_command pnpm exec oxfmt --check "$git_hooks_oxfmt_file" >>"$git_hooks_oxfmt_output" 2>&1
   git_hooks_oxfmt_current_status=$?
   if [ "$git_hooks_oxfmt_current_status" -ge 128 ] 2>/dev/null; then
     exit "$git_hooks_oxfmt_current_status"

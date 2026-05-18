@@ -35,23 +35,9 @@ git_hooks_playwright_has_e2e_signal() {
   git_hooks_playwright_has_config || git_hooks_playwright_has_tracked_e2e_tests
 }
 
-git_hooks_playwright_run() (
-  unset GIT_HOOK_PHASE
-  unset GIT_HOOKS_HOME
-  unset GIT_HOOKS_COMMON_DIR
-  unset GIT_HOOK_REPO_ROOT
-  unset GIT_HOOK_PROJECT_DIR
-  unset GIT_HOOK_PROJECT_ENV
-  unset GIT_HOOK_PROJECT_CONF
-  unset GIT_HOOK_PROFILES
-  unset GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS
-  unset GIT_HOOK_PRE_PUSH_EXTRA_CHECKS
-  unset GIT_HOOK_COMMIT_MSG_EXTRA_CHECKS
-  unset GIT_HOOK_EXTRA_CHECKS
-  unset GIT_HOOK_VERBOSE
-
-  command pnpm exec playwright test --pass-with-no-tests
-)
+git_hooks_playwright_run() {
+  git_hooks_env_run_project_command pnpm exec playwright test --pass-with-no-tests
+}
 
 if ! git_hooks_playwright_has_e2e_signal; then
   git_hooks_log_skip 'playwright; e2e test files missing'

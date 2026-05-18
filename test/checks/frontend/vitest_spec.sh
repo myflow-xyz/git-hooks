@@ -140,6 +140,51 @@ EOF
     The stderr should eq ''
   End
 
+  It 'does not leak Git local repository environment into Vitest'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-vitest.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_VERBOSE=1
+      export VITEST_FAKE_REPO="$tmpdir/fake"
+      mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/outer/node_modules/.bin" "$VITEST_FAKE_REPO"
+      VITEST_FAKE_REPO=$(CDPATH="" cd "$VITEST_FAKE_REPO" && pwd -P)
+      export VITEST_FAKE_REPO
+      cat > "$tmpdir/bin/pnpm" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+[ "$1" = exec ] || exit 8
+[ "$2" = vitest ] || exit 8
+[ "$3" = run ] || exit 8
+[ -z "${GIT_DIR+x}" ] || exit 9
+[ -z "${GIT_WORK_TREE+x}" ] || exit 9
+[ -z "${GIT_COMMON_DIR+x}" ] || exit 9
+[ -z "${GIT_INDEX_FILE+x}" ] || exit 9
+actual=$(git -C "$VITEST_FAKE_REPO" rev-parse --show-toplevel) || exit 10
+[ "$actual" = "$VITEST_FAKE_REPO" ] || exit 11
+printf isolated
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/pnpm"
+      printf "%s\n" "#!/usr/bin/env sh" "exit 0" > "$tmpdir/outer/node_modules/.bin/vitest"
+      chmod +x "$tmpdir/outer/node_modules/.bin/vitest"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/outer"
+      git init -q
+      git -C "$VITEST_FAKE_REPO" init -q
+      printf "{}\n" > package.json
+      export GIT_DIR="$PWD/.git"
+      export GIT_WORK_TREE="$PWD"
+      export GIT_COMMON_DIR="$PWD/.git"
+      export GIT_INDEX_FILE="$PWD/.git/index"
+      sh "$ROOT/lib/checks/frontend/vitest.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should include 'isolated'
+    The stderr should eq ''
+  End
+
   It 'returns the vitest status and prints output when tests fail'
     When run sh -u -c '
       ROOT=$1

@@ -29,7 +29,7 @@ git_hooks_golang_prepare_runtime_dirs || exit $?
 git_hooks_log_info 'go vet ./...'
 
 if git_hooks_log_is_verbose; then
-  command go vet ./...
+  git_hooks_env_run_project_command go vet ./...
   exit $?
 fi
 
@@ -44,7 +44,7 @@ git_hooks_go_vet_output=$(mktemp "${TMPDIR:-/tmp}/git-hooks-go-vet.XXXXXX") || {
 }
 git_hooks_env_install_abort_traps 'rm -f "$git_hooks_go_vet_output"' || exit $?
 
-command go vet ./... >"$git_hooks_go_vet_output" 2>&1
+git_hooks_env_run_project_command go vet ./... >"$git_hooks_go_vet_output" 2>&1
 git_hooks_go_vet_status=$?
 
 if [ "$git_hooks_go_vet_status" -eq 0 ]; then

@@ -75,10 +75,10 @@ git_hooks_python_run() {
       # shellcheck disable=SC2086
       set -- $git_hooks_python_uv_args_value -- "$@"
       set +f
-      command uv run "$@"
+      git_hooks_env_run_project_command uv run "$@"
       ;;
     path)
-      command "$@"
+      git_hooks_env_run_project_command "$@"
       ;;
   esac
 }

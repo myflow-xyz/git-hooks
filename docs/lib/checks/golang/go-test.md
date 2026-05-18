@@ -36,5 +36,6 @@ Run only this script's tests:
 | Existing | `git-hooks` | skips modules with no Go files |
 | Existing | `git-hooks` | skips with an install hint when missing |
 | Existing | `git-hooks` | creates missing configured Go runtime directories |
+| Existing | `git-hooks` | does not leak Git local repository environment into go test |
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | reports test failure output |

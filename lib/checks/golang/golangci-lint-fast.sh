@@ -74,7 +74,7 @@ fi
 git_hooks_golang_prepare_lint_runtime_dirs || exit $?
 
 git_hooks_golangci_fast_run_linter() {
-  command golangci-lint run \
+  git_hooks_env_run_project_command golangci-lint run \
     --config "$git_hooks_golangci_fast_config" \
     --fast-only \
     --new-from-patch="$git_hooks_golangci_fast_patch" \

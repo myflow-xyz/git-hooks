@@ -46,7 +46,7 @@ if git_hooks_log_is_verbose; then
   git_hooks_vitest_verbose=1
 fi
 
-command pnpm exec vitest run >"$git_hooks_vitest_output" 2>&1
+git_hooks_env_run_project_command pnpm exec vitest run >"$git_hooks_vitest_output" 2>&1
 git_hooks_vitest_status=$?
 
 if [ "$git_hooks_vitest_status" -eq 0 ]; then

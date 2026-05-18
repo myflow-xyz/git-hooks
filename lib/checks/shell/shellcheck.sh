@@ -41,10 +41,10 @@ while IFS= read -r git_hooks_shellcheck_file || [ -n "$git_hooks_shellcheck_file
   fi
 
   if git_hooks_log_is_verbose; then
-    command shellcheck --severity=warning -s "$git_hooks_shellcheck_shell" "$git_hooks_shellcheck_file"
+    git_hooks_env_run_project_command shellcheck --severity=warning -s "$git_hooks_shellcheck_shell" "$git_hooks_shellcheck_file"
     git_hooks_shellcheck_current_status=$?
   else
-    command shellcheck --severity=warning -s "$git_hooks_shellcheck_shell" "$git_hooks_shellcheck_file" >"$git_hooks_shellcheck_output.current" 2>&1
+    git_hooks_env_run_project_command shellcheck --severity=warning -s "$git_hooks_shellcheck_shell" "$git_hooks_shellcheck_file" >"$git_hooks_shellcheck_output.current" 2>&1
     git_hooks_shellcheck_current_status=$?
   fi
 

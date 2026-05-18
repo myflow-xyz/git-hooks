@@ -24,7 +24,7 @@ git_hooks_golang_prepare_runtime_dirs || exit $?
 git_hooks_log_info 'go mod tidy -diff'
 
 if git_hooks_log_is_verbose; then
-  command go mod tidy -diff
+  git_hooks_env_run_project_command go mod tidy -diff
   exit $?
 fi
 
@@ -39,7 +39,7 @@ git_hooks_go_mod_tidy_output=$(mktemp "${TMPDIR:-/tmp}/git-hooks-go-mod-tidy.XXX
 }
 git_hooks_env_install_abort_traps 'rm -f "$git_hooks_go_mod_tidy_output"' || exit $?
 
-command go mod tidy -diff >"$git_hooks_go_mod_tidy_output" 2>&1
+git_hooks_env_run_project_command go mod tidy -diff >"$git_hooks_go_mod_tidy_output" 2>&1
 git_hooks_go_mod_tidy_status=$?
 
 if [ "$git_hooks_go_mod_tidy_status" -eq 0 ]; then

@@ -148,6 +148,50 @@ EOF
     The stderr should eq ''
   End
 
+  It 'does not leak Git local repository environment into project ShellSpec suites'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-shellspec.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_VERBOSE=1
+      export SHELLSPEC_FAKE_REPO="$tmpdir/fake"
+      mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/outer" "$SHELLSPEC_FAKE_REPO"
+      SHELLSPEC_FAKE_REPO=$(CDPATH="" cd "$SHELLSPEC_FAKE_REPO" && pwd -P)
+      export SHELLSPEC_FAKE_REPO
+      cat > "$tmpdir/bin/shellspec" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+[ -z "${GIT_DIR+x}" ] || exit 9
+[ -z "${GIT_WORK_TREE+x}" ] || exit 9
+[ -z "${GIT_COMMON_DIR+x}" ] || exit 9
+[ -z "${GIT_INDEX_FILE+x}" ] || exit 9
+actual=$(git -C "$SHELLSPEC_FAKE_REPO" rev-parse --show-toplevel) || exit 10
+[ "$actual" = "$SHELLSPEC_FAKE_REPO" ] || {
+  printf "%s\n" "$actual"
+  exit 11
+}
+printf isolated
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/shellspec"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/outer"
+      git init -q
+      : > .shellspec
+      git add .shellspec
+      git -C "$SHELLSPEC_FAKE_REPO" init -q
+      export GIT_DIR="$PWD/.git"
+      export GIT_WORK_TREE="$PWD"
+      export GIT_COMMON_DIR="$PWD/.git"
+      export GIT_INDEX_FILE="$PWD/.git/index"
+      sh "$ROOT/lib/checks/shell/shellspec.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should include 'isolated'
+    The stderr should eq ''
+  End
+
   It 'stops after an interrupted ShellSpec root'
     When run sh -u -c '
       ROOT=$1

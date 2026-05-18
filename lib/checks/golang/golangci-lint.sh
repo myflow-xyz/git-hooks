@@ -35,11 +35,11 @@ git_hooks_golangci_select_config() {
 
 git_hooks_golangci_run_linter() {
   if [ -n "$git_hooks_golangci_config" ]; then
-    command golangci-lint run --config "$git_hooks_golangci_config"
+    git_hooks_env_run_project_command golangci-lint run --config "$git_hooks_golangci_config"
     return $?
   fi
 
-  command golangci-lint run
+  git_hooks_env_run_project_command golangci-lint run
 }
 
 if ! git_hooks_golangci_has_go_context; then

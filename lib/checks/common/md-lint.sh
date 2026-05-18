@@ -31,11 +31,11 @@ git_hooks_md_run_linter() {
   fi
 
   if [ -n "$git_hooks_md_config" ]; then
-    command markdownlint-cli2 --no-globs --config "$git_hooks_md_config" "$1"
+    git_hooks_env_run_project_command markdownlint-cli2 --no-globs --config "$git_hooks_md_config" "$1"
     return $?
   fi
 
-  command markdownlint-cli2 "$1"
+  git_hooks_env_run_project_command markdownlint-cli2 "$1"
 }
 
 git_hooks_md_files=$(git_hooks_git_staged_text_files_by_extension md markdown)

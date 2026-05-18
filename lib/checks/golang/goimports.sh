@@ -44,7 +44,7 @@ git_hooks_env_install_abort_traps 'rm -f "$git_hooks_goimports_output" "$git_hoo
 while IFS= read -r git_hooks_goimports_file || [ -n "$git_hooks_goimports_file" ]; do
   [ -n "$git_hooks_goimports_file" ] || continue
 
-  command goimports -l "$git_hooks_goimports_file" >"$git_hooks_goimports_output.current" 2>"$git_hooks_goimports_error.current"
+  git_hooks_env_run_project_command goimports -l "$git_hooks_goimports_file" >"$git_hooks_goimports_output.current" 2>"$git_hooks_goimports_error.current"
   git_hooks_goimports_current_status=$?
 
   if git_hooks_log_is_verbose && [ -s "$git_hooks_goimports_output.current" ]; then

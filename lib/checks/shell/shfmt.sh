@@ -39,7 +39,7 @@ git_hooks_env_install_abort_traps 'rm -f "$git_hooks_shfmt_output" "$git_hooks_s
 while IFS= read -r git_hooks_shfmt_file || [ -n "$git_hooks_shfmt_file" ]; do
   [ -n "$git_hooks_shfmt_file" ] || continue
 
-  command shfmt -l "$git_hooks_shfmt_file" >"$git_hooks_shfmt_output.current" 2>"$git_hooks_shfmt_error.current"
+  git_hooks_env_run_project_command shfmt -l "$git_hooks_shfmt_file" >"$git_hooks_shfmt_output.current" 2>"$git_hooks_shfmt_error.current"
   git_hooks_shfmt_current_status=$?
 
   if git_hooks_log_is_verbose && [ -s "$git_hooks_shfmt_output.current" ]; then

@@ -12,6 +12,8 @@ React/Vite frontend test check for `pre-push`.
   treated as valid for this hook.
 - Runs `pnpm exec vitest run` so Git hooks never enter Vitest watch mode.
 - Skips when Vitest reports no test files.
+- Clears git-hooks runtime variables and Git local repository variables before
+  invoking Vitest so project tests see a normal local-test environment.
 - Captures output and keeps successful test runs silent unless
   `GIT_HOOK_VERBOSE=1`.
 
@@ -36,4 +38,5 @@ Run only this script's tests:
 | Existing | `git-hooks` | suppresses noisy successful `vitest run` output |
 | Existing | `git-hooks` | skips when Vitest reports no test files |
 | Existing | `git-hooks` | skips verbosely when Vitest reports no test files |
+| Existing | `git-hooks` | does not leak Git local repository environment into Vitest |
 | Existing | `git-hooks` | returns status and prints output when tests fail |

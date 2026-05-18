@@ -14,6 +14,8 @@ Private Python runner helper sourced by Python hook entrypoints.
 - `path` runs tools directly from the active environment or `PATH`.
 - `GIT_HOOK_PYTHON_UV_ARGS` defaults to `--frozen`.
 - Missing tool checks use `uv run <tool> --version` in uv mode.
+- Python tool commands run with git-hooks runtime variables and Git local
+  repository variables cleared after runner selection.
 - Invalid runner values fail fast because they indicate hook policy mistakes.
 
 ## Public Functions
@@ -41,3 +43,4 @@ Run only this script's tests:
 | Existing | `git-hooks` | rejects invalid runner value |
 | Existing | `git-hooks` | reports missing tool in path mode |
 | Existing | `git-hooks` | runs commands through uv with configured args |
+| Existing | `git-hooks` | does not leak Git local repository environment into Python tools |

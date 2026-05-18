@@ -56,7 +56,8 @@ setup-repo.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles
 - Shell checks discover staged `.sh`, `.bash`, and `.zsh` files wherever they
   live in the repository. `shfmt` and `shellcheck` skip `.zsh` files.
 - ShellSpec discovery uses tracked `.shellspec` files as project roots and runs
-  once from each matching directory.
+  once from each matching directory. ShellSpec runs with hook runtime variables
+  and Git local repository variables cleared.
 - Does not create `.githooks/hooks.env` by default.
 - Writes `.githooks/project.conf` only when a non-default profile selection is
   requested.

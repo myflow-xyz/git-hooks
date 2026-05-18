@@ -18,6 +18,8 @@ Runtime environment bootstrap for dispatcher and check scripts.
   variables and set only values that change hook policy.
 - Provide shared cleanup-and-abort trap helpers so checks do not swallow
   `SIGHUP`, `SIGINT`, or `SIGTERM`.
+- Provide a project-command runner that clears git-hooks runtime variables and
+  Git local repository variables before launching project-owned tools.
 - Keep runtime bootstrap portable for `sh`, `bash`, and `zsh`.
 
 ## Priority
@@ -47,11 +49,19 @@ agent default by explicitly setting `GIT_HOOK_VERBOSE` in `.githooks/hooks.env`.
 - `git_hooks_env_install_abort_traps [cleanup-command]`
 - `git_hooks_env_load_file <path>`
 - `git_hooks_env_load_export_file <path>`
+- `git_hooks_env_run_project_command <command> [args...]`
+- `git_hooks_env_unset_git_local_vars`
+- `git_hooks_env_unset_hook_runtime_vars`
 
 ## Boundary
 
 Do not add check-specific defaults here. Use profile lists and project config for
 policy.
+
+When adding a new hook that launches a project-owned tool, run that child command
+through `git_hooks_env_run_project_command` unless the tool intentionally needs
+the hook's Git environment. Use direct `command ...` only for hook-side Git
+queries, staged-content operations, or tools that must inspect the hook's index.
 
 ## Test Cases
 
@@ -65,6 +75,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | defaults missing extra-check variables to empty |
 | Existing | `git-hooks` | bootstraps direct check env and loads repo policy |
 | Existing | `git-hooks` | rejects unknown phases |
+| Existing | `git-hooks` | runs project commands without Git local or hook runtime environment |
 | Existing | `git-hooks` | abort traps clean temporary files and exit on interrupt |
 | Recommended | `git-hooks` | Cover nested worktree check bootstrap. |
 | Recommended | `git-hooks` | Cover invalid local env/config syntax. |

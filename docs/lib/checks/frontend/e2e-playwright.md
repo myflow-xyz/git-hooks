@@ -17,8 +17,8 @@ React/Vite Playwright E2E check for `pre-push`.
   documented no-tests option instead of parsing command output.
 - Captures output and keeps successful test runs silent unless
   `GIT_HOOK_VERBOSE=1`.
-- Clears `GIT_HOOK_*` runtime variables before invoking Playwright so project
-  tests see a normal local-test environment.
+- Clears git-hooks runtime variables and Git local repository variables before
+  invoking Playwright so project tests see a normal local-test environment.
 
 ## Failure Modes
 

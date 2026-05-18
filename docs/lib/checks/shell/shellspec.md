@@ -15,6 +15,8 @@ ShellSpec test check for `pre-push`.
   later ShellSpec roots.
 - Unsets Git hook runtime variables before invoking project ShellSpec suites so
   nested hook tests do not inherit parent hook policy.
+- Unsets Git local repository environment variables before invoking project
+  ShellSpec suites so nested Git commands can discover their own test repos.
 - Does not guess test roots from `*_spec.sh`; `.shellspec` is the explicit
   project marker.
 - Skips silently when no tracked `.shellspec` files exist.
@@ -42,4 +44,5 @@ Run only this script's tests:
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | reports failed directory and capped output |
 | Existing | `git-hooks` | does not leak hook runtime environment into suites |
+| Existing | `git-hooks` | does not leak Git local repository environment into suites |
 | Existing | `git-hooks` | stops after an interrupted ShellSpec root |

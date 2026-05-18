@@ -21,21 +21,7 @@ git_hooks_shellspec_run() {
     cd "$1" || return 1
 
     # Project ShellSpec suites should run like manual tests, not inherit hook policy.
-    unset GIT_HOOK_PHASE
-    unset GIT_HOOKS_HOME
-    unset GIT_HOOKS_COMMON_DIR
-    unset GIT_HOOK_REPO_ROOT
-    unset GIT_HOOK_PROJECT_DIR
-    unset GIT_HOOK_PROJECT_ENV
-    unset GIT_HOOK_PROJECT_CONF
-    unset GIT_HOOK_PROFILES
-    unset GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS
-    unset GIT_HOOK_PRE_PUSH_EXTRA_CHECKS
-    unset GIT_HOOK_COMMIT_MSG_EXTRA_CHECKS
-    unset GIT_HOOK_EXTRA_CHECKS
-    unset GIT_HOOK_VERBOSE
-
-    command shellspec
+    git_hooks_env_run_project_command shellspec
   )
 }
 
