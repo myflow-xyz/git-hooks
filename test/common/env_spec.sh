@@ -22,7 +22,7 @@ Describe 'lib/common/env.sh'
     The stdout should include 'common custom'
   End
 
-  It 'defaults missing extra check variables to empty'
+  It 'defaults missing extra hook variables to empty'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-env.XXXXXX")
@@ -35,10 +35,16 @@ Describe 'lib/common/env.sh'
       printf "%s\n" "GIT_HOOK_PROFILES=\"common custom\"" > .githooks/project.conf
       . "$ROOT/lib/common/env.sh"
       git_hooks_env_bootstrap pre-commit
-      printf "[%s][%s][%s]\n" "$GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS" "$GIT_HOOK_PRE_PUSH_EXTRA_CHECKS" "$GIT_HOOK_COMMIT_MSG_EXTRA_CHECKS"
+      [ -z "$GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS" ]
+      [ -z "$GIT_HOOK_PRE_PUSH_EXTRA_CHECKS" ]
+      [ -z "$GIT_HOOK_COMMIT_MSG_EXTRA_CHECKS" ]
+      [ -z "$GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS" ]
+      [ -z "$GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS" ]
+      [ -z "$GIT_HOOK_COMMIT_MSG_EXTRA_LOCAL_HOOKS" ]
+      printf ok
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stdout should eq '[][][]'
+    The stdout should eq 'ok'
   End
 
   It 'rejects unknown phases'
@@ -97,6 +103,7 @@ Describe 'lib/common/env.sh'
       export GIT_HOOKS_HOME="$ROOT"
       export GIT_HOOK_PHASE=pre-push
       export GIT_HOOK_VERBOSE=1
+      export GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS=local-test
       export GIT_HOOK_PYTHON_RUNNER=path
       . "$ROOT/lib/common/env.sh"
       git_hooks_env_run_project_command sh -c '"'"'
@@ -107,6 +114,7 @@ Describe 'lib/common/env.sh'
         [ -z "${GIT_HOOKS_HOME+x}" ] || exit 9
         [ -z "${GIT_HOOK_PHASE+x}" ] || exit 9
         [ -z "${GIT_HOOK_VERBOSE+x}" ] || exit 9
+        [ -z "${GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS+x}" ] || exit 9
         [ -z "${GIT_HOOK_PYTHON_RUNNER+x}" ] || exit 9
         actual=$(git -C "$1" rev-parse --show-toplevel) || exit 10
         [ "$actual" = "$1" ] || exit 11

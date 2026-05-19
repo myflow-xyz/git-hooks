@@ -410,6 +410,58 @@ EOF
     The stdout should eq 'profileextra'
   End
 
+  It 'runs direct local extra hooks after builtin extra checks'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/test" "$tmpdir/repo/.githooks/hooks"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      mkdir -p "$GIT_HOOKS_HOME/lib/checks/test"
+      printf "%s\n" "#!/usr/bin/env sh" "printf profile" > "$GIT_HOOKS_HOME/lib/checks/test/profile.sh"
+      printf "%s\n" "#!/usr/bin/env sh" "printf builtin" > "$GIT_HOOKS_HOME/lib/checks/test/builtin.sh"
+      printf "%s\n" "#!/usr/bin/env sh" "printf local" > "$tmpdir/repo/.githooks/hooks/yhook.sh"
+      chmod +x "$GIT_HOOKS_HOME/lib/checks/test/profile.sh" "$GIT_HOOKS_HOME/lib/checks/test/builtin.sh"
+      chmod +x "$tmpdir/repo/.githooks/hooks/yhook.sh"
+      printf "%s\n" "test/profile" > "$GIT_HOOKS_HOME/profiles/test/pre-commit.list"
+      printf "%s\n" \
+        "GIT_HOOK_PROFILES=test" \
+        "GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS=\"test/builtin\"" \
+        "GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS=\"yhook\"" \
+        > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq 'profilebuiltinlocal'
+  End
+
+  It 'runs nested local extra hooks with git hook arguments'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/test" "$tmpdir/repo/.githooks/hooks/dir"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      printf "%s\n" "#!/usr/bin/env sh" "printf \"nested:%s\" \"\$1\"" > "$tmpdir/repo/.githooks/hooks/dir/xhook.sh"
+      chmod +x "$tmpdir/repo/.githooks/hooks/dir/xhook.sh"
+      printf "%s\n" \
+        "GIT_HOOK_PROFILES=test" \
+        "GIT_HOOK_COMMIT_MSG_EXTRA_LOCAL_HOOKS=\"dir/xhook\"" \
+        > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/lib/dispatcher/run-hook.sh" commit-msg COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should include 'nested:COMMIT_EDITMSG'
+  End
+
   It 'stops on the first failing check'
     When run sh -u -c '
       ROOT=$1
