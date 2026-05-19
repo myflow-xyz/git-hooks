@@ -14,8 +14,8 @@ Runtime environment bootstrap for dispatcher and check scripts.
   execution too, so debugging a check script uses the same repo policy as
   dispatcher execution.
 - Apply defaults such as `GIT_HOOK_PROFILES=common`.
-- Default missing extra-check and extra-local-hook variables to empty; repo
-  config should omit empty variables and set only values that change hook
+- Default missing builtin extra-check and local extra-hook variables to empty;
+  repo config should omit empty variables and set only values that change hook
   policy.
 - Provide shared cleanup-and-abort trap helpers so checks do not swallow
   `SIGHUP`, `SIGINT`, or `SIGTERM`.
@@ -36,6 +36,11 @@ Repo-local files intentionally win over shell variables because they represent
 the repository's hook policy. For example, if your shell exports
 `GIT_HOOK_VERBOSE=1` but `.githooks/hooks.env` sets `GIT_HOOK_VERBOSE=0`, the
 repo-local value wins.
+
+The builtin defaults for `GIT_HOOK_*_EXTRA_CHECKS` and
+`GIT_HOOK_*_EXTRA_LOCAL_HOOKS` are empty. They are applied after repo-local
+config is loaded, so values from `.githooks/project.conf` override the empty
+defaults.
 
 For AI agents, prefer setting `GIT_HOOK_VERBOSE=0` in the agent runtime
 environment so inherited developer shell verbosity does not increase tool

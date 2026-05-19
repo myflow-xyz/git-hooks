@@ -132,10 +132,15 @@ Rules:
   extra-check and local-hook variables remain shell word lists.
 - Keep duplicate check IDs runnable. The dispatcher should not de-duplicate
   local or shared checks.
-- Treat missing or non-executable local hooks as hook failures, matching the
-  current shared-check behavior.
+- Warn and skip missing local hook files so stale local references do not block
+  the hook chain.
+- Treat existing non-executable local hooks as failures because the repo policy
+  points at a script that cannot run.
 - Do not let local hooks shadow shared checks. The dispatcher should resolve
   shared check lists and local hook lists through separate path functions.
+- Wrap local hook execution in the dispatcher. Capture output, replay bounded
+  output on failure, and print a consistent failure line with the local hook ID
+  and exit status.
 
 Recommended repo layout:
 
@@ -186,6 +191,14 @@ Optional:
   local hook intentionally needs hook Git state such as staged content.
 - Use repo-local `.githooks/hooks.env` for machine-local command paths or
   tunables.
+
+Dispatcher protection:
+
+- Missing selected local hook files warn and skip.
+- Existing non-executable local hook files fail before execution.
+- Successful local hook output is suppressed unless verbose mode is enabled.
+- Failed local hook output is replayed with a bounded line cap, followed by a
+  dispatcher error line.
 
 Minimum script:
 
@@ -280,8 +293,9 @@ Dispatcher tests:
 - Runs `dir/xhook` from `GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS` after profile
   checks.
 - Passes Git hook arguments through to a local `commit-msg` extra check.
-- Fails with an actionable path when the local hook is missing.
+- Warns and skips when the local hook is missing.
 - Fails when the local hook exists but is not executable.
+- Replays failed local hook output with a dispatcher failure line.
 - Stops before later extras when a local hook fails.
 - Does not let `.githooks/hooks/common/whitespace.sh` shadow
   `GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS="common/whitespace"`.

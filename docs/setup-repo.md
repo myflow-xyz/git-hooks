@@ -86,7 +86,7 @@ setup-repo.sh [--check | --update] [--repo <path>]
 - Phase-specific `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` append repo-local custom hooks
   after builtin extra checks. Local hook IDs resolve under
   `.githooks/hooks/<id>.sh`.
-- Missing extra-check variables default to empty.
+- Missing builtin and local extra-hook variables default to empty.
 - Omit empty variables from `.githooks/project.conf`.
 - Extra checks do not override profile checks.
 - Duplicate check IDs are not de-duplicated.
@@ -161,6 +161,8 @@ This runs `.githooks/hooks/dir/xhook.sh` and `.githooks/hooks/yhook.sh` after
 profile checks and builtin extra checks. Local hook scripts must be executable,
 exit `0` on success, exit non-zero on failure, avoid interactive prompts, and
 keep success output quiet unless `GIT_HOOK_VERBOSE=1`.
+Missing local hook files warn and skip so a stale local hook reference does not
+block the rest of the hook chain.
 
 Python coverage and audit extra checks:
 

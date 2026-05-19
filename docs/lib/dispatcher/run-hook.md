@@ -19,6 +19,9 @@ Phase dispatcher for repo-local Git hook wrappers.
 - Run phase-specific extra checks from project config.
 - Run phase-specific local extra hooks from project config after builtin extra
   checks.
+- Warn and skip missing local extra hook files.
+- Capture local extra hook output, replay bounded output on failure, and print a
+  consistent local hook failure line.
 - Ignore blank and comment lines in profile lists.
 - Reject unknown profiles from project config.
 - Skip duplicate profiles with a warning so existing repo configs do not run the
@@ -71,6 +74,9 @@ Run only this script's tests:
 | Existing | `git-hooks` | runs extra checks after profile checks |
 | Existing | `git-hooks` | runs direct local extra hooks |
 | Existing | `git-hooks` | runs nested local extra hooks with hook args |
+| Existing | `git-hooks` | warns and skips missing local extra hooks |
+| Existing | `git-hooks` | fails when local extra hooks are not executable |
+| Existing | `git-hooks` | replays failed local hook output and stops |
 | Existing | `git-hooks` | stops on the first failing check |
 | Existing | `git-hooks` | restores pre-commit index after check failure |
 | Existing | `git-hooks` | restores pre-commit index after interrupt status |

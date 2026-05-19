@@ -171,6 +171,13 @@ are concrete enough to maintain.
   checks: executable script, exit `0` on success, non-zero on failure, preserve
   signal-like statuses where possible, avoid interactive prompts, keep success
   output quiet, and honor `GIT_HOOK_VERBOSE=1` when they print progress.
+- Missing repo-local custom hook files warn and skip so a stale local reference
+  does not block builtin checks or other configured hooks. Existing
+  non-executable local hook files fail because the repo policy points at a
+  script that cannot run.
+- The dispatcher wraps local hook execution, captures local hook output, replays
+  bounded output on failure, and prints a consistent failure line with the local
+  hook ID and exit status.
 - Keep normal successful output quiet; report only actionable failures unless
   `GIT_HOOK_VERBOSE=1`.
 - Use `.gitattributes` as the primary checkout policy for line endings and the
