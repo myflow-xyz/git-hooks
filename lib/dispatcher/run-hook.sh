@@ -31,6 +31,27 @@ git_hooks_dispatcher_run_check() {
   "$git_hooks_dispatcher_check_path" "$@"
 }
 
+git_hooks_dispatcher_run_local_hook() {
+  git_hooks_dispatcher_local_hook=$(git_hooks_dispatcher_trim "$1")
+  shift
+
+  case "$git_hooks_dispatcher_local_hook" in
+  '' | \#*)
+    return 0
+    ;;
+  esac
+
+  git_hooks_dispatcher_local_hook_path=$(git_hooks_paths_local_hook "$GIT_HOOK_PROJECT_DIR" "$git_hooks_dispatcher_local_hook") || return $?
+
+  if [ ! -f "$git_hooks_dispatcher_local_hook_path" ] || [ ! -x "$git_hooks_dispatcher_local_hook_path" ]; then
+    git_hooks_log_error "local hook is not executable: $git_hooks_dispatcher_local_hook_path"
+    return 1
+  fi
+
+  git_hooks_log_check_start "local/$git_hooks_dispatcher_local_hook"
+  "$git_hooks_dispatcher_local_hook_path" "$@"
+}
+
 git_hooks_dispatcher_run_list() {
   git_hooks_dispatcher_list_file=$1
   shift
@@ -180,17 +201,24 @@ done
 case "$GIT_HOOK_PHASE" in
 pre-commit)
   GIT_HOOK_EXTRA_CHECKS=${GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS:-}
+  GIT_HOOK_EXTRA_LOCAL_HOOKS=${GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS:-}
   ;;
 pre-push)
   GIT_HOOK_EXTRA_CHECKS=${GIT_HOOK_PRE_PUSH_EXTRA_CHECKS:-}
+  GIT_HOOK_EXTRA_LOCAL_HOOKS=${GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS:-}
   ;;
 commit-msg)
   GIT_HOOK_EXTRA_CHECKS=${GIT_HOOK_COMMIT_MSG_EXTRA_CHECKS:-}
+  GIT_HOOK_EXTRA_LOCAL_HOOKS=${GIT_HOOK_COMMIT_MSG_EXTRA_LOCAL_HOOKS:-}
   ;;
 esac
 
 for git_hooks_dispatcher_check in $GIT_HOOK_EXTRA_CHECKS; do
   git_hooks_dispatcher_run_check "$git_hooks_dispatcher_check" "$@" || exit $?
+done
+
+for git_hooks_dispatcher_local_hook in $GIT_HOOK_EXTRA_LOCAL_HOOKS; do
+  git_hooks_dispatcher_run_local_hook "$git_hooks_dispatcher_local_hook" "$@" || exit $?
 done
 
 git_hooks_dispatcher_index_guard_disarm
