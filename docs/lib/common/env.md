@@ -14,8 +14,9 @@ Runtime environment bootstrap for dispatcher and check scripts.
   execution too, so debugging a check script uses the same repo policy as
   dispatcher execution.
 - Apply defaults such as `GIT_HOOK_PROFILES=common`.
-- Default missing extra-check variables to empty; repo config should omit empty
-  variables and set only values that change hook policy.
+- Default missing extra-check and extra-local-hook variables to empty; repo
+  config should omit empty variables and set only values that change hook
+  policy.
 - Provide shared cleanup-and-abort trap helpers so checks do not swallow
   `SIGHUP`, `SIGINT`, or `SIGTERM`.
 - Provide a project-command runner that clears git-hooks runtime variables and
@@ -72,10 +73,10 @@ Run only this script's tests:
 | Status | Environment | Scenario |
 | --- | --- | --- |
 | Existing | `git-hooks` | bootstraps dispatcher env and local config |
-| Existing | `git-hooks` | defaults missing extra-check variables to empty |
+| Existing | `git-hooks` | defaults missing extra hook variables to empty |
 | Existing | `git-hooks` | bootstraps direct check env and loads repo policy |
 | Existing | `git-hooks` | rejects unknown phases |
-| Existing | `git-hooks` | runs project commands without Git local or hook runtime environment |
-| Existing | `git-hooks` | abort traps clean temporary files and exit on interrupt |
+| Existing | `git-hooks` | clears hook and Git vars for project commands |
+| Existing | `git-hooks` | abort traps clean up and exit on interrupt |
 | Recommended | `git-hooks` | Cover nested worktree check bootstrap. |
 | Recommended | `git-hooks` | Cover invalid local env/config syntax. |

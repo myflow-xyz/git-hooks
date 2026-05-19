@@ -108,6 +108,17 @@ GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS="frontend/oxfmt frontend/oxlint"
 GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest frontend/e2e-playwright"
 ```
 
+Repo-local custom extra hooks in `.githooks/project.conf`:
+
+```sh
+GIT_HOOK_PROFILES="common"
+GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS="dir/xhook yhook"
+```
+
+Local hook IDs are suffixless paths under `.githooks/hooks`, so the example
+runs `.githooks/hooks/dir/xhook.sh` and `.githooks/hooks/yhook.sh` after
+profile checks and builtin extra checks.
+
 Project Memory (`pmem`) managed repo:
 
 ```sh
@@ -131,12 +142,13 @@ above in Go repos, or override cache locations in `.githooks/hooks.env`.
 
 `--hooks` selects which Git wrapper phases exist in the repo. `--profiles`
 selects built-in check lists. Multiple profiles are merged by running each
-profile in declared order, then phase-specific `GIT_HOOK_*_EXTRA_CHECKS` are
-appended. Extra checks do not override profile checks, and duplicate check IDs
-are not de-duplicated. Unknown profiles are invalid. Duplicate profiles are
-invalid for setup/check, but runtime skips repeated profiles with a warning for
-existing repo configs. Omit empty variables; missing extra-check variables
-default to empty.
+profile in declared order, then phase-specific builtin
+`GIT_HOOK_*_EXTRA_CHECKS` and local `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` are appended.
+Extra hooks do not override profile checks, and duplicate IDs are not
+de-duplicated. Unknown profiles are invalid. Duplicate profiles are invalid for
+setup/check, but runtime skips repeated profiles with a warning for existing
+repo configs. Omit empty variables; missing extra-hook variables default to
+empty.
 
 Copy bundled tool config for repo-local edits:
 
@@ -172,6 +184,7 @@ git-hooks/
 ## Docs
 
 - [Design](docs/design.md)
+- [Repo-Local Custom Hooks Spec](docs/local-custom-hooks-spec.md)
 - [Install](docs/install.md)
 - [Repo Setup](docs/setup-repo.md)
 - [Dispatcher](docs/lib/dispatcher/run-hook.md)

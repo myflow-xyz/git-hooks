@@ -52,6 +52,10 @@ repos should pin reviewed tags or commits instead of tracking a moving branch.
   then runs reusable check entrypoints.
 - Profile and extra-check lists use stable check IDs such as `common/gitleaks`,
   which resolve to `lib/checks/common/gitleaks.sh`.
+- Phase-specific extra hooks can be builtin or local. Builtin extra hooks use
+  `GIT_HOOK_*_EXTRA_CHECKS` and resolve through the shared runtime. Local extra
+  hooks use `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` and resolve under
+  `.githooks/hooks/<id>.sh`.
 - Dispatcher and check scripts treat `SIGHUP`, `SIGINT`, and `SIGTERM` as
   immediate aborts, not ordinary failures to aggregate.
 - `hooks.env` is optional and for exported machine-local environment only.
@@ -157,6 +161,16 @@ are concrete enough to maintain.
   should fail by design, not search order.
 - Do not duplicate root detection, staged-file discovery, logging, path joining,
   or environment defaults inside check scripts.
+- Repo-local custom hooks must live under `.githooks/hooks` and be selected
+  through `GIT_HOOK_*_EXTRA_LOCAL_HOOKS`. Their IDs are suffixless paths
+  relative to that root, for example `dir/xhook` for
+  `.githooks/hooks/dir/xhook.sh`.
+- Repo-local custom hooks run through the dispatcher, not through wrapper
+  template changes.
+- Repo-local custom hooks should follow the same hook contract as shared
+  checks: executable script, exit `0` on success, non-zero on failure, preserve
+  signal-like statuses where possible, avoid interactive prompts, keep success
+  output quiet, and honor `GIT_HOOK_VERBOSE=1` when they print progress.
 - Keep normal successful output quiet; report only actionable failures unless
   `GIT_HOOK_VERBOSE=1`.
 - Use `.gitattributes` as the primary checkout policy for line endings and the
