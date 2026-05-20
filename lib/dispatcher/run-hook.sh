@@ -63,6 +63,11 @@ git_hooks_dispatcher_run_local_hook() {
   git_hooks_dispatcher_local_hook_path=$(git_hooks_paths_local_hook "$GIT_HOOK_PROJECT_DIR" "$git_hooks_dispatcher_local_hook") || return $?
 
   if [ ! -f "$git_hooks_dispatcher_local_hook_path" ]; then
+    if command ls -d "$git_hooks_dispatcher_local_hook_path" >/dev/null 2>&1; then
+      git_hooks_log_error "local hook is not a regular file: $git_hooks_dispatcher_local_hook_path"
+      return 1
+    fi
+
     git_hooks_log_warn "missing local hook: $git_hooks_dispatcher_local_hook_path"
     return 0
   fi

@@ -134,8 +134,8 @@ Rules:
   local or shared checks.
 - Warn and skip missing local hook files so stale local references do not block
   the hook chain.
-- Treat existing non-executable local hooks as failures because the repo policy
-  points at a script that cannot run.
+- Treat existing non-file or non-executable local hook paths as failures because
+  the repo policy points at a script that cannot run.
 - Do not let local hooks shadow shared checks. The dispatcher should resolve
   shared check lists and local hook lists through separate path functions.
 - Wrap local hook execution in the dispatcher. Capture output, replay bounded
@@ -195,7 +195,7 @@ Optional:
 Dispatcher protection:
 
 - Missing selected local hook files warn and skip.
-- Existing non-executable local hook files fail before execution.
+- Existing non-file or non-executable local hook paths fail before execution.
 - Successful local hook output is suppressed unless verbose mode is enabled.
 - Failed local hook output is replayed with a bounded line cap, followed by a
   dispatcher error line.
@@ -295,6 +295,7 @@ Dispatcher tests:
 - Passes Git hook arguments through to a local `commit-msg` extra check.
 - Warns and skips when the local hook is missing.
 - Fails when the local hook exists but is not executable.
+- Fails when the local hook path exists but is not a regular file.
 - Replays failed local hook output with a dispatcher failure line.
 - Stops before later extras when a local hook fails.
 - Does not let `.githooks/hooks/common/whitespace.sh` shadow

@@ -76,6 +76,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | runs nested local extra hooks with hook args |
 | Existing | `git-hooks` | warns and skips missing local extra hooks |
 | Existing | `git-hooks` | fails when local extra hooks are not executable |
+| Existing | `git-hooks` | fails when local extra hook paths are directories |
 | Existing | `git-hooks` | replays failed local hook output and stops |
 | Existing | `git-hooks` | stops on the first failing check |
 | Existing | `git-hooks` | restores pre-commit index after check failure |

@@ -172,8 +172,8 @@ are concrete enough to maintain.
   signal-like statuses where possible, avoid interactive prompts, keep success
   output quiet, and honor `GIT_HOOK_VERBOSE=1` when they print progress.
 - Missing repo-local custom hook files warn and skip so a stale local reference
-  does not block builtin checks or other configured hooks. Existing
-  non-executable local hook files fail because the repo policy points at a
+  does not block builtin checks or other configured hooks. Existing non-file or
+  non-executable local hook paths fail because the repo policy points at a
   script that cannot run.
 - The dispatcher wraps local hook execution, captures local hook output, replays
   bounded output on failure, and prints a consistent failure line with the local

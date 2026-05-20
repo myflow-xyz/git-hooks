@@ -517,6 +517,29 @@ EOF
     The stderr should include '/.githooks/hooks/noexec.sh'
   End
 
+  It 'fails when local extra hook paths are not regular files'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/test" "$tmpdir/repo/.githooks/hooks/notfile.sh"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      printf "%s\n" \
+        "GIT_HOOK_PROFILES=test" \
+        "GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS=\"notfile\"" \
+        > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'pre-commit: error: local hook is not a regular file:'
+    The stderr should include '/.githooks/hooks/notfile.sh'
+    The stderr should not include 'missing local hook'
+  End
+
   It 'replays failed local hook output and stops before later local hooks'
     When run sh -u -c '
       ROOT=$1
