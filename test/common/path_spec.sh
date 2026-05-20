@@ -40,4 +40,40 @@ Describe 'lib/common/path.sh'
     The status should eq 0
     The stdout should eq '/tmp/custom/check.sh'
   End
+
+  It 'resolves direct local hook IDs under repo githooks'
+    When run sh -u -c '
+      ROOT=$1
+      . "$ROOT/lib/common/path.sh"
+      git_hooks_paths_local_hook "/tmp/repo/.githooks" "yhook"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq '/tmp/repo/.githooks/hooks/yhook.sh'
+  End
+
+  It 'resolves nested local hook IDs under repo githooks'
+    When run sh -u -c '
+      ROOT=$1
+      . "$ROOT/lib/common/path.sh"
+      git_hooks_paths_local_hook "/tmp/repo/.githooks" "dir/xhook"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq '/tmp/repo/.githooks/hooks/dir/xhook.sh'
+  End
+
+  It 'rejects invalid local hook IDs'
+    When run sh -u -c '
+      ROOT=$1
+      . "$ROOT/lib/common/path.sh"
+      ! git_hooks_paths_local_hook "/tmp/repo/.githooks" "" >/dev/null 2>&1
+      for id in /xhook ../xhook dir/../xhook dir/./xhook dir//xhook dir/xhook/ dir/xhook.sh; do
+        if git_hooks_paths_local_hook "/tmp/repo/.githooks" "$id" >/dev/null 2>&1; then
+          printf "accepted:%s\n" "$id"
+          exit 1
+        fi
+      done
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+  End
 End

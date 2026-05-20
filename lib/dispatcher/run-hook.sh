@@ -31,6 +31,87 @@ git_hooks_dispatcher_run_check() {
   "$git_hooks_dispatcher_check_path" "$@"
 }
 
+git_hooks_dispatcher_replay_local_hook_output() {
+  if [ "$#" -ne 2 ]; then
+    git_hooks_log_error 'Usage: git_hooks_dispatcher_replay_local_hook_output <hook-id> <output-file>'
+    return 2
+  fi
+
+  git_hooks_dispatcher_replay_hook=$1
+  git_hooks_dispatcher_replay_output=$2
+
+  [ -s "$git_hooks_dispatcher_replay_output" ] || return 0
+
+  command sed -n '1,120p' "$git_hooks_dispatcher_replay_output" >&2
+  git_hooks_dispatcher_replay_lines=$(command wc -l <"$git_hooks_dispatcher_replay_output" | command tr -d ' ')
+
+  if [ "$git_hooks_dispatcher_replay_lines" -gt 120 ]; then
+    git_hooks_log_warn "local hook output truncated; id=$git_hooks_dispatcher_replay_hook; lines=$git_hooks_dispatcher_replay_lines shown=120"
+  fi
+}
+
+git_hooks_dispatcher_run_local_hook() {
+  git_hooks_dispatcher_local_hook=$(git_hooks_dispatcher_trim "$1")
+  shift
+
+  case "$git_hooks_dispatcher_local_hook" in
+  '' | \#*)
+    return 0
+    ;;
+  esac
+
+  git_hooks_dispatcher_local_hook_path=$(git_hooks_paths_local_hook "$GIT_HOOK_PROJECT_DIR" "$git_hooks_dispatcher_local_hook") || return $?
+
+  if [ ! -f "$git_hooks_dispatcher_local_hook_path" ]; then
+    if command ls -d "$git_hooks_dispatcher_local_hook_path" >/dev/null 2>&1; then
+      git_hooks_log_error "local hook is not a regular file: $git_hooks_dispatcher_local_hook_path"
+      return 1
+    fi
+
+    git_hooks_log_warn "missing local hook: $git_hooks_dispatcher_local_hook_path"
+    return 0
+  fi
+
+  if [ ! -x "$git_hooks_dispatcher_local_hook_path" ]; then
+    git_hooks_log_error "local hook is not executable: $git_hooks_dispatcher_local_hook_path"
+    return 1
+  fi
+
+  if ! command -v mktemp >/dev/null 2>&1; then
+    git_hooks_log_error 'required command not found: mktemp'
+    return 127
+  fi
+
+  git_hooks_dispatcher_local_hook_output=$(mktemp "${TMPDIR:-/tmp}/git-hooks-local-hook.XXXXXX") || {
+    git_hooks_log_error 'failed to create temporary file for local hook output'
+    return 2
+  }
+
+  git_hooks_log_check_start "local/$git_hooks_dispatcher_local_hook"
+  "$git_hooks_dispatcher_local_hook_path" "$@" >"$git_hooks_dispatcher_local_hook_output" 2>&1
+  git_hooks_dispatcher_local_hook_status=$?
+
+  if [ "$git_hooks_dispatcher_local_hook_status" -eq 0 ]; then
+    if git_hooks_log_is_verbose; then
+      git_hooks_dispatcher_replay_local_hook_output "$git_hooks_dispatcher_local_hook" "$git_hooks_dispatcher_local_hook_output" || {
+        command rm -f "$git_hooks_dispatcher_local_hook_output"
+        return $?
+      }
+    fi
+
+    command rm -f "$git_hooks_dispatcher_local_hook_output"
+    return 0
+  fi
+
+  git_hooks_dispatcher_replay_local_hook_output "$git_hooks_dispatcher_local_hook" "$git_hooks_dispatcher_local_hook_output" || {
+    command rm -f "$git_hooks_dispatcher_local_hook_output"
+    return $?
+  }
+  command rm -f "$git_hooks_dispatcher_local_hook_output"
+  git_hooks_log_error "local hook failed; id=$git_hooks_dispatcher_local_hook; exit=$git_hooks_dispatcher_local_hook_status"
+  return "$git_hooks_dispatcher_local_hook_status"
+}
+
 git_hooks_dispatcher_run_list() {
   git_hooks_dispatcher_list_file=$1
   shift
@@ -180,17 +261,24 @@ done
 case "$GIT_HOOK_PHASE" in
 pre-commit)
   GIT_HOOK_EXTRA_CHECKS=${GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS:-}
+  GIT_HOOK_EXTRA_LOCAL_HOOKS=${GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS:-}
   ;;
 pre-push)
   GIT_HOOK_EXTRA_CHECKS=${GIT_HOOK_PRE_PUSH_EXTRA_CHECKS:-}
+  GIT_HOOK_EXTRA_LOCAL_HOOKS=${GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS:-}
   ;;
 commit-msg)
   GIT_HOOK_EXTRA_CHECKS=${GIT_HOOK_COMMIT_MSG_EXTRA_CHECKS:-}
+  GIT_HOOK_EXTRA_LOCAL_HOOKS=${GIT_HOOK_COMMIT_MSG_EXTRA_LOCAL_HOOKS:-}
   ;;
 esac
 
 for git_hooks_dispatcher_check in $GIT_HOOK_EXTRA_CHECKS; do
   git_hooks_dispatcher_run_check "$git_hooks_dispatcher_check" "$@" || exit $?
+done
+
+for git_hooks_dispatcher_local_hook in $GIT_HOOK_EXTRA_LOCAL_HOOKS; do
+  git_hooks_dispatcher_run_local_hook "$git_hooks_dispatcher_local_hook" "$@" || exit $?
 done
 
 git_hooks_dispatcher_index_guard_disarm

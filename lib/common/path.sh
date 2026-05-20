@@ -51,6 +51,24 @@ git_hooks_paths_project_conf() {
   git_hooks_paths_join "$(git_hooks_paths_repo_hooks_dir "$1")" 'project.conf'
 }
 
+git_hooks_paths_local_hook() {
+  if [ "$#" -ne 2 ]; then
+    printf '%s\n' 'Usage: git_hooks_paths_local_hook <repo-hooks-dir> <hook-id>' >&2
+    return 2
+  fi
+
+  git_hooks_paths_local_hook_id=$2
+
+  case "$git_hooks_paths_local_hook_id" in
+  '' | /* | */ | *.sh | . | .. | ./* | ../* | */./* | */. | */../* | */.. | *//*)
+    printf '%s\n' "invalid local hook id: $git_hooks_paths_local_hook_id" >&2
+    return 2
+    ;;
+  esac
+
+  git_hooks_paths_join "$1" 'hooks' "$git_hooks_paths_local_hook_id.sh"
+}
+
 git_hooks_paths_profile_list() {
   if [ "$#" -ne 3 ]; then
     printf '%s\n' 'Usage: git_hooks_paths_profile_list <hooks-home> <profile> <phase>' >&2

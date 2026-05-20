@@ -7,7 +7,8 @@ Bootstrap repo-local Git hook wrappers and policy for a project.
 ## Usage
 
 ```sh
-setup-repo.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>]
+setup-repo.sh [--check | --update] [--repo <path>]
+              [--hooks <hooks>] [--profiles <profiles>]
 ```
 
 ## Behavior
@@ -82,7 +83,10 @@ setup-repo.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles
 - Unknown profiles are invalid during setup/check and runtime dispatch.
 - Duplicate profiles are invalid in `setup-repo.sh` install/check mode.
 - Phase-specific `GIT_HOOK_*_EXTRA_CHECKS` append after profile checks.
-- Missing extra-check variables default to empty.
+- Phase-specific `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` append repo-local custom hooks
+  after builtin extra checks. Local hook IDs resolve under
+  `.githooks/hooks/<id>.sh`.
+- Missing builtin and local extra-hook variables default to empty.
 - Omit empty variables from `.githooks/project.conf`.
 - Extra checks do not override profile checks.
 - Duplicate check IDs are not de-duplicated.
@@ -146,6 +150,20 @@ GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS="frontend/oxfmt frontend/oxlint"
 GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="frontend/vitest frontend/e2e-playwright"
 ```
 
+Repo-local custom extra hook example:
+
+```sh
+GIT_HOOK_PROFILES="common"
+GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS="dir/xhook yhook"
+```
+
+This runs `.githooks/hooks/dir/xhook.sh` and `.githooks/hooks/yhook.sh` after
+profile checks and builtin extra checks. Local hook scripts must be executable,
+exit `0` on success, exit non-zero on failure, avoid interactive prompts, and
+keep success output quiet unless `GIT_HOOK_VERBOSE=1`.
+Missing local hook files warn and skip so a stale local hook reference does not
+block the rest of the hook chain.
+
 Python coverage and audit extra checks:
 
 ```sh
@@ -194,7 +212,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | writes only non-empty project policy variables |
 | Existing | `git-hooks` | accepts project config with only extra checks |
 | Existing | `git-hooks` | updates existing wrappers only |
-| Existing | `git-hooks` | reports no wrappers when wrapper update has nothing to update |
+| Existing | `git-hooks` | reports no wrappers during empty wrapper update |
 | Existing | `git-hooks` | rejects hook selection during wrapper update |
 | Existing | `git-hooks` | rejects profile selection during wrapper update |
 | Existing | `git-hooks` | checks an existing bootstrap |
