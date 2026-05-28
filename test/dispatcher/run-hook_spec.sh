@@ -281,21 +281,25 @@ EOF
       trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
-      export GOLANGCI_LOG="$tmpdir/golangci-log"
-      export GO_LOG="$tmpdir/go-log"
+      export HOOK_LOG="$tmpdir/hook-log"
       unset GOCACHE GOTMPDIR
       mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/repo/.githooks"
       cat > "$tmpdir/bin/golangci-lint" <<EOF
 #!/usr/bin/env sh
-printf "%s\n" "\$*" >> "$GOLANGCI_LOG"
+printf "golangci-lint:%s\n" "\$1" >> "$HOOK_LOG"
+exit 0
+EOF
+      cat > "$tmpdir/bin/govulncheck" <<EOF
+#!/usr/bin/env sh
+printf "govulncheck:%s\n" "\$*" >> "$HOOK_LOG"
 exit 0
 EOF
       cat > "$tmpdir/bin/go" <<EOF
 #!/usr/bin/env sh
-printf "%s\n" "\$*" >> "$GO_LOG"
+printf "go:%s\n" "\$*" >> "$HOOK_LOG"
 exit 0
 EOF
-      chmod +x "$tmpdir/bin/golangci-lint" "$tmpdir/bin/go"
+      chmod +x "$tmpdir/bin/golangci-lint" "$tmpdir/bin/govulncheck" "$tmpdir/bin/go"
       export PATH="$tmpdir/bin:$PATH"
       printf "%s\n" "GIT_HOOK_PROFILES=golang" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
@@ -304,14 +308,27 @@ EOF
       printf "package main\n" > main.go
       git add go.mod main.go
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
-      cat "$GOLANGCI_LOG"
-      cat "$GO_LOG"
+      expected=$(cat <<'"'"'EOF_EXPECTED'"'"'
+go:mod tidy -diff
+govulncheck:./...
+golangci-lint:run
+go:vet ./...
+go:test ./...
+EOF_EXPECTED
+)
+      actual=$(cat "$HOOK_LOG")
+      [ "$actual" = "$expected" ] || {
+        cat "$HOOK_LOG"
+        exit 99
+      }
+      cat "$HOOK_LOG"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stdout should include 'run --config'
-    The stdout should include 'mod tidy -diff'
-    The stdout should include 'vet ./...'
-    The stdout should include 'test ./...'
+    The stdout should include 'go:mod tidy -diff'
+    The stdout should include 'govulncheck:./...'
+    The stdout should include 'golangci-lint:run'
+    The stdout should include 'go:vet ./...'
+    The stdout should include 'go:test ./...'
   End
 
   It 'runs python pre-commit profile checks'

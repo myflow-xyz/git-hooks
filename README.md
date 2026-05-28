@@ -211,6 +211,7 @@ git-hooks/
   - [golangci-lint-fast](docs/lib/checks/golang/golangci-lint-fast.md)
   - [golangci-lint](docs/lib/checks/golang/golangci-lint.md)
   - [go-mod-tidy](docs/lib/checks/golang/go-mod-tidy.md)
+  - [govulncheck](docs/lib/checks/golang/govulncheck.md)
   - [go-vet](docs/lib/checks/golang/go-vet.md)
   - [go-test](docs/lib/checks/golang/go-test.md)
 - Python checks:

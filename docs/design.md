@@ -219,7 +219,8 @@ are concrete enough to maintain.
   Playwright when E2E tests are present, and skip when the repo has no E2E test
   cases.
 - Go stack checks use user-level Go tooling from `PATH`. Tools installed with
-  the configured Go toolchain, such as `go install ...`, are acceptable.
+  the configured Go toolchain, such as `govulncheck` installed through
+  `go install ...`, are acceptable.
   External Go-related binaries such as `golangci-lint` should prefer upstream
   binary releases over package managers like Homebrew, because package managers
   may install another Go runtime or shim ahead of the selected `GOROOT`.
@@ -232,8 +233,8 @@ are concrete enough to maintain.
   `$REPO/.cache/golangci-lint`. This default is loaded only by golangci-lint
   checks, not by generic Go checks.
 - Golang hooks should keep staged formatting and fast lint checks in
-  `pre-commit`, then module hygiene, package-wide lint, vet, and test checks in
-  `pre-push`.
+  `pre-commit`, then module hygiene, vulnerability advisory scanning,
+  package-wide lint, vet, and test checks in `pre-push`.
 - Go fast lint is hook policy, not standard project policy. It should use only
   bundled git-hooks config and `golangci-lint run --fast-only`. In
   `pre-commit`, it should generate a staged patch and pass
