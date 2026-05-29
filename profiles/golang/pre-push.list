@@ -3,3 +3,4 @@ golang/govulncheck
 golang/golangci-lint
 golang/go-vet
 golang/go-test
+dev/codegraph-build-index
