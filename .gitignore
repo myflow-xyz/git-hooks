@@ -3,3 +3,5 @@
 *.tmp
 *.swp
 *.swo
+
+.codegraph/
