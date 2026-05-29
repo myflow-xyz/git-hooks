@@ -1,2 +1,3 @@
 frontend/vitest
 frontend/e2e-playwright
+dev/codegraph-build-index

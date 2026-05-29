@@ -126,6 +126,7 @@ $XDG_CONFIG_HOME/git-hooks/
   config/                  # bundled fallback tool config
   lib/common/              # runtime helpers only
   lib/checks/common/       # reusable check entrypoints
+  lib/checks/dev/          # opt-in development workflow checks
   lib/checks/frontend/     # opt-in frontend stack checks
   lib/checks/golang/       # opt-in Golang checks
   lib/checks/pmem/         # opt-in Project Memory workflow checks
@@ -288,6 +289,13 @@ are concrete enough to maintain.
   inspect hook Git state, such as staged-file discovery, staged patch creation,
   or scanners that run against `--staged` content. Keep those commands in the
   hook environment and document the reason when it is not obvious.
+- Development workflow checks belong under `lib/checks/dev`, not the common
+  profile. These checks may maintain local machine state for developer tools,
+  but they still must avoid tracked-file edits, prompts, and noisy success
+  output.
+- Development checks that create local tool state should prefer `.git/info/exclude`
+  for generated cache/index directories when the target repository has not
+  already ignored them. They must not silently edit tracked ignore files.
 - Hook implementation commits should stay reviewable: docs first, then one
   commit per reusable hook, then profile updates.
 - Each hook must include ShellSpec coverage and keep its documented test case

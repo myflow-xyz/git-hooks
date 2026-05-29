@@ -41,4 +41,21 @@ Describe 'profiles'
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
   End
+
+  It 'runs codegraph index last in development-heavy pre-push profiles'
+    When run sh -u -c '
+      ROOT=$1
+      set -e
+
+      for profile_name in golang react-vite; do
+        list_file=$ROOT/profiles/$profile_name/pre-push.list
+        last_check=$(tail -n 1 "$list_file")
+        if [ "$last_check" != "dev/codegraph-build-index" ]; then
+          printf "%s\n" "codegraph-build-index is not last: $profile_name" >&2
+          exit 1
+        fi
+      done
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+  End
 End
