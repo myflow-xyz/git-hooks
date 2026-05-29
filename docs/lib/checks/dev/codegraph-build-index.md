@@ -41,9 +41,10 @@ Run only this script's tests:
 
 | Status | Environment | Scenario |
 | --- | --- | --- |
-| Planned | `git-hooks` | skips with an install hint when CodeGraph is missing |
-| Planned | `git-hooks` | initializes and builds the index when missing |
-| Planned | `git-hooks` | rebuilds the index when initialized |
-| Planned | `git-hooks` | keeps clean success silent |
-| Planned | `git-hooks` | streams native output in verbose mode |
-| Planned | `git-hooks` | reports failure output and tool exit code |
+| Existing | `git-hooks` | skips with an install hint when missing |
+| Existing | `git-hooks` | initializes and builds the index when missing |
+| Existing | `git-hooks` | rebuilds the index when initialized |
+| Existing | `git-hooks` | keeps clean success silent |
+| Existing | `git-hooks` | does not pass pre-push stdin to CodeGraph |
+| Existing | `git-hooks` | streams native output in verbose mode |
+| Existing | `git-hooks` | reports failure output and tool exit code |
