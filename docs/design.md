@@ -293,6 +293,9 @@ are concrete enough to maintain.
   profile. These checks may maintain local machine state for developer tools,
   but they still must avoid tracked-file edits, prompts, and noisy success
   output.
+- Development checks that create local tool state should prefer `.git/info/exclude`
+  for generated cache/index directories when the target repository has not
+  already ignored them. They must not silently edit tracked ignore files.
 - Hook implementation commits should stay reviewable: docs first, then one
   commit per reusable hook, then profile updates.
 - Each hook must include ShellSpec coverage and keep its documented test case

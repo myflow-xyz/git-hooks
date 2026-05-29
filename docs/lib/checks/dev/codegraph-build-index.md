@@ -11,8 +11,11 @@ Development-only CodeGraph index initialization and rebuild check for
 - Uses user-level `codegraph` from `PATH`.
 - Runs from the repository root after the shared hook environment has loaded.
 - Treats `.codegraph/codegraph.db` as the initialization marker.
-- When the repository is not initialized, runs `codegraph init -i .` to create
-  `.codegraph/` and build the initial index.
+- When the repository is not initialized and `.codegraph/` does not exist,
+  ensures `.codegraph/` is ignored before running `codegraph init -i .`.
+- The ignore step does not edit tracked `.gitignore`. If Git does not already
+  ignore `.codegraph/`, the hook appends `.codegraph/` to `.git/info/exclude`.
+- When `.codegraph/` already exists, the hook keeps ignore rules as-is.
 - When the repository is already initialized, runs `codegraph index --force .`
   to rebuild the index from current files.
 - Redirects command stdin from `/dev/null` so CodeGraph cannot consume Git
@@ -26,6 +29,8 @@ Development-only CodeGraph index initialization and rebuild check for
 
 - Skips with an install hint when `codegraph` is unavailable:
   `npm install -g @colbymchenry/codegraph`.
+- Fails before initialization if `.codegraph/` is not already ignored and the
+  hook cannot update `.git/info/exclude`.
 - Returns the CodeGraph exit code and capped diagnostics on failure.
 
 ## Related Checks
@@ -42,6 +47,8 @@ Run only this script's tests:
 | Status | Environment | Scenario |
 | --- | --- | --- |
 | Existing | `git-hooks` | skips with an install hint when missing |
+| Planned | `git-hooks` | adds `.codegraph/` to local exclude before init |
+| Planned | `git-hooks` | keeps existing `.codegraph/` ignore policy unchanged |
 | Existing | `git-hooks` | initializes and builds the index when missing |
 | Existing | `git-hooks` | rebuilds the index when initialized |
 | Existing | `git-hooks` | keeps clean success silent |
