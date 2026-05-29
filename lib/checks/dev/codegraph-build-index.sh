@@ -12,6 +12,49 @@ git_hooks_codegraph_initialized() {
   [ -f .codegraph/codegraph.db ]
 }
 
+git_hooks_codegraph_path_exists() {
+  [ -e .codegraph ]
+}
+
+git_hooks_codegraph_is_ignored() {
+  command git check-ignore -q .codegraph/ >/dev/null 2>&1
+}
+
+git_hooks_codegraph_exclude_path() {
+  command git rev-parse --git-path info/exclude
+}
+
+git_hooks_codegraph_ensure_local_exclude() {
+  git_hooks_codegraph_path_exists && return 0
+  git_hooks_codegraph_is_ignored && return 0
+
+  git_hooks_codegraph_exclude=$(git_hooks_codegraph_exclude_path) || {
+    git_hooks_log_error 'failed to resolve .git/info/exclude'
+    return 1
+  }
+  git_hooks_codegraph_exclude_dir=$(command dirname "$git_hooks_codegraph_exclude")
+
+  command mkdir -p "$git_hooks_codegraph_exclude_dir" || {
+    git_hooks_log_error "failed to create exclude directory: $git_hooks_codegraph_exclude_dir"
+    return 1
+  }
+
+  {
+    printf '\n%s\n' '# git-hooks: local CodeGraph index'
+    printf '%s\n' '.codegraph/'
+  } >>"$git_hooks_codegraph_exclude" || {
+    git_hooks_log_error "failed to update local exclude: $git_hooks_codegraph_exclude"
+    return 1
+  }
+
+  git_hooks_codegraph_is_ignored || {
+    git_hooks_log_error 'failed to ignore .codegraph/ through local exclude'
+    return 1
+  }
+
+  git_hooks_log_info 'added local exclude: .codegraph/'
+}
+
 git_hooks_codegraph_run() {
   git_hooks_env_run_project_command codegraph "$@" </dev/null
 }
@@ -40,6 +83,7 @@ if git_hooks_codegraph_initialized; then
   git_hooks_codegraph_command='codegraph index --force .'
   set -- index --force .
 else
+  git_hooks_codegraph_ensure_local_exclude || exit $?
   git_hooks_codegraph_command='codegraph init -i .'
   set -- init -i .
 fi

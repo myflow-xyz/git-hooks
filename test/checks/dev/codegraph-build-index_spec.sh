@@ -48,6 +48,91 @@ EOF
     The stderr should eq ''
   End
 
+  It 'adds .codegraph to local exclude before initialization'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-codegraph.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/codegraph" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+git check-ignore -q .codegraph/ || exit 13
+mkdir -p .codegraph
+: > .codegraph/codegraph.db
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/codegraph"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      sh "$ROOT/lib/checks/dev/codegraph-build-index.sh"
+      grep -Fx ".codegraph/" "$(git rev-parse --git-path info/exclude)" >/dev/null
+      [ -z "$(git status --porcelain -- .codegraph)" ]
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'keeps existing .codegraph ignore policy unchanged when path exists'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-codegraph.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/codegraph" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/codegraph"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      mkdir -p .codegraph
+      exclude_path=$(git rev-parse --git-path info/exclude)
+      before=$(wc -l < "$exclude_path" | tr -d " ")
+      sh "$ROOT/lib/checks/dev/codegraph-build-index.sh"
+      after=$(wc -l < "$exclude_path" | tr -d " ")
+      [ "$after" = "$before" ]
+      ! grep -Fx ".codegraph/" "$exclude_path" >/dev/null
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'fails before init when local exclude cannot be updated'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-codegraph.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/codegraph" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+printf "%s\n" "unexpected codegraph run"
+exit 99
+EOF
+      chmod +x "$tmpdir/bin/codegraph"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      exclude_path=$(git rev-parse --git-path info/exclude)
+      rm -f "$exclude_path"
+      mkdir "$exclude_path"
+      sh "$ROOT/lib/checks/dev/codegraph-build-index.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stdout should eq ''
+    The stderr should include 'git-hooks: error: failed to update local exclude:'
+    The stderr should not include 'unexpected codegraph run'
+  End
+
   It 'rebuilds the index when initialized'
     When run sh -u -c '
       ROOT=$1

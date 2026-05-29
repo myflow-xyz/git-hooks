@@ -47,8 +47,9 @@ Run only this script's tests:
 | Status | Environment | Scenario |
 | --- | --- | --- |
 | Existing | `git-hooks` | skips with an install hint when missing |
-| Planned | `git-hooks` | adds `.codegraph/` to local exclude before init |
-| Planned | `git-hooks` | keeps existing `.codegraph/` ignore policy unchanged |
+| Existing | `git-hooks` | adds `.codegraph/` to local exclude before init |
+| Existing | `git-hooks` | keeps existing `.codegraph/` ignore policy |
+| Existing | `git-hooks` | fails before init when local exclude cannot update |
 | Existing | `git-hooks` | initializes and builds the index when missing |
 | Existing | `git-hooks` | rebuilds the index when initialized |
 | Existing | `git-hooks` | keeps clean success silent |
