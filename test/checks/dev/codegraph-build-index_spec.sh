@@ -105,7 +105,7 @@ EOF
     The stderr should eq ''
   End
 
-  It 'fails before init when local exclude cannot be updated'
+  It 'skips init when local exclude cannot be updated'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-codegraph.XXXXXX")
@@ -127,10 +127,35 @@ EOF
       mkdir "$exclude_path"
       sh "$ROOT/lib/checks/dev/codegraph-build-index.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
-    The status should eq 1
+    The status should eq 0
     The stdout should eq ''
-    The stderr should include 'git-hooks: error: failed to update local exclude:'
+    The stderr should include 'git-hooks: warn: skip codegraph-build-index: failed to update local exclude:'
     The stderr should not include 'unexpected codegraph run'
+  End
+
+  It 'warns and allows push when initialization fails'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-codegraph.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/codegraph" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+printf "%s\n" "codegraph init failure details"
+exit 9
+EOF
+      chmod +x "$tmpdir/bin/codegraph"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      sh "$ROOT/lib/checks/dev/codegraph-build-index.sh"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should include 'git-hooks: warn: codegraph-build-index failed; exit=9'
+    The stderr should include 'codegraph init failure details'
   End
 
   It 'rebuilds the index when initialized'
@@ -248,7 +273,7 @@ EOF
     The stderr should include 'codegraph native stderr'
   End
 
-  It 'reports failure output and returns the tool exit code'
+  It 'warns and allows push when rebuild fails'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-codegraph.XXXXXX")
@@ -269,9 +294,9 @@ EOF
       : > .codegraph/codegraph.db
       sh "$ROOT/lib/checks/dev/codegraph-build-index.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
-    The status should eq 8
+    The status should eq 0
     The stdout should eq ''
-    The stderr should include 'git-hooks: error: codegraph-build-index failed; exit=8'
+    The stderr should include 'git-hooks: warn: codegraph-build-index failed; exit=8'
     The stderr should include 'codegraph failure details'
   End
 End

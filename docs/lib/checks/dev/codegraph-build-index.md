@@ -29,9 +29,11 @@ Development-only CodeGraph index initialization and rebuild check for
 
 - Skips with an install hint when `codegraph` is unavailable:
   `npm install -g @colbymchenry/codegraph`.
-- Fails before initialization if `.codegraph/` is not already ignored and the
-  hook cannot update `.git/info/exclude`.
-- Returns the CodeGraph exit code and capped diagnostics on failure.
+- Warns and skips initialization if `.codegraph/` is not already ignored and
+  the hook cannot update `.git/info/exclude`.
+- Warns with capped diagnostics and exits `0` when CodeGraph initialization or
+  rebuild fails. CodeGraph index maintenance is advisory and must not block
+  `pre-push`.
 
 ## Related Checks
 
@@ -49,10 +51,11 @@ Run only this script's tests:
 | Existing | `git-hooks` | skips with an install hint when missing |
 | Existing | `git-hooks` | adds `.codegraph/` to local exclude before init |
 | Existing | `git-hooks` | keeps existing `.codegraph/` ignore policy |
-| Existing | `git-hooks` | fails before init when local exclude cannot update |
+| Existing | `git-hooks` | skips init when local exclude cannot update |
 | Existing | `git-hooks` | initializes and builds the index when missing |
+| Existing | `git-hooks` | warns and allows push when initialization fails |
 | Existing | `git-hooks` | rebuilds the index when initialized |
+| Existing | `git-hooks` | warns and allows push when rebuild fails |
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | does not pass pre-push stdin to CodeGraph |
 | Existing | `git-hooks` | streams native output in verbose mode |
-| Existing | `git-hooks` | reports failure output and tool exit code |
