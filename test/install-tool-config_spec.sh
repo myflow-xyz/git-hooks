@@ -1,4 +1,4 @@
-Describe 'setup-config.sh'
+Describe 'install-tool-config.sh'
   It 'copies bundled markdownlint config into the repo root'
     When run sh -u -c '
       ROOT=$1
@@ -8,7 +8,7 @@ Describe 'setup-config.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-config.sh" common/md-lint
+      sh "$ROOT/install-tool-config.sh" common/md-lint
       cmp -s "$ROOT/config/markdownlint/markdownlint.yaml" .markdownlint-cli2.yaml
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -26,7 +26,7 @@ Describe 'setup-config.sh'
       cd "$tmpdir/repo"
       git init -q
       cd "$tmpdir/outside"
-      sh "$ROOT/setup-config.sh" --repo "$tmpdir/repo" golang/golangci-lint
+      sh "$ROOT/install-tool-config.sh" --repo "$tmpdir/repo" golang/golangci-lint
       cmp -s "$ROOT/config/golangci-lint/config.yaml" "$tmpdir/repo/.golangci.yaml"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -45,7 +45,7 @@ Describe 'setup-config.sh'
       git init -q
       printf "%s\n" "local" > .markdownlint-cli2.yaml
       status=0
-      sh "$ROOT/setup-config.sh" common/md-lint || status=$?
+      sh "$ROOT/install-tool-config.sh" common/md-lint || status=$?
       grep -Fx "local" .markdownlint-cli2.yaml >/dev/null
       exit "$status"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
@@ -64,7 +64,7 @@ Describe 'setup-config.sh'
       cd "$tmpdir/repo"
       git init -q
       printf "%s\n" "local" > .markdownlint-cli2.yaml
-      sh "$ROOT/setup-config.sh" --force common/md-lint
+      sh "$ROOT/install-tool-config.sh" --force common/md-lint
       cmp -s "$ROOT/config/markdownlint/markdownlint.yaml" .markdownlint-cli2.yaml
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -81,7 +81,7 @@ Describe 'setup-config.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-config.sh" golang/golangci-lint-fast
+      sh "$ROOT/install-tool-config.sh" golang/golangci-lint-fast
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'error: unsupported check ID: golang/golangci-lint-fast'
@@ -91,7 +91,7 @@ Describe 'setup-config.sh'
   It 'rejects a missing check ID and lists allowed IDs'
     When run sh -u -c '
       ROOT=$1
-      sh "$ROOT/setup-config.sh"
+      sh "$ROOT/install-tool-config.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'error: check ID is required'
@@ -106,16 +106,16 @@ Describe 'setup-config.sh'
       export HOME="$tmpdir/home"
       mkdir -p "$HOME" "$tmpdir/not-repo"
       cd "$tmpdir/not-repo"
-      sh "$ROOT/setup-config.sh" common/md-lint
+      sh "$ROOT/install-tool-config.sh" common/md-lint
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
     The stderr should include 'error: not inside a git repository; pass --repo <path>'
   End
 
   It 'shows usage and allowed check IDs in help output'
-    When run sh "$SHELLSPEC_PROJECT_ROOT/setup-config.sh" --help
+    When run sh "$SHELLSPEC_PROJECT_ROOT/install-tool-config.sh" --help
     The status should eq 0
-    The stdout should include 'Usage: setup-config.sh [--repo <path>] [--force] <check-id>'
+    The stdout should include 'Usage: install-tool-config.sh [--repo <path>] [--force] <check-id>'
     The stdout should include 'Allowed check IDs:'
     The stdout should include 'common/md-lint'
     The stdout should include 'golang/golangci-lint'

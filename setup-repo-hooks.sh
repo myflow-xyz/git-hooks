@@ -4,17 +4,17 @@ set -u
 
 git_hooks_install_usage() {
   cat <<'EOF'
-Usage: setup-repo.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>]
+Usage: setup-repo-hooks.sh [--check | --update] [--repo <path>] [--hooks <hooks>] [--profiles <profiles>]
 
 Bootstrap repo-local Git hooks for a project.
 
 Typical example:
-  setup-repo.sh
-  setup-repo.sh --profiles "common shell"
-  setup-repo.sh --check --profiles "common shell"
-  setup-repo.sh --update
-  setup-repo.sh --repo /path/to/repo --profiles "common shell"
-  setup-repo.sh --hooks "pre-commit commit-msg" --profiles "common shell"
+  setup-repo-hooks.sh
+  setup-repo-hooks.sh --profiles "common shell"
+  setup-repo-hooks.sh --check --profiles "common shell"
+  setup-repo-hooks.sh --update
+  setup-repo-hooks.sh --repo /path/to/repo --profiles "common shell"
+  setup-repo-hooks.sh --hooks "pre-commit commit-msg" --profiles "common shell"
 
 Options:
   --check                 verify repo-local hook setup without changing files

@@ -1,4 +1,4 @@
-# `setup-config.sh`
+# `install-tool-config.sh`
 
 ## Scope
 
@@ -8,15 +8,15 @@ overrides.
 ## Usage
 
 ```sh
-setup-config.sh [--repo <path>] [--force] <check-id>
+install-tool-config.sh [--repo <path>] [--force] <check-id>
 ```
 
 Allowed check IDs:
 
-| Check ID | Bundled source | Repo-local target |
-| --- | --- | --- |
-| `common/md-lint` | `config/markdownlint/markdownlint.yaml` | `.markdownlint-cli2.yaml` |
-| `golang/golangci-lint` | `config/golangci-lint/config.yaml` | `.golangci.yaml` |
+- `common/md-lint`: copies `config/markdownlint/markdownlint.yaml` to
+  `.markdownlint-cli2.yaml`.
+- `golang/golangci-lint`: copies `config/golangci-lint/config.yaml` to
+  `.golangci.yaml`.
 
 ## Behavior
 
@@ -35,25 +35,25 @@ Allowed check IDs:
 Copy Markdown lint defaults:
 
 ```sh
-setup-config.sh common/md-lint
+install-tool-config.sh common/md-lint
 ```
 
 Copy full Go lint defaults:
 
 ```sh
-setup-config.sh golang/golangci-lint
+install-tool-config.sh golang/golangci-lint
 ```
 
 Replace an existing local copy:
 
 ```sh
-setup-config.sh --force common/md-lint
+install-tool-config.sh --force common/md-lint
 ```
 
 Run from outside the target repository:
 
 ```sh
-setup-config.sh --repo /path/to/repo golang/golangci-lint
+install-tool-config.sh --repo /path/to/repo golang/golangci-lint
 ```
 
 ## Output Policy
@@ -61,7 +61,8 @@ setup-config.sh --repo /path/to/repo golang/golangci-lint
 Output is short and action-oriented:
 
 - Success: `git-hooks: copied; check-id=<check-id>; path=<repo-local-path>`
-- Warning: `git-hooks: warn: repo-local config now overrides bundled defaults; track future bundled changes manually`
+- Warning: `git-hooks: warn: repo-local config now overrides bundled defaults;`
+  followed by `track future bundled changes manually`
 - Failure: `git-hooks: error: <reason>`
 - Actionable hints: `git-hooks: info: <hint>`
 
@@ -69,7 +70,7 @@ Output is short and action-oriented:
 
 Run only this script's tests:
 
-- `shellspec test/setup-config_spec.sh`
+- `shellspec test/install-tool-config_spec.sh`
 
 | Status | Environment | Scenario |
 | --- | --- | --- |

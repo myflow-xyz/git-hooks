@@ -1,4 +1,4 @@
-Describe 'setup-repo.sh'
+Describe 'setup-repo-hooks.sh'
   It 'bootstraps minimal repo-local hooks with the default common profile'
     When run sh -u -c '
       ROOT=$1
@@ -9,7 +9,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh"
+      sh "$ROOT/setup-repo-hooks.sh"
       [ -x .githooks/pre-commit ]
       [ -x .githooks/commit-msg ]
       [ -x .githooks/pre-push ]
@@ -34,7 +34,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --hooks "pre-commit pre-push commit-msg"
+      sh "$ROOT/setup-repo-hooks.sh" --hooks "pre-commit pre-push commit-msg"
       [ -x .githooks/pre-commit ]
       [ -x .githooks/pre-push ]
       [ -x .githooks/commit-msg ]
@@ -52,7 +52,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --profiles "common react-vite"
+      sh "$ROOT/setup-repo-hooks.sh" --profiles "common react-vite"
       grep -F "GIT_HOOK_PROFILES=\"common react-vite\"" .githooks/project.conf >/dev/null
       [ -x .githooks/pre-push ]
       ! grep -F "GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS" .githooks/project.conf >/dev/null
@@ -73,7 +73,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --profiles "common shell"
+      sh "$ROOT/setup-repo-hooks.sh" --profiles "common shell"
       [ -x .githooks/pre-commit ]
       [ -x .githooks/pre-push ]
       [ -x .githooks/commit-msg ]
@@ -93,7 +93,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --hooks "pre-commit commit-msg" --profiles "common shell"
+      sh "$ROOT/setup-repo-hooks.sh" --hooks "pre-commit commit-msg" --profiles "common shell"
       [ -x .githooks/pre-commit ]
       [ ! -e .githooks/pre-push ]
       [ -x .githooks/commit-msg ]
@@ -115,7 +115,7 @@ Describe 'setup-repo.sh'
       git init -q
       printf "%s\n" "#!/usr/bin/env sh" "echo stale-pre-push" > .githooks/pre-push
       chmod +x .githooks/pre-push
-      sh "$ROOT/setup-repo.sh" --hooks "pre-commit commit-msg"
+      sh "$ROOT/setup-repo-hooks.sh" --hooks "pre-commit commit-msg"
       [ -x .githooks/pre-commit ]
       [ -x .githooks/commit-msg ]
       grep -F "echo stale-pre-push" .githooks/pre-push >/dev/null
@@ -134,9 +134,9 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" >/dev/null
+      sh "$ROOT/setup-repo-hooks.sh" >/dev/null
       printf "%s\n" "GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS=\"common/whitespace\"" > .githooks/project.conf
-      sh "$ROOT/setup-repo.sh" --check
+      sh "$ROOT/setup-repo-hooks.sh" --check
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should include 'check ok;'
@@ -157,7 +157,7 @@ Describe 'setup-repo.sh'
       printf "%s\n" "GIT_HOOK_PROFILES=\"common shell\"" > .githooks/project.conf
       printf "%s\n" "GIT_HOOK_VERBOSE=1" > .githooks/hooks.env
       git config --local core.hooksPath custom-hooks
-      sh "$ROOT/setup-repo.sh" --update
+      sh "$ROOT/setup-repo-hooks.sh" --update
       cmp -s "$ROOT/templates/repo-githooks/pre-commit" .githooks/pre-commit
       [ ! -e .githooks/pre-push ]
       [ ! -e .githooks/commit-msg ]
@@ -180,7 +180,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --update
+      sh "$ROOT/setup-repo-hooks.sh" --update
       [ ! -e .githooks ]
       ! git config --local --get core.hooksPath >/dev/null
     ' sh "$SHELLSPEC_PROJECT_ROOT"
@@ -197,7 +197,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --update --hooks pre-commit
+      sh "$ROOT/setup-repo-hooks.sh" --update --hooks pre-commit
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include '--hooks cannot be used with --update'
@@ -212,7 +212,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --update --profiles "common shell"
+      sh "$ROOT/setup-repo-hooks.sh" --update --profiles "common shell"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include '--profiles cannot be used with --update'
@@ -227,8 +227,8 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" >/dev/null
-      sh "$ROOT/setup-repo.sh" --check
+      sh "$ROOT/setup-repo-hooks.sh" >/dev/null
+      sh "$ROOT/setup-repo-hooks.sh" --check
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should include 'check ok;'
@@ -249,7 +249,7 @@ Describe 'setup-repo.sh'
       chmod +x .githooks/pre-commit
       chmod +x .githooks/pre-push
       chmod +x .githooks/commit-msg
-      sh "$ROOT/setup-repo.sh" --check
+      sh "$ROOT/setup-repo-hooks.sh" --check
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
     The stderr should include 'core.hooksPath mismatch'
@@ -265,7 +265,7 @@ Describe 'setup-repo.sh'
       cd "$tmpdir/repo"
       git init -q
       cd "$tmpdir/outside"
-      sh "$ROOT/setup-repo.sh" --repo "$tmpdir/repo"
+      sh "$ROOT/setup-repo-hooks.sh" --repo "$tmpdir/repo"
       [ ! -e "$tmpdir/repo/.githooks/project.conf" ]
       [ "$(git -C "$tmpdir/repo" config --local --get core.hooksPath)" = ".githooks" ]
     ' sh "$SHELLSPEC_PROJECT_ROOT"
@@ -283,7 +283,7 @@ Describe 'setup-repo.sh'
       cd "$tmpdir/repo"
       git init -q
       printf "%s\n" "GIT_HOOK_VERBOSE=1" > .githooks/hooks.env
-      sh "$ROOT/setup-repo.sh" >/dev/null
+      sh "$ROOT/setup-repo-hooks.sh" >/dev/null
       grep -F "GIT_HOOK_VERBOSE=1" .githooks/hooks.env >/dev/null
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -298,8 +298,8 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --profiles "common" >/dev/null
-      sh "$ROOT/setup-repo.sh" --check --profiles "common react-vite"
+      sh "$ROOT/setup-repo-hooks.sh" --profiles "common" >/dev/null
+      sh "$ROOT/setup-repo-hooks.sh" --check --profiles "common react-vite"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
     The stderr should include 'missing project config'
@@ -314,9 +314,9 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" >/dev/null
+      sh "$ROOT/setup-repo-hooks.sh" >/dev/null
       printf "%s\n" "GIT_HOOK_PROFILES=\"common\"" > .githooks/project.conf
-      sh "$ROOT/setup-repo.sh" --check --profiles "common react-vite"
+      sh "$ROOT/setup-repo-hooks.sh" --check --profiles "common react-vite"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
     The stderr should include 'profile mismatch'
@@ -331,7 +331,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --hooks "pre-commit nope"
+      sh "$ROOT/setup-repo-hooks.sh" --hooks "pre-commit nope"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'unknown hook: nope'
@@ -346,7 +346,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --hooks ""
+      sh "$ROOT/setup-repo-hooks.sh" --hooks ""
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'hooks cannot be empty'
@@ -361,7 +361,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --profiles ""
+      sh "$ROOT/setup-repo-hooks.sh" --profiles ""
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'profiles cannot be empty'
@@ -376,7 +376,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --profiles "   "
+      sh "$ROOT/setup-repo-hooks.sh" --profiles "   "
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'profiles cannot be empty'
@@ -391,7 +391,7 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" --profiles "common golagn"
+      sh "$ROOT/setup-repo-hooks.sh" --profiles "common golagn"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'unknown profile: golagn'
@@ -406,8 +406,8 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" >/dev/null
-      sh "$ROOT/setup-repo.sh" --check --profiles "common golagn"
+      sh "$ROOT/setup-repo-hooks.sh" >/dev/null
+      sh "$ROOT/setup-repo-hooks.sh" --check --profiles "common golagn"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'unknown profile: golagn'
@@ -422,8 +422,8 @@ Describe 'setup-repo.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      sh "$ROOT/setup-repo.sh" >/dev/null
-      sh "$ROOT/setup-repo.sh" --check --profiles "common common"
+      sh "$ROOT/setup-repo-hooks.sh" >/dev/null
+      sh "$ROOT/setup-repo-hooks.sh" --check --profiles "common common"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 2
     The stderr should include 'duplicate profile: common'

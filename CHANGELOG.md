@@ -7,4 +7,4 @@ private repository.
 
 - Prepare `git-hooks` to be maintained as a private standalone repository.
 - Keep installation self-contained through `install.sh`.
-- Keep repo bootstrap self-contained through `setup-repo.sh`.
+- Keep repo hook setup self-contained through `setup-repo-hooks.sh`.

@@ -1,4 +1,4 @@
-# `setup-repo.sh`
+# `setup-repo-hooks.sh`
 
 ## Scope
 
@@ -7,7 +7,7 @@ Bootstrap repo-local Git hook wrappers and policy for a project.
 ## Usage
 
 ```sh
-setup-repo.sh [--check | --update] [--repo <path>]
+setup-repo-hooks.sh [--check | --update] [--repo <path>]
               [--hooks <hooks>] [--profiles <profiles>]
 ```
 
@@ -81,7 +81,7 @@ setup-repo.sh [--check | --update] [--repo <path>]
 - `GIT_HOOK_PROFILES` may be omitted when the default `common` profile is enough.
 - Multiple profiles are additive and run in declared order.
 - Unknown profiles are invalid during setup/check and runtime dispatch.
-- Duplicate profiles are invalid in `setup-repo.sh` install/check mode.
+- Duplicate profiles are invalid in `setup-repo-hooks.sh` install/check mode.
 - Phase-specific `GIT_HOOK_*_EXTRA_CHECKS` append after profile checks.
 - Phase-specific `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` append repo-local custom hooks
   after builtin extra checks. Local hook IDs resolve under
@@ -118,20 +118,20 @@ setup-repo.sh [--check | --update] [--repo <path>]
 Default common example:
 
 ```sh
-setup-repo.sh
+setup-repo-hooks.sh
 ```
 
 Profile example:
 
 ```sh
-setup-repo.sh \
+setup-repo-hooks.sh \
   --profiles "common shell"
 ```
 
 Explicit hook override example:
 
 ```sh
-setup-repo.sh \
+setup-repo-hooks.sh \
   --hooks "pre-commit commit-msg" \
   --profiles "common shell"
 ```
@@ -139,7 +139,7 @@ setup-repo.sh \
 Wrapper-only update example:
 
 ```sh
-setup-repo.sh --update
+setup-repo-hooks.sh --update
 ```
 
 Custom extra checks example:
@@ -174,7 +174,7 @@ GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="python/pytest-cov python/pip-audit"
 Project Memory (`pmem`) managed repo:
 
 ```sh
-setup-repo.sh \
+setup-repo-hooks.sh \
   --profiles "common pmem"
 ```
 
@@ -199,7 +199,7 @@ Output is short and machine-readable enough for humans or LLM agents:
 
 Run only this script's tests:
 
-- `shellspec test/setup-repo_spec.sh`
+- `shellspec test/setup-repo-hooks_spec.sh`
 
 | Status | Environment | Scenario |
 | --- | --- | --- |

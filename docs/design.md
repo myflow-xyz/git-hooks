@@ -29,7 +29,7 @@ The source repository owns its operational boundary:
 When this repository is consumed as a submodule, the parent repo should treat
 the submodule as a pinned dependency. Update by moving the submodule pointer to
 a reviewed commit or tag, then run `install.sh --check` and target repo
-`setup-repo.sh --check` where applicable.
+`setup-repo-hooks.sh --check` where applicable.
 
 The repository is private proprietary tooling unless the owner explicitly
 changes the license. Tags are the release boundary after migration; downstream
@@ -39,7 +39,7 @@ repos should pin reviewed tags or commits instead of tracking a moving branch.
 
 - `install.sh` installs or verifies the shared runtime symlink in user XDG
   config.
-- `setup-repo.sh` installs or verifies repo-local Git hook wrappers.
+- `setup-repo-hooks.sh` installs or verifies repo-local Git hook wrappers.
 - Repo-local `.githooks/{pre-commit,pre-push,commit-msg}` are tiny wrappers.
 - Repos install only the wrappers they need; default install uses `pre-commit`,
   `pre-push`, and `commit-msg` from the `common` profile.
@@ -122,7 +122,8 @@ is loaded after the agent process environment.
 ```text
 $XDG_CONFIG_HOME/git-hooks/
   install.sh                # shared runtime installer
-  setup-repo.sh             # target repo bootstrap
+  setup-repo-hooks.sh      # target repo hook setup
+  install-tool-config.sh   # optional repo-local tool config installer
   config/                  # bundled fallback tool config
   lib/common/              # runtime helpers only
   lib/checks/common/       # reusable check entrypoints

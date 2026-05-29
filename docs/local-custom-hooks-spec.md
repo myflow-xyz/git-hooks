@@ -258,7 +258,7 @@ for other users.
 - Do not let local hooks override shared check IDs.
 - Do not search arbitrary repo paths for hook scripts.
 - Do not add local hooks to built-in shared profile lists.
-- Do not make `setup-repo.sh` create local hook scripts.
+- Do not make `setup-repo-hooks.sh` create local hook scripts.
 - Do not change wrapper templates beyond what is needed for dispatcher support.
 
 ## Implementation Plan
@@ -312,7 +312,7 @@ Runtime checks after implementation:
 
 ## Open Questions
 
-- Should `setup-repo.sh --check` eventually validate local extra hooks, or
+- Should `setup-repo-hooks.sh --check` eventually validate local extra hooks, or
   should runtime dispatch remain the only enforcement point?
 - Should there be a machine-private hook mechanism later, separate from tracked
   `.githooks/project.conf` policy?

@@ -4,7 +4,7 @@ set -u
 
 git_hooks_config_usage() {
   cat <<'EOF'
-Usage: setup-config.sh [--repo <path>] [--force] <check-id>
+Usage: install-tool-config.sh [--repo <path>] [--force] <check-id>
 
 Copy a bundled hook tool config into the target repo root for local overrides.
 
