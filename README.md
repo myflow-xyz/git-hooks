@@ -206,6 +206,8 @@ git-hooks/
   - [oxlint](docs/lib/checks/frontend/oxlint.md)
   - [oxfmt](docs/lib/checks/frontend/oxfmt.md)
   - [vitest](docs/lib/checks/frontend/vitest.md)
+- Development checks:
+  - [codegraph-build-index](docs/lib/checks/dev/codegraph-build-index.md)
 - Go checks:
   - [goimports](docs/lib/checks/golang/goimports.md)
   - [golangci-lint-fast](docs/lib/checks/golang/golangci-lint-fast.md)
