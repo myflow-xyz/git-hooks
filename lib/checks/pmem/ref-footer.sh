@@ -200,10 +200,16 @@ git_hooks_pmem_ref_footer_task_id() {
           line = trim(line)
 
           if (valid_id(line)) {
-            print line
-            exit 0
+            if (task_id == "") {
+              task_id = line
+            }
           }
         }
+      }
+
+      if (task_id != "") {
+        print task_id
+        exit 0
       }
 
       if (found) {

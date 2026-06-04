@@ -125,6 +125,42 @@ EOF
     The stderr should eq ''
   End
 
+  It 'rejects non-trailer text after a valid ref footer'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+case "$1 $2 $3" in
+"info --repo --json")
+  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  ;;
+"wi get --project-id")
+  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  ;;
+*)
+  exit 8
+  ;;
+esac
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n\n%s\n%s\n" "feat(pmem): reject malformed footer" "Ref: SPEC-123" "not-a-footer" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'commit-msg: error: missing ref footer'
+    The stderr should include 'commit-msg: info: expected footer: Ref: <task-id>; 3 <= id length < 24'
+  End
+
   It 'suppresses pmem warnings on successful checks'
     When run sh -u -c '
       ROOT=$1
