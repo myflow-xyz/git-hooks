@@ -47,6 +47,41 @@ EOF
     The stderr should include 'commit-msg: warn: no pmem config but pmem check hook enabled; skip'
   End
 
+  It 'ignores ambient pmem project selectors when probing repo config'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      export PMEM_PROJECT_ID=ambient-project
+      export PMEM_PROJECT_KEY=AMBIENT
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+[ "$1" = info ] || exit 8
+[ "$2" = --repo ] || exit 8
+[ "$3" = --json ] || exit 8
+if [ -n "${PMEM_PROJECT_ID:-}" ] || [ -n "${PMEM_PROJECT_KEY:-}" ]; then
+  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"ambient-project\"},\"events\":[],\"warnings\":[]}"
+  exit 0
+fi
+printf "%s\n" "{\"ok\":true,\"data\":{\"project_exists\":false},\"events\":[],\"warnings\":[]}"
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n" "feat(pmem): no repo config" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should include 'commit-msg: warn: no pmem config but pmem check hook enabled; skip'
+    The stderr should not include 'missing ref footer'
+  End
+
   It 'passes silently when a ref footer references an open task'
     When run sh -u -c '
       ROOT=$1

@@ -16,8 +16,10 @@ phase.
 - Uses `pmem info --repo --json` to read repo PMem config.
 - If repo PMem config is absent, warns that no pmem config exists while the
   hook is enabled, then skips.
-- Uses `data.project_id` from `pmem info --repo --json`; `PMEM_PROJECT_KEY` is
-  no longer read by this hook.
+- Clears ambient `PMEM_PROJECT_ID` and `PMEM_PROJECT_KEY` before PMem CLI calls
+  so repo config must come from the repository settings resolved by the CLI.
+- Uses `data.project_id` from `pmem info --repo --json`; PMem project selector
+  environment variables are not a repo-config source for this hook.
 - Requires the commit message footer block to contain `Ref: <task-id>`.
 - Validates task ID syntax locally: the ID must match
   `[A-Za-z0-9][A-Za-z0-9_-]*`.
@@ -61,6 +63,7 @@ Run only this script's tests:
 | --- | --- | --- |
 | Existing | `git-hooks` | skips when the pmem CLI is missing |
 | Existing | `git-hooks` | skips when repo PMem config is absent |
+| Existing | `git-hooks` | ignores ambient pmem project selectors when probing repo config |
 | Existing | `git-hooks` | passes when the ref footer references an open task |
 | Existing | `git-hooks` | passes when `GIT_HOOK_PMEM_BIN` points at a local pmem client |
 | Existing | `git-hooks` | reports project ID, task ID, and task status in verbose mode |

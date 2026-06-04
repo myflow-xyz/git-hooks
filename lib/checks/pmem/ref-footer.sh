@@ -38,6 +38,19 @@ git_hooks_pmem_ref_footer_bin() {
   command -v pmem 2>/dev/null
 }
 
+git_hooks_pmem_ref_footer_run_cli() {
+  if [ "$#" -lt 1 ]; then
+    git_hooks_log_error 'Usage: git_hooks_pmem_ref_footer_run_cli <command> [args...]'
+    return 2
+  fi
+
+  (
+    unset PMEM_PROJECT_ID
+    unset PMEM_PROJECT_KEY
+    git_hooks_env_run_project_command "$@"
+  )
+}
+
 git_hooks_pmem_ref_footer_json_object_is_plausible() {
   printf '%s\n' "$1" | command awk '
     { json = json $0 }
@@ -257,7 +270,7 @@ git_hooks_pmem_ref_footer_bin=$(git_hooks_pmem_ref_footer_bin) || {
 }
 
 git_hooks_pmem_ref_footer_info_json=$(
-  git_hooks_env_run_project_command "$git_hooks_pmem_ref_footer_bin" info --repo --json
+  git_hooks_pmem_ref_footer_run_cli "$git_hooks_pmem_ref_footer_bin" info --repo --json
 )
 git_hooks_pmem_ref_footer_info_status=$?
 
@@ -309,7 +322,7 @@ esac
 git_hooks_log_info "pmem task_id: $git_hooks_pmem_ref_footer_task_id"
 
 git_hooks_pmem_ref_footer_wi_json=$(
-  git_hooks_env_run_project_command \
+  git_hooks_pmem_ref_footer_run_cli \
     "$git_hooks_pmem_ref_footer_bin" wi get \
     --project-id "$git_hooks_pmem_ref_footer_project_id" \
     --id "$git_hooks_pmem_ref_footer_task_id" \
