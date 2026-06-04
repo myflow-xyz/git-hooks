@@ -248,9 +248,13 @@ git_hooks_pmem_ref_footer_bin=$(git_hooks_pmem_ref_footer_bin) || {
 }
 
 git_hooks_pmem_ref_footer_info_json=$(
-  git_hooks_pmem_ref_footer_run_cli "$git_hooks_pmem_ref_footer_bin" info --repo --json
+  git_hooks_pmem_ref_footer_run_cli "$git_hooks_pmem_ref_footer_bin" info --repo --json --quiet
 )
 git_hooks_pmem_ref_footer_info_status=$?
+
+if [ -n "$git_hooks_pmem_ref_footer_info_json" ]; then
+  git_hooks_log_info "pmem info response: $git_hooks_pmem_ref_footer_info_json"
+fi
 
 if [ "$git_hooks_pmem_ref_footer_info_status" -ne 0 ]; then
   git_hooks_log_error "pmem info failed; exit=$git_hooks_pmem_ref_footer_info_status"
@@ -333,9 +337,14 @@ git_hooks_pmem_ref_footer_wi_json=$(
     "$git_hooks_pmem_ref_footer_bin" wi get \
     --project-id "$git_hooks_pmem_ref_footer_project_id" \
     --id "$git_hooks_pmem_ref_footer_task_id" \
-    --json
+    --json \
+    --quiet
 )
 git_hooks_pmem_ref_footer_wi_status=$?
+
+if [ -n "$git_hooks_pmem_ref_footer_wi_json" ]; then
+  git_hooks_log_info "pmem wi get response: $git_hooks_pmem_ref_footer_wi_json"
+fi
 
 if [ "$git_hooks_pmem_ref_footer_wi_status" -ne 0 ]; then
   git_hooks_log_error "pmem wi get failed; id=$git_hooks_pmem_ref_footer_task_id; exit=$git_hooks_pmem_ref_footer_wi_status"

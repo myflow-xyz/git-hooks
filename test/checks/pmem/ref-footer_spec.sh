@@ -125,6 +125,44 @@ EOF
     The stderr should eq ''
   End
 
+  It 'suppresses pmem warnings on successful checks'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+case "$1 $2 $3" in
+"info --repo --json")
+  [ "$4" = --quiet ] || printf "%s\n" "pmem warning: noisy info" >&2
+  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-quiet\"},\"events\":[],\"warnings\":[]}"
+  ;;
+"wi get --project-id")
+  [ "$8" = --quiet ] || printf "%s\n" "pmem warning: noisy wi get" >&2
+  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  ;;
+*)
+  exit 8
+  ;;
+esac
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
   It 'uses the test pmem client when an ambient binary override exists'
     When run sh -u -c '
       ROOT=$1
@@ -197,6 +235,8 @@ EOF
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
+    The stdout should include 'commit-msg: pmem info response:'
+    The stdout should include 'commit-msg: pmem wi get response:'
     The stdout should include 'commit-msg: pmem project_id: proj-verbose'
     The stdout should include 'commit-msg: pmem task_id: task_123'
     The stdout should include 'commit-msg: pmem task_status: active'
