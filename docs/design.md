@@ -253,13 +253,15 @@ are concrete enough to maintain.
   coverage can duplicate test execution, while dependency audit can be slower
   or require advisory/database access.
 - Project Memory (`pmem`) hooks are opt-in and should stay in `commit-msg`
-  until there is a concrete need for repo-content checks. A repo using the
-  `pmem` profile must contain `.pmem/env` with `PMEM_PROJECT_KEY=<key>`. The
-  Project Memory commit-message check currently validates only local footer
-  syntax, the project-key gate, and temporary ID length bounds. A Project
-  Memory lookup that proves the referenced ticket, spec, task, issue, or other
-  PMem record exists under the project key is required future work before the
-  ID can be treated as fully valid.
+  until there is a concrete need for repo-content checks. The profile is
+  enforced only when the local `pmem` CLI is available and `pmem info --repo
+  --json` reports active repo PMem config; missing CLI or missing repo config
+  should warn and skip. Configured repos must require a `Ref: <task-id>` footer,
+  resolve the repo `project_id` through `pmem info --repo --json`, and validate
+  the work item with `pmem wi get --project-id <project-id> --id <task-id>
+  --json`. The hook should fail on PMem CLI/API errors and should reject
+  `canceled`, `done`, and `closed` work items because those statuses should not
+  accept new changes.
 - Shell hooks use explicit extensions only: `.sh`, `.bash`, and `.zsh`.
 - Shell `pre-commit` checks should operate on staged shell files wherever those
   files live in the repository.

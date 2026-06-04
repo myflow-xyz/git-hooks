@@ -49,8 +49,10 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
 - Add `python/pip-audit` as a `pre-push` extra check when dependency audit is
   required.
 - Use `--profiles "common pmem"` for repositories managed by Project Memory.
-- The `pmem` profile requires `.pmem/env` with `PMEM_PROJECT_KEY=<key>` and
-  enforces a `Ref` footer during `commit-msg`.
+- The `pmem` profile uses the `pmem` CLI and repo PMem config to enforce a
+  `Ref: <task-id>` footer during `commit-msg`. Missing CLI or missing repo PMem
+  config warns and skips; configured repos fail when the footer is missing, the
+  PMem CLI returns an error, or the referenced work item is closed.
 - Use `--profiles "common shell"` for repositories with shell scripts.
 - The `shell` profile runs `shfmt`, `shellcheck`, and executable-bit
   consistency checks during `pre-commit`, then ShellSpec during `pre-push`.
