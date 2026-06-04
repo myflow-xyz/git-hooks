@@ -68,6 +68,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | skips when repo PMem config is absent |
 | Existing | `git-hooks` | ignores ambient pmem project selectors when probing repo config |
 | Existing | `git-hooks` | passes when the ref footer references an open task |
+| Existing | `git-hooks` | uses the test pmem client when an ambient binary override exists |
 | Existing | `git-hooks` | passes when `GIT_HOOK_PMEM_BIN` points at a local pmem client |
 | Existing | `git-hooks` | reports project ID, task ID, and task status in verbose mode |
 | Existing | `git-hooks` | fails when `pmem info --repo --json` exits non-zero |
