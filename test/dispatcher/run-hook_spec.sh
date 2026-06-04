@@ -393,9 +393,24 @@ EOF_EXPECTED
       trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
-      mkdir -p "$HOME" "$tmpdir/repo/.githooks" "$tmpdir/repo/.pmem"
+      mkdir -p "$HOME" "$tmpdir/repo/.githooks" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+case "$1 $2 $3" in
+"info --repo --json")
+  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  ;;
+"wi get --project-id")
+  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  ;;
+*)
+  exit 8
+  ;;
+esac
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
       printf "%s\n" "GIT_HOOK_PROFILES=pmem" > "$tmpdir/repo/.githooks/project.conf"
-      printf "%s\n" "PMEM_PROJECT_KEY=APP" > "$tmpdir/repo/.pmem/env"
       printf "%s\n\n%s\n" "feat(pmem): add footer" "Ref: SPEC-123" > "$tmpdir/repo/COMMIT_EDITMSG"
       cd "$tmpdir/repo"
       git init -q

@@ -59,22 +59,23 @@ Run only this script's tests:
 
 | Status | Environment | Scenario |
 | --- | --- | --- |
-| Planned | `git-hooks` | skips when the pmem CLI is missing |
-| Planned | `git-hooks` | skips when repo PMem config is absent |
-| Planned | `git-hooks` | passes when the ref footer references an open task |
-| Planned | `git-hooks` | reports project ID, task ID, and task status in verbose mode |
-| Planned | `git-hooks` | fails when `pmem info --repo --json` exits non-zero |
-| Planned | `git-hooks` | fails when `pmem info --repo --json` reports `ok:false` |
-| Planned | `git-hooks` | fails when repo PMem config is active but project ID is missing |
+| Existing | `git-hooks` | skips when the pmem CLI is missing |
+| Existing | `git-hooks` | skips when repo PMem config is absent |
+| Existing | `git-hooks` | passes when the ref footer references an open task |
+| Existing | `git-hooks` | passes when `GIT_HOOK_PMEM_BIN` points at a local pmem client |
+| Existing | `git-hooks` | reports project ID, task ID, and task status in verbose mode |
+| Existing | `git-hooks` | fails when `pmem info --repo --json` exits non-zero |
+| Existing | `git-hooks` | fails when `pmem info --repo --json` reports `ok:false` |
+| Existing | `git-hooks` | fails when repo PMem config is active but project ID is missing |
 | Existing | `git-hooks` | fails when the task footer is missing |
 | Existing | `git-hooks` | fails when the task ID is shorter than three characters |
 | Existing | `git-hooks` | fails when the task ID has twenty-four characters |
 | Existing | `git-hooks` | fails when the task ID contains unsupported characters |
-| Existing | `git-hooks` | rejects a ref ID outside the footer block |
-| Planned | `git-hooks` | fails when `pmem wi get` exits non-zero |
-| Planned | `git-hooks` | fails when `pmem wi get` reports `ok:false` |
-| Planned | `git-hooks` | fails when `pmem wi get` omits task status |
-| Planned | `git-hooks` | fails when the task status is `canceled` |
-| Planned | `git-hooks` | fails when the task status is `done` |
-| Planned | `git-hooks` | fails when the task status is `closed` |
+| Existing | `git-hooks` | rejects a task ID outside the footer block |
+| Existing | `git-hooks` | fails when `pmem wi get` exits non-zero |
+| Existing | `git-hooks` | fails when `pmem wi get` reports `ok:false` |
+| Existing | `git-hooks` | fails when `pmem wi get` omits task status |
+| Existing | `git-hooks` | fails when the task status is `canceled` |
+| Existing | `git-hooks` | fails when the task status is `done` |
+| Existing | `git-hooks` | fails when the task status is `closed` |
 | Existing | `git-hooks` | rejects missing commit message file argument |
