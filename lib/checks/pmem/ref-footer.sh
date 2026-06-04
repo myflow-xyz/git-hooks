@@ -195,16 +195,27 @@ git_hooks_pmem_ref_footer_task_id() {
         }
 
         if (line ~ /^Ref:[[:space:]]*/) {
+          ref_count++
           found = 1
           sub(/^Ref:[[:space:]]*/, "", line)
           line = trim(line)
 
-          if (valid_id(line)) {
+          if (!valid_id(line)) {
+            invalid_ref = 1
+          } else {
             if (task_id == "") {
               task_id = line
             }
           }
         }
+      }
+
+      if (invalid_ref) {
+        exit 3
+      }
+
+      if (ref_count > 1) {
+        exit 4
       }
 
       if (task_id != "") {
@@ -326,6 +337,11 @@ case "$git_hooks_pmem_ref_footer_status" in
   ;;
 3)
   git_hooks_log_error 'invalid ref footer id'
+  git_hooks_pmem_ref_footer_info "expected footer: $(git_hooks_pmem_ref_footer_expected_footer)"
+  exit 1
+  ;;
+4)
+  git_hooks_log_error 'duplicate ref footer'
   git_hooks_pmem_ref_footer_info "expected footer: $(git_hooks_pmem_ref_footer_expected_footer)"
   exit 1
   ;;

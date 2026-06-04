@@ -24,7 +24,8 @@ phase.
   project IDs is PMem CLI behavior, not hook behavior.
 - Parses PMem JSON with `jq`. The hook does not trust raw substring matches
   from PMem output.
-- Requires the commit message footer block to contain `Ref: <task-id>`.
+- Requires the commit message footer block to contain exactly one
+  `Ref: <task-id>`.
 - Validates every line in the trailing footer block before accepting the
   `Ref` footer.
 - Validates task ID syntax locally: the ID must match
@@ -54,6 +55,7 @@ phase.
 - Returns `127` when PMem JSON must be parsed but `jq` is unavailable.
 - Returns `1` when the required ref footer is missing.
 - Returns `1` when a ref footer exists but its ID is malformed.
+- Returns `1` when more than one ref footer exists.
 - Returns `1` when `pmem wi get --project-id <project-id> --id <task-id>
   --json` fails, reports `ok:false`, omits `data.status`, or returns malformed
   JSON.
@@ -73,6 +75,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | ignores ambient pmem project selectors when probing repo config |
 | Existing | `git-hooks` | passes when the ref footer references an open task |
 | Existing | `git-hooks` | rejects non-trailer text after a valid ref footer |
+| Existing | `git-hooks` | rejects duplicate ref footers before checking a single work item |
 | Existing | `git-hooks` | suppresses pmem warnings on successful checks |
 | Existing | `git-hooks` | uses the test pmem client when an ambient binary override exists |
 | Existing | `git-hooks` | passes when `GIT_HOOK_PMEM_BIN` points at a local pmem client |
