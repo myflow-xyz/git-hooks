@@ -20,6 +20,8 @@ phase.
   so repo config must come from the repository settings resolved by the CLI.
 - Uses `data.project_id` from `pmem info --repo --json`; PMem project selector
   environment variables are not a repo-config source for this hook.
+- Parses PMem JSON with `jq`. The hook does not trust raw substring matches
+  from PMem output.
 - Requires the commit message footer block to contain `Ref: <task-id>`.
 - Validates task ID syntax locally: the ID must match
   `[A-Za-z0-9][A-Za-z0-9_-]*`.
@@ -45,6 +47,7 @@ phase.
 - Returns `0` when repo PMem config is absent, after a warning.
 - Returns `1` when `pmem info --repo --json` fails, reports `ok:false`, reports
   active repo config without `data.project_id`, or returns malformed JSON.
+- Returns `127` when PMem JSON must be parsed but `jq` is unavailable.
 - Returns `1` when the required ref footer is missing.
 - Returns `1` when a ref footer exists but its ID is malformed.
 - Returns `1` when `pmem wi get --project-id <project-id> --id <task-id>
@@ -69,6 +72,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | reports project ID, task ID, and task status in verbose mode |
 | Existing | `git-hooks` | fails when `pmem info --repo --json` exits non-zero |
 | Existing | `git-hooks` | fails when `pmem info --repo --json` reports `ok:false` |
+| Existing | `git-hooks` | fails when `pmem info --repo --json` returns malformed JSON containing expected fields |
 | Existing | `git-hooks` | fails when repo PMem config is active but project ID is missing |
 | Existing | `git-hooks` | fails when the task footer is missing |
 | Existing | `git-hooks` | fails when the task ID is shorter than three characters |
@@ -78,6 +82,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | fails when `pmem wi get` exits non-zero |
 | Existing | `git-hooks` | fails when `pmem wi get` reports `ok:false` |
 | Existing | `git-hooks` | fails when `pmem wi get` omits task status |
+| Existing | `git-hooks` | fails when `pmem wi get` returns malformed JSON containing expected fields |
 | Existing | `git-hooks` | fails when the task status is `canceled` |
 | Existing | `git-hooks` | fails when the task status is `done` |
 | Existing | `git-hooks` | fails when the task status is `closed` |

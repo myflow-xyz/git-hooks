@@ -51,17 +51,33 @@ git_hooks_pmem_ref_footer_run_cli() {
   )
 }
 
-git_hooks_pmem_ref_footer_json_object_is_plausible() {
-  printf '%s\n' "$1" | command awk '
-    { json = json $0 }
-    END {
-      gsub(/[[:space:]]/, "", json)
-      if (json ~ /^\{.*\}$/) {
-        exit 0
-      }
-      exit 1
-    }
-  '
+git_hooks_pmem_ref_footer_json_path() {
+  case "$1" in
+  ok)
+    printf '%s\n' .ok
+    ;;
+  project_id)
+    printf '%s\n' .data.project_id
+    ;;
+  project_exists)
+    printf '%s\n' .data.project_exists
+    ;;
+  status)
+    printf '%s\n' .data.status
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
+
+git_hooks_pmem_ref_footer_json_validate() {
+  if ! command -v jq >/dev/null 2>&1; then
+    git_hooks_log_error 'required command not found: jq'
+    return 127
+  fi
+
+  printf '%s\n' "$1" | command jq -e . >/dev/null 2>&1
 }
 
 git_hooks_pmem_ref_footer_json_bool() {
@@ -70,32 +86,15 @@ git_hooks_pmem_ref_footer_json_bool() {
     return 2
   fi
 
-  printf '%s\n' "$1" | command awk -v key="$2" '
-    { json = json $0 }
-    END {
-      gsub(/[[:space:]]/, "", json)
-      pattern = "\"" key "\":"
-      pos = index(json, pattern)
+  git_hooks_pmem_ref_footer_path=$(git_hooks_pmem_ref_footer_json_path "$2") || return 2
 
-      if (pos == 0) {
-        exit 1
-      }
+  if ! command -v jq >/dev/null 2>&1; then
+    git_hooks_log_error 'required command not found: jq'
+    return 127
+  fi
 
-      value = substr(json, pos + length(pattern))
-
-      if (substr(value, 1, 4) == "true") {
-        print "true"
-        exit 0
-      }
-
-      if (substr(value, 1, 5) == "false") {
-        print "false"
-        exit 0
-      }
-
-      exit 2
-    }
-  '
+  printf '%s\n' "$1" |
+    command jq -r "if ($git_hooks_pmem_ref_footer_path == null) then halt_error(1) elif ($git_hooks_pmem_ref_footer_path | type) == \"boolean\" then (if $git_hooks_pmem_ref_footer_path then \"true\" else \"false\" end) else halt_error(2) end" 2>/dev/null
 }
 
 git_hooks_pmem_ref_footer_json_string() {
@@ -104,46 +103,15 @@ git_hooks_pmem_ref_footer_json_string() {
     return 2
   fi
 
-  printf '%s\n' "$1" | command awk -v key="$2" '
-    { json = json $0 }
-    END {
-      gsub(/[[:space:]]/, "", json)
-      pattern = "\"" key "\":\""
-      pos = index(json, pattern)
+  git_hooks_pmem_ref_footer_path=$(git_hooks_pmem_ref_footer_json_path "$2") || return 2
 
-      if (pos == 0) {
-        exit 1
-      }
+  if ! command -v jq >/dev/null 2>&1; then
+    git_hooks_log_error 'required command not found: jq'
+    return 127
+  fi
 
-      value = substr(json, pos + length(pattern))
-      out = ""
-      escaped = 0
-
-      for (i = 1; i <= length(value); i++) {
-        char = substr(value, i, 1)
-
-        if (escaped) {
-          out = out char
-          escaped = 0
-          continue
-        }
-
-        if (char == "\\") {
-          escaped = 1
-          continue
-        }
-
-        if (char == "\"") {
-          print out
-          exit 0
-        }
-
-        out = out char
-      }
-
-      exit 2
-    }
-  '
+  printf '%s\n' "$1" |
+    command jq -r "if ($git_hooks_pmem_ref_footer_path == null) then halt_error(1) elif ($git_hooks_pmem_ref_footer_path | type) == \"string\" then $git_hooks_pmem_ref_footer_path else halt_error(2) end" 2>/dev/null
 }
 
 git_hooks_pmem_ref_footer_envelope_ok() {
@@ -152,10 +120,20 @@ git_hooks_pmem_ref_footer_envelope_ok() {
     return 2
   fi
 
-  git_hooks_pmem_ref_footer_json_object_is_plausible "$2" || {
+  git_hooks_pmem_ref_footer_json_validate "$2"
+  git_hooks_pmem_ref_footer_json_validate_status=$?
+
+  case "$git_hooks_pmem_ref_footer_json_validate_status" in
+  0)
+    ;;
+  127)
+    return 127
+    ;;
+  *)
     git_hooks_log_error "$1 returned malformed JSON"
     return 1
-  }
+    ;;
+  esac
 
   git_hooks_pmem_ref_footer_ok=$(git_hooks_pmem_ref_footer_json_bool "$2" ok)
   git_hooks_pmem_ref_footer_ok_status=$?
@@ -283,12 +261,33 @@ git_hooks_pmem_ref_footer_envelope_ok 'pmem info' "$git_hooks_pmem_ref_footer_in
 
 git_hooks_pmem_ref_footer_project_id=$(
   git_hooks_pmem_ref_footer_json_string "$git_hooks_pmem_ref_footer_info_json" project_id
-) || git_hooks_pmem_ref_footer_project_id=
+)
+git_hooks_pmem_ref_footer_project_id_status=$?
 
-if [ -z "$git_hooks_pmem_ref_footer_project_id" ]; then
+case "$git_hooks_pmem_ref_footer_project_id_status" in
+0)
+  ;;
+1)
   git_hooks_pmem_ref_footer_project_exists=$(
     git_hooks_pmem_ref_footer_json_bool "$git_hooks_pmem_ref_footer_info_json" project_exists
-  ) || git_hooks_pmem_ref_footer_project_exists=
+  )
+  git_hooks_pmem_ref_footer_project_exists_status=$?
+
+  case "$git_hooks_pmem_ref_footer_project_exists_status" in
+  0)
+    ;;
+  1)
+    git_hooks_log_error 'pmem info response missing project_id'
+    exit 1
+    ;;
+  127)
+    exit 127
+    ;;
+  *)
+    git_hooks_log_error 'pmem info response has invalid project_exists'
+    exit 1
+    ;;
+  esac
 
   if [ "$git_hooks_pmem_ref_footer_project_exists" = true ]; then
     git_hooks_log_error 'pmem repo config missing project_id'
@@ -297,7 +296,15 @@ if [ -z "$git_hooks_pmem_ref_footer_project_id" ]; then
 
   git_hooks_log_warn 'no pmem config but pmem check hook enabled; skip'
   exit 0
-fi
+  ;;
+127)
+  exit 127
+  ;;
+*)
+  git_hooks_log_error 'pmem info response has invalid project_id'
+  exit 1
+  ;;
+esac
 
 git_hooks_log_info "pmem project_id: $git_hooks_pmem_ref_footer_project_id"
 

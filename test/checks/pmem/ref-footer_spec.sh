@@ -225,6 +225,30 @@ EOF
     The stderr should include 'commit-msg: error: pmem info returned malformed JSON'
   End
 
+  It 'fails when pmem info returns malformed JSON containing expected fields'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+printf "%s\n" "{bad,\"ok\":true,\"data\":{\"project_id\":\"proj-1\"}}"
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'commit-msg: error: pmem info returned malformed JSON'
+  End
+
   It 'fails when active repo pmem config omits project id'
     When run sh -u -c '
       ROOT=$1
@@ -283,7 +307,6 @@ EOF
       export GIT_HOOKS_HOME="$ROOT"
       export GIT_HOOK_PHASE=commit-msg
       export GIT_HOOK_PMEM_BIN="$tmpdir/local/pmem"
-      export PATH=/usr/bin:/bin
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/local"
       cat > "$GIT_HOOK_PMEM_BIN" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
@@ -510,6 +533,40 @@ EOF
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
     The stderr should include 'commit-msg: error: pmem wi get response missing task status; id=SPEC-123'
+  End
+
+  It 'fails when pmem wi get returns malformed JSON containing expected fields'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+case "$1 $2 $3" in
+"info --repo --json")
+  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  ;;
+"wi get --project-id")
+  printf "%s\n" "{bad,\"ok\":true,\"data\":{\"status\":\"open\"}}"
+  ;;
+*)
+  exit 8
+  ;;
+esac
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'commit-msg: error: pmem wi get returned malformed JSON'
   End
 
   It 'fails when the task status is canceled'
