@@ -411,7 +411,7 @@ EOF
       chmod +x "$tmpdir/bin/pmem"
       export PATH="$tmpdir/bin:$PATH"
       printf "%s\n" "GIT_HOOK_PROFILES=pmem" > "$tmpdir/repo/.githooks/project.conf"
-      printf "%s\n\n%s\n" "feat(pmem): add footer" "Ref: SPEC-123" > "$tmpdir/repo/COMMIT_EDITMSG"
+      printf "%s\n\n%s\n" "feat(pmem): add footer" "Refs: SPEC-123" > "$tmpdir/repo/COMMIT_EDITMSG"
       cd "$tmpdir/repo"
       git init -q
       sh "$ROOT/lib/dispatcher/run-hook.sh" commit-msg COMMIT_EDITMSG

@@ -50,7 +50,7 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
   required.
 - Use `--profiles "common pmem"` for repositories managed by Project Memory.
 - The `pmem` profile uses the `pmem` CLI and repo PMem config to enforce a
-  `Ref: <task-id>` footer during `commit-msg`. Missing CLI or missing repo PMem
+  `Refs: <task-id>` footer during `commit-msg`. Missing CLI or missing repo PMem
   config warns and skips; configured repos fail when the footer is missing, the
   PMem CLI returns an error, or the referenced work item is closed.
 - Use `--profiles "common shell"` for repositories with shell scripts.

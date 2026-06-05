@@ -12,7 +12,7 @@ Describe 'lib/checks/pmem/ref-footer.sh'
       mkdir -p "$HOME" "$tmpdir/repo"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -41,7 +41,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -82,10 +82,10 @@ EOF
     The status should eq 0
     The stdout should eq ''
     The stderr should include 'commit-msg: warn: no pmem config but pmem check hook enabled; skip'
-    The stderr should not include 'missing ref footer'
+    The stderr should not include 'missing Refs footer'
   End
 
-  It 'passes silently when a ref footer references an open task'
+  It 'passes silently when a Refs footer references an open task'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -117,7 +117,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -125,7 +125,45 @@ EOF
     The stderr should eq ''
   End
 
-  It 'rejects non-trailer text after a valid ref footer'
+  It 'rejects the old singular Ref footer'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+case "$1 $2 $3" in
+"info --repo --json")
+  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  ;;
+"wi get --project-id")
+  printf "%s\n" "pmem wi get should not be called" >&2
+  exit 8
+  ;;
+*)
+  exit 8
+  ;;
+esac
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n\n%s\n" "feat(pmem): reject old ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'commit-msg: error: missing Refs footer'
+    The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
+    The stderr should not include 'pmem wi get should not be called'
+  End
+
+  It 'rejects non-trailer text after a valid Refs footer'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -153,15 +191,15 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n%s\n" "feat(pmem): reject malformed footer" "Ref: SPEC-123" "not-a-footer" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n%s\n" "feat(pmem): reject malformed footer" "Refs: SPEC-123" "not-a-footer" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: missing ref footer'
-    The stderr should include 'commit-msg: info: expected footer: Ref: <task-id>; 3 <= id length < 24'
+    The stderr should include 'commit-msg: error: missing Refs footer'
+    The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
   End
 
-  It 'rejects duplicate ref footers before checking a single work item'
+  It 'rejects duplicate Refs footers before checking a single work item'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -190,12 +228,12 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n%s\n" "feat(pmem): reject duplicate refs" "Ref: OPEN-1" "Ref: CLOSED-1" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n%s\n" "feat(pmem): reject duplicate refs" "Refs: OPEN-1" "Refs: CLOSED-1" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: duplicate ref footer'
-    The stderr should include 'commit-msg: info: expected footer: Ref: <task-id>; 3 <= id length < 24'
+    The stderr should include 'commit-msg: error: duplicate Refs footer'
+    The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
     The stderr should not include 'pmem wi get should not be called'
   End
 
@@ -229,7 +267,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -268,7 +306,7 @@ EOF
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -305,7 +343,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: task_123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: task_123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -334,7 +372,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -359,7 +397,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -381,7 +419,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -406,7 +444,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -431,14 +469,14 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
     The stderr should include 'commit-msg: error: pmem repo config missing project_id'
   End
 
-  It 'fails when the ref footer is missing'
+  It 'fails when the Refs footer is missing'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -460,8 +498,8 @@ EOF
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: missing ref footer'
-    The stderr should include 'commit-msg: info: expected footer: Ref: <task-id>; 3 <= id length < 24'
+    The stderr should include 'commit-msg: error: missing Refs footer'
+    The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
   End
 
   It 'passes when GIT_HOOK_PMEM_BIN points at a local pmem client'
@@ -492,7 +530,7 @@ EOF
       chmod +x "$GIT_HOOK_PMEM_BIN"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -518,12 +556,12 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): reject short id" "Ref: ab" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): reject short id" "Refs: ab" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: invalid ref footer id'
-    The stderr should include 'commit-msg: info: expected footer: Ref: <task-id>; 3 <= id length < 24'
+    The stderr should include 'commit-msg: error: invalid Refs footer id'
+    The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
   End
 
   It 'fails when the task id has twenty-four characters'
@@ -544,12 +582,12 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): reject long id" "Ref: abcdefghijklmnopqrstuvwx" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): reject long id" "Refs: abcdefghijklmnopqrstuvwx" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: invalid ref footer id'
-    The stderr should include 'commit-msg: info: expected footer: Ref: <task-id>; 3 <= id length < 24'
+    The stderr should include 'commit-msg: error: invalid Refs footer id'
+    The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
   End
 
   It 'fails when the task id contains unsupported characters'
@@ -570,12 +608,12 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): reject malformed id" "Ref: issue.123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): reject malformed id" "Refs: issue.123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: invalid ref footer id'
-    The stderr should include 'commit-msg: info: expected footer: Ref: <task-id>; 3 <= id length < 24'
+    The stderr should include 'commit-msg: error: invalid Refs footer id'
+    The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
   End
 
   It 'rejects a task id outside the footer block'
@@ -596,11 +634,11 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n%s\n" "feat(pmem): reject body token" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n%s\n" "feat(pmem): reject body token" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: missing ref footer'
+    The stderr should include 'commit-msg: error: missing Refs footer'
   End
 
   It 'fails when pmem wi get exits non-zero'
@@ -631,7 +669,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -666,7 +704,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -701,7 +739,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -736,7 +774,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): add ref footer" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -771,7 +809,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): canceled task" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): canceled task" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -806,7 +844,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): done task" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): done task" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
@@ -841,7 +879,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir/repo"
       git init -q
-      printf "%s\n\n%s\n" "feat(pmem): closed task" "Ref: SPEC-123" > COMMIT_EDITMSG
+      printf "%s\n\n%s\n" "feat(pmem): closed task" "Refs: SPEC-123" > COMMIT_EDITMSG
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1

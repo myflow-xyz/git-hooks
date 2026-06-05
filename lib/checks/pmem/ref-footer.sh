@@ -15,7 +15,7 @@ git_hooks_pmem_ref_footer_info() {
 }
 
 git_hooks_pmem_ref_footer_expected_footer() {
-  printf '%s\n' 'Ref: <task-id>; 3 <= id length < 24'
+  printf '%s\n' 'Refs: <task-id>; 3 <= id length < 24'
 }
 
 git_hooks_pmem_ref_footer_bin() {
@@ -231,10 +231,10 @@ git_hooks_pmem_ref_footer_task_id() {
           exit 1
         }
 
-        if (line ~ /^Ref:[[:space:]]*/) {
+        if (line ~ /^Refs:[[:space:]]*/) {
           ref_count++
           found = 1
-          sub(/^Ref:[[:space:]]*/, "", line)
+          sub(/^Refs:[[:space:]]*/, "", line)
           line = trim(line)
 
           if (!valid_id(line)) {
@@ -371,17 +371,17 @@ case "$git_hooks_pmem_ref_footer_status" in
 0)
   ;;
 3)
-  git_hooks_log_error 'invalid ref footer id'
+  git_hooks_log_error 'invalid Refs footer id'
   git_hooks_pmem_ref_footer_info "expected footer: $(git_hooks_pmem_ref_footer_expected_footer)"
   exit 1
   ;;
 4)
-  git_hooks_log_error 'duplicate ref footer'
+  git_hooks_log_error 'duplicate Refs footer'
   git_hooks_pmem_ref_footer_info "expected footer: $(git_hooks_pmem_ref_footer_expected_footer)"
   exit 1
   ;;
 *)
-  git_hooks_log_error 'missing ref footer'
+  git_hooks_log_error 'missing Refs footer'
   git_hooks_pmem_ref_footer_info "expected footer: $(git_hooks_pmem_ref_footer_expected_footer)"
   exit 1
   ;;

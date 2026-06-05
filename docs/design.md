@@ -256,7 +256,7 @@ are concrete enough to maintain.
   until there is a concrete need for repo-content checks. The profile is
   enforced only when the local `pmem` CLI is available and `pmem info --repo
   --json` reports active repo PMem config; missing CLI or missing repo config
-  should warn and skip. Configured repos must require a `Ref: <task-id>` footer,
+  should warn and skip. Configured repos must require a `Refs: <task-id>` footer,
   resolve the repo `project_id` through `pmem info --repo --json`, and validate
   the work item with `pmem wi get --project-id <project-id> --id <task-id>
   --json`. The hook should fail on PMem CLI/API errors and should reject

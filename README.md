@@ -129,7 +129,7 @@ $XDG_CONFIG_HOME/git-hooks/setup-repo-hooks.sh \
 
 The `pmem` profile is for Project Memory managed repos. It requires
 the `pmem` CLI and repo PMem config. When both are present, commits must carry a
-`Ref: <task-id>` footer that resolves to an active work item in the repo project.
+`Refs: <task-id>` footer that resolves to an active work item in the repo project.
 Missing CLI or missing repo PMem config warns and skips so the opt-in profile
 does not block repos that have not finished local PMem setup.
 

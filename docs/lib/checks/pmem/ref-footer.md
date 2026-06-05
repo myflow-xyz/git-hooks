@@ -25,9 +25,9 @@ phase.
 - Parses PMem JSON with `jq`. The hook does not trust raw substring matches
   from PMem output.
 - Requires the commit message footer block to contain exactly one
-  `Ref: <task-id>`.
+  `Refs: <task-id>`.
 - Validates every line in the trailing footer block before accepting the
-  `Ref` footer.
+  `Refs` footer.
 - Validates task ID syntax locally: the ID must match
   `[A-Za-z0-9][A-Za-z0-9_-]*`.
 - Temporarily requires the task ID to be at least 3 characters and less than 24
@@ -54,9 +54,9 @@ phase.
 - Returns `1` when `pmem info --repo --json` fails, reports `ok:false`, reports
   active repo config without `data.project_id`, or returns malformed JSON.
 - Returns `127` when PMem JSON must be parsed but `jq` is unavailable.
-- Returns `1` when the required ref footer is missing.
-- Returns `1` when a ref footer exists but its ID is malformed.
-- Returns `1` when more than one ref footer exists.
+- Returns `1` when the required `Refs` footer is missing.
+- Returns `1` when a `Refs` footer exists but its ID is malformed.
+- Returns `1` when more than one `Refs` footer exists.
 - Returns `1` when `pmem wi get --project-id <project-id> --id <task-id>
   --json` fails, reports `ok:false`, omits `data.status`, or returns malformed
   JSON.
@@ -74,9 +74,10 @@ Run only this script's tests:
 | Existing | `git-hooks` | skips when the pmem CLI is missing |
 | Existing | `git-hooks` | skips when repo PMem config is absent |
 | Existing | `git-hooks` | ignores ambient pmem project selectors when probing repo config |
-| Existing | `git-hooks` | passes when the ref footer references an open task |
-| Existing | `git-hooks` | rejects non-trailer text after a valid ref footer |
-| Existing | `git-hooks` | rejects duplicate ref footers before checking a single work item |
+| Existing | `git-hooks` | passes when the `Refs` footer references an open task |
+| Existing | `git-hooks` | rejects the old singular `Ref` footer |
+| Existing | `git-hooks` | rejects non-trailer text after a valid `Refs` footer |
+| Existing | `git-hooks` | rejects duplicate `Refs` footers before checking a single work item |
 | Existing | `git-hooks` | suppresses pmem warnings on successful checks |
 | Existing | `git-hooks` | uses the test pmem client when an ambient binary override exists |
 | Existing | `git-hooks` | passes when `GIT_HOOK_PMEM_BIN` points at a local pmem client |
