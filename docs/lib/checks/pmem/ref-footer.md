@@ -39,8 +39,9 @@ phase.
 - Treats malformed PMem JSON, failed PMem commands, `ok:false` envelopes, and
   missing required response fields as hook failures.
 - Keeps passing output silent by default, including PMem advisory warnings.
-- In verbose mode, emits the PMem JSON responses plus resolved project ID, task
-  ID, and task status when available.
+- In verbose mode, emits a concise three-line PMem summary with project name,
+  project ID, task ID, task type, and task status. It does not print raw PMem
+  JSON responses.
 - Ignores commented commit-template lines while parsing the trailing footer
   block.
 
@@ -79,7 +80,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | suppresses pmem warnings on successful checks |
 | Existing | `git-hooks` | uses the test pmem client when an ambient binary override exists |
 | Existing | `git-hooks` | passes when `GIT_HOOK_PMEM_BIN` points at a local pmem client |
-| Existing | `git-hooks` | reports PMem responses, project ID, task ID, and task status in verbose mode |
+| Existing | `git-hooks` | reports a concise PMem summary without raw JSON in verbose mode |
 | Existing | `git-hooks` | fails when `pmem info --repo --json` exits non-zero |
 | Existing | `git-hooks` | fails when `pmem info --repo --json` reports `ok:false` |
 | Existing | `git-hooks` | fails when `pmem info --repo --json` returns malformed JSON containing expected fields |
