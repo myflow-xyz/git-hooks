@@ -290,10 +290,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-verbose\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-verbose\",\"project_name\":\"Verbose\\nProject\"},\"events\":[{\"detail\":\"info detail\"}],\"warnings\":[\"info warning\"]}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"active\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"ok\":true,\"data\":{\"type\":\"task\",\"status\":\"active\"},\"events\":[{\"detail\":\"wi detail\"}],\"warnings\":[\"wi warning\"]}"
   ;;
 *)
   exit 8
@@ -309,11 +309,13 @@ EOF
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stdout should include 'commit-msg: pmem info response:'
-    The stdout should include 'commit-msg: pmem wi get response:'
-    The stdout should include 'commit-msg: pmem project_id: proj-verbose'
-    The stdout should include 'commit-msg: pmem task_id: task_123'
-    The stdout should include 'commit-msg: pmem task_status: active'
+    The stdout should not include 'commit-msg: pmem info response:'
+    The stdout should not include 'commit-msg: pmem wi get response:'
+    The stdout should not include '"events"'
+    The stdout should not include '"warnings"'
+    The stdout should include 'commit-msg: pmem details:'
+    The stdout should include '	project=Verbose Project (proj-verbose)'
+    The stdout should include '	task=task_123; type=task; status=active'
     The stderr should eq ''
   End
 

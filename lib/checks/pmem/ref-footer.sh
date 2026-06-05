@@ -59,11 +59,17 @@ git_hooks_pmem_ref_footer_json_path() {
   project_id)
     printf '%s\n' .data.project_id
     ;;
+  project_name)
+    printf '%s\n' .data.project_name
+    ;;
   project_exists)
     printf '%s\n' .data.project_exists
     ;;
   status)
     printf '%s\n' .data.status
+    ;;
+  task_type)
+    printf '%s\n' .data.type
     ;;
   *)
     return 1
@@ -112,6 +118,37 @@ git_hooks_pmem_ref_footer_json_string() {
 
   printf '%s\n' "$1" |
     command jq -r "if ($git_hooks_pmem_ref_footer_path == null) then halt_error(1) elif ($git_hooks_pmem_ref_footer_path | type) == \"string\" then $git_hooks_pmem_ref_footer_path else halt_error(2) end" 2>/dev/null
+}
+
+git_hooks_pmem_ref_footer_json_string_optional() {
+  if [ "$#" -ne 2 ]; then
+    git_hooks_log_error 'Usage: git_hooks_pmem_ref_footer_json_string_optional <json> <field>'
+    return 2
+  fi
+
+  git_hooks_pmem_ref_footer_path=$(git_hooks_pmem_ref_footer_json_path "$2") || return 2
+
+  if ! command -v jq >/dev/null 2>&1; then
+    git_hooks_log_error 'required command not found: jq'
+    return 127
+  fi
+
+  printf '%s\n' "$1" |
+    command jq -r "if ($git_hooks_pmem_ref_footer_path == null) then empty elif ($git_hooks_pmem_ref_footer_path | type) == \"string\" then $git_hooks_pmem_ref_footer_path else empty end" 2>/dev/null
+}
+
+git_hooks_pmem_ref_footer_log_value() {
+  if [ "$#" -ne 1 ]; then
+    git_hooks_log_error 'Usage: git_hooks_pmem_ref_footer_log_value <value>'
+    return 2
+  fi
+
+  if [ -z "$1" ]; then
+    printf '%s\n' '-'
+    return 0
+  fi
+
+  printf '%s' "$1" | command tr '\r\n' '  '
 }
 
 git_hooks_pmem_ref_footer_envelope_ok() {
@@ -269,16 +306,16 @@ git_hooks_pmem_ref_footer_info_json=$(
 )
 git_hooks_pmem_ref_footer_info_status=$?
 
-if [ -n "$git_hooks_pmem_ref_footer_info_json" ]; then
-  git_hooks_log_info "pmem info response: $git_hooks_pmem_ref_footer_info_json"
-fi
-
 if [ "$git_hooks_pmem_ref_footer_info_status" -ne 0 ]; then
   git_hooks_log_error "pmem info failed; exit=$git_hooks_pmem_ref_footer_info_status"
   exit 1
 fi
 
 git_hooks_pmem_ref_footer_envelope_ok 'pmem info' "$git_hooks_pmem_ref_footer_info_json" || exit $?
+
+git_hooks_pmem_ref_footer_project_name=$(
+  git_hooks_pmem_ref_footer_json_string_optional "$git_hooks_pmem_ref_footer_info_json" project_name
+) || exit $?
 
 git_hooks_pmem_ref_footer_project_id=$(
   git_hooks_pmem_ref_footer_json_string "$git_hooks_pmem_ref_footer_info_json" project_id
@@ -327,8 +364,6 @@ case "$git_hooks_pmem_ref_footer_project_id_status" in
   ;;
 esac
 
-git_hooks_log_info "pmem project_id: $git_hooks_pmem_ref_footer_project_id"
-
 git_hooks_pmem_ref_footer_task_id=$(git_hooks_pmem_ref_footer_task_id "$git_hooks_pmem_ref_footer_file")
 git_hooks_pmem_ref_footer_status=$?
 
@@ -352,8 +387,6 @@ case "$git_hooks_pmem_ref_footer_status" in
   ;;
 esac
 
-git_hooks_log_info "pmem task_id: $git_hooks_pmem_ref_footer_task_id"
-
 git_hooks_pmem_ref_footer_wi_json=$(
   git_hooks_pmem_ref_footer_run_cli \
     "$git_hooks_pmem_ref_footer_bin" wi get \
@@ -364,16 +397,16 @@ git_hooks_pmem_ref_footer_wi_json=$(
 )
 git_hooks_pmem_ref_footer_wi_status=$?
 
-if [ -n "$git_hooks_pmem_ref_footer_wi_json" ]; then
-  git_hooks_log_info "pmem wi get response: $git_hooks_pmem_ref_footer_wi_json"
-fi
-
 if [ "$git_hooks_pmem_ref_footer_wi_status" -ne 0 ]; then
   git_hooks_log_error "pmem wi get failed; id=$git_hooks_pmem_ref_footer_task_id; exit=$git_hooks_pmem_ref_footer_wi_status"
   exit 1
 fi
 
 git_hooks_pmem_ref_footer_envelope_ok 'pmem wi get' "$git_hooks_pmem_ref_footer_wi_json" || exit $?
+
+git_hooks_pmem_ref_footer_task_type=$(
+  git_hooks_pmem_ref_footer_json_string_optional "$git_hooks_pmem_ref_footer_wi_json" task_type
+) || exit $?
 
 git_hooks_pmem_ref_footer_task_status=$(
   git_hooks_pmem_ref_footer_json_string "$git_hooks_pmem_ref_footer_wi_json" status
@@ -393,7 +426,33 @@ case "$git_hooks_pmem_ref_footer_task_status_status" in
   ;;
 esac
 
-git_hooks_log_info "pmem task_status: $git_hooks_pmem_ref_footer_task_status"
+if git_hooks_log_is_verbose; then
+  git_hooks_pmem_ref_footer_project_name_log=$(git_hooks_pmem_ref_footer_log_value "$git_hooks_pmem_ref_footer_project_name")
+  git_hooks_pmem_ref_footer_project_id_log=$(git_hooks_pmem_ref_footer_log_value "$git_hooks_pmem_ref_footer_project_id")
+  git_hooks_pmem_ref_footer_task_id_log=$(git_hooks_pmem_ref_footer_log_value "$git_hooks_pmem_ref_footer_task_id")
+  git_hooks_pmem_ref_footer_task_type_log=$(git_hooks_pmem_ref_footer_log_value "$git_hooks_pmem_ref_footer_task_type")
+  git_hooks_pmem_ref_footer_task_status_log=$(git_hooks_pmem_ref_footer_log_value "$git_hooks_pmem_ref_footer_task_status")
+
+  if [ -n "$git_hooks_pmem_ref_footer_project_name" ]; then
+    git_hooks_pmem_ref_footer_project_log="project=$git_hooks_pmem_ref_footer_project_name_log ($git_hooks_pmem_ref_footer_project_id_log)"
+  else
+    git_hooks_pmem_ref_footer_project_log="project_id=$git_hooks_pmem_ref_footer_project_id_log"
+  fi
+
+  if [ -n "$git_hooks_pmem_ref_footer_task_type" ]; then
+    git_hooks_pmem_ref_footer_task_log="task=$git_hooks_pmem_ref_footer_task_id_log; type=$git_hooks_pmem_ref_footer_task_type_log; status=$git_hooks_pmem_ref_footer_task_status_log"
+  else
+    git_hooks_pmem_ref_footer_task_log="task=$git_hooks_pmem_ref_footer_task_id_log; status=$git_hooks_pmem_ref_footer_task_status_log"
+  fi
+
+  git_hooks_pmem_ref_footer_details=$(
+    printf '%s\n\t%s\n\t%s' \
+      'pmem details:' \
+      "$git_hooks_pmem_ref_footer_project_log" \
+      "$git_hooks_pmem_ref_footer_task_log"
+  )
+  git_hooks_log_info "$git_hooks_pmem_ref_footer_details"
+fi
 
 if git_hooks_pmem_ref_footer_status_is_closed "$git_hooks_pmem_ref_footer_task_status"; then
   git_hooks_log_error "ticket has been $git_hooks_pmem_ref_footer_task_status and does not accept new changes under this status; check whether using a correct ticket"
