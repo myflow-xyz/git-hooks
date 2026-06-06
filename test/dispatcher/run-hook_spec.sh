@@ -398,10 +398,10 @@ EOF_EXPECTED
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"status\":\"open\"}"
   ;;
 *)
   exit 8

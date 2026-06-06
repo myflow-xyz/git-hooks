@@ -53,23 +53,20 @@ git_hooks_pmem_ref_footer_run_cli() {
 
 git_hooks_pmem_ref_footer_json_path() {
   case "$1" in
-  ok)
-    printf '%s\n' .ok
-    ;;
   project_id)
-    printf '%s\n' .data.project_id
+    printf '%s\n' .project_id
     ;;
   project_name)
-    printf '%s\n' .data.project_name
+    printf '%s\n' .project_name
     ;;
   project_exists)
-    printf '%s\n' .data.project_exists
+    printf '%s\n' .project_exists
     ;;
   status)
-    printf '%s\n' .data.status
+    printf '%s\n' .status
     ;;
   task_type)
-    printf '%s\n' .data.type
+    printf '%s\n' .type
     ;;
   *)
     return 1
@@ -151,9 +148,9 @@ git_hooks_pmem_ref_footer_log_value() {
   printf '%s' "$1" | command tr '\r\n' '  '
 }
 
-git_hooks_pmem_ref_footer_envelope_ok() {
+git_hooks_pmem_ref_footer_cli_json_validate() {
   if [ "$#" -ne 2 ]; then
-    git_hooks_log_error 'Usage: git_hooks_pmem_ref_footer_envelope_ok <label> <json>'
+    git_hooks_log_error 'Usage: git_hooks_pmem_ref_footer_cli_json_validate <label> <json>'
     return 2
   fi
 
@@ -171,27 +168,6 @@ git_hooks_pmem_ref_footer_envelope_ok() {
     return 1
     ;;
   esac
-
-  git_hooks_pmem_ref_footer_ok=$(git_hooks_pmem_ref_footer_json_bool "$2" ok)
-  git_hooks_pmem_ref_footer_ok_status=$?
-
-  case "$git_hooks_pmem_ref_footer_ok_status" in
-  0)
-    ;;
-  1)
-    git_hooks_log_error "$1 response missing ok field"
-    return 1
-    ;;
-  *)
-    git_hooks_log_error "$1 response has invalid ok field"
-    return 1
-    ;;
-  esac
-
-  if [ "$git_hooks_pmem_ref_footer_ok" != true ]; then
-    git_hooks_log_error "$1 returned ok=false"
-    return 1
-  fi
 }
 
 git_hooks_pmem_ref_footer_task_id() {
@@ -311,7 +287,7 @@ if [ "$git_hooks_pmem_ref_footer_info_status" -ne 0 ]; then
   exit 1
 fi
 
-git_hooks_pmem_ref_footer_envelope_ok 'pmem info' "$git_hooks_pmem_ref_footer_info_json" || exit $?
+git_hooks_pmem_ref_footer_cli_json_validate 'pmem info' "$git_hooks_pmem_ref_footer_info_json" || exit $?
 
 git_hooks_pmem_ref_footer_project_name=$(
   git_hooks_pmem_ref_footer_json_string_optional "$git_hooks_pmem_ref_footer_info_json" project_name
@@ -392,6 +368,7 @@ git_hooks_pmem_ref_footer_wi_json=$(
     "$git_hooks_pmem_ref_footer_bin" wi get \
     --project-id "$git_hooks_pmem_ref_footer_project_id" \
     --id "$git_hooks_pmem_ref_footer_task_id" \
+    --fields status,type \
     --json \
     --quiet
 )
@@ -402,7 +379,7 @@ if [ "$git_hooks_pmem_ref_footer_wi_status" -ne 0 ]; then
   exit 1
 fi
 
-git_hooks_pmem_ref_footer_envelope_ok 'pmem wi get' "$git_hooks_pmem_ref_footer_wi_json" || exit $?
+git_hooks_pmem_ref_footer_cli_json_validate 'pmem wi get' "$git_hooks_pmem_ref_footer_wi_json" || exit $?
 
 git_hooks_pmem_ref_footer_task_type=$(
   git_hooks_pmem_ref_footer_json_string_optional "$git_hooks_pmem_ref_footer_wi_json" task_type

@@ -34,7 +34,7 @@ Describe 'lib/checks/pmem/ref-footer.sh'
 [ "$1" = info ] || exit 8
 [ "$2" = --repo ] || exit 8
 [ "$3" = --json ] || exit 8
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_exists\":false},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_exists\":false}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -66,10 +66,10 @@ EOF
 [ "$2" = --repo ] || exit 8
 [ "$3" = --json ] || exit 8
 if [ -n "${PMEM_PROJECT_ID:-}" ] || [ -n "${PMEM_PROJECT_KEY:-}" ]; then
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"ambient-project\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"ambient-project\"}"
   exit 0
 fi
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_exists\":false},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_exists\":false}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -98,14 +98,17 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
   [ "$4" = proj-1 ] || exit 8
   [ "$5" = --id ] || exit 8
   [ "$6" = SPEC-123 ] || exit 8
-  [ "$7" = --json ] || exit 8
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  [ "$7" = --fields ] || exit 8
+  [ "$8" = status,type ] || exit 8
+  [ "$9" = --json ] || exit 8
+  [ "${10}" = --quiet ] || exit 8
+  printf "%s\n" "{\"status\":\"open\"}"
   ;;
 *)
   exit 8
@@ -138,7 +141,7 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
   printf "%s\n" "pmem wi get should not be called" >&2
@@ -176,10 +179,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"status\":\"open\"}"
   ;;
 *)
   exit 8
@@ -212,7 +215,7 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
   printf "%s\n" "pmem wi get should not be called" >&2
@@ -251,11 +254,11 @@ EOF
 case "$1 $2 $3" in
 "info --repo --json")
   [ "$4" = --quiet ] || printf "%s\n" "pmem warning: noisy info" >&2
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-quiet\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-quiet\"}"
   ;;
 "wi get --project-id")
-  [ "$8" = --quiet ] || printf "%s\n" "pmem warning: noisy wi get" >&2
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  [ "${10}" = --quiet ] || printf "%s\n" "pmem warning: noisy wi get" >&2
+  printf "%s\n" "{\"status\":\"open\"}"
   ;;
 *)
   exit 8
@@ -291,11 +294,11 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-test\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-test\"}"
   ;;
 "wi get --project-id")
   [ "$4" = proj-test ] || exit 8
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"status\":\"open\"}"
   ;;
 *)
   exit 8
@@ -328,10 +331,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-verbose\",\"project_name\":\"Verbose\\nProject\"},\"events\":[{\"detail\":\"info detail\"}],\"warnings\":[\"info warning\"]}"
+  printf "%s\n" "{\"project_id\":\"proj-verbose\",\"project_name\":\"Verbose\\nProject\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"type\":\"task\",\"status\":\"active\"},\"events\":[{\"detail\":\"wi detail\"}],\"warnings\":[\"wi warning\"]}"
+  printf "%s\n" "{\"type\":\"task\",\"status\":\"active\"}"
   ;;
 *)
   exit 8
@@ -379,7 +382,7 @@ EOF
     The stderr should include 'commit-msg: error: pmem info failed; exit=7'
   End
 
-  It 'fails when pmem info reports ok false'
+  It 'fails when pmem info returns an invalid project id'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -390,7 +393,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{\"ok\":false,\"error\":\"api unavailable\"}"
+printf "%s\n" "{\"project_id\":false}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -401,7 +404,7 @@ EOF
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: pmem info returned ok=false'
+    The stderr should include 'commit-msg: error: pmem info response has invalid project_id'
   End
 
   It 'fails when pmem info returns malformed JSON'
@@ -426,7 +429,7 @@ EOF
     The stderr should include 'commit-msg: error: pmem info returned malformed JSON'
   End
 
-  It 'fails when pmem info returns malformed JSON containing expected fields'
+  It 'fails when pmem info returns malformed JSON containing an expected field'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -437,7 +440,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{bad,\"ok\":true,\"data\":{\"project_id\":\"proj-1\"}}"
+printf "%s\n" "{bad,\"project_id\":\"proj-1\"}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -462,7 +465,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_exists\":true},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_exists\":true}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -487,7 +490,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_id\":\"proj-1\"}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -516,11 +519,11 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-local\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-local\"}"
   ;;
 "wi get --project-id")
   [ "$4" = proj-local ] || exit 8
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"open\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"status\":\"open\"}"
   ;;
 *)
   exit 8
@@ -549,7 +552,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_id\":\"proj-1\"}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -575,7 +578,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_id\":\"proj-1\"}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -601,7 +604,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_id\":\"proj-1\"}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -627,7 +630,7 @@ EOF
       mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
       cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+printf "%s\n" "{\"project_id\":\"proj-1\"}"
 EOF
       chmod +x "$tmpdir/bin/pmem"
       export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
@@ -654,7 +657,7 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
   exit 6
@@ -676,7 +679,7 @@ EOF
     The stderr should include 'commit-msg: error: pmem wi get failed; id=SPEC-123; exit=6'
   End
 
-  It 'fails when pmem wi get reports ok false'
+  It 'fails when pmem wi get returns an invalid task status'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -689,10 +692,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":false,\"error\":\"missing work item\"}"
+  printf "%s\n" "{\"status\":false}"
   ;;
 *)
   exit 8
@@ -708,7 +711,7 @@ EOF
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: pmem wi get returned ok=false'
+    The stderr should include 'commit-msg: error: pmem wi get response has invalid task status; id=SPEC-123'
   End
 
   It 'fails when pmem wi get omits task status'
@@ -724,10 +727,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"title\":\"task\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"title\":\"task\"}"
   ;;
 *)
   exit 8
@@ -746,7 +749,7 @@ EOF
     The stderr should include 'commit-msg: error: pmem wi get response missing task status; id=SPEC-123'
   End
 
-  It 'fails when pmem wi get returns malformed JSON containing expected fields'
+  It 'fails when pmem wi get returns malformed JSON containing an expected field'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
@@ -759,10 +762,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{bad,\"ok\":true,\"data\":{\"status\":\"open\"}}"
+  printf "%s\n" "{bad,\"status\":\"open\"}"
   ;;
 *)
   exit 8
@@ -794,10 +797,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"canceled\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"status\":\"canceled\"}"
   ;;
 *)
   exit 8
@@ -829,10 +832,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"done\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"status\":\"done\"}"
   ;;
 *)
   exit 8
@@ -864,10 +867,10 @@ EOF
 #!/usr/bin/env sh
 case "$1 $2 $3" in
 "info --repo --json")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"project_id\":\"proj-1\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
   ;;
 "wi get --project-id")
-  printf "%s\n" "{\"ok\":true,\"data\":{\"status\":\"closed\"},\"events\":[],\"warnings\":[]}"
+  printf "%s\n" "{\"status\":\"closed\"}"
   ;;
 *)
   exit 8

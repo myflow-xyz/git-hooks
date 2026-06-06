@@ -259,9 +259,9 @@ are concrete enough to maintain.
   should warn and skip. Configured repos must require a `Refs: <task-id>` footer,
   resolve the repo `project_id` through `pmem info --repo --json`, and validate
   the work item with `pmem wi get --project-id <project-id> --id <task-id>
-  --json`. The hook should fail on PMem CLI/API errors and should reject
-  `canceled`, `done`, and `closed` work items because those statuses should not
-  accept new changes.
+  --fields status,type --json`. The hook should fail on PMem CLI/API errors and
+  should reject `canceled`, `done`, and `closed` work items because those
+  statuses should not accept new changes.
 - Shell hooks use explicit extensions only: `.sh`, `.bash`, and `.zsh`.
 - Shell `pre-commit` checks should operate on staged shell files wherever those
   files live in the repository.
