@@ -235,8 +235,85 @@ EOF
       sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 1
-    The stderr should include 'commit-msg: error: duplicate Refs footer'
+    The stderr should include 'commit-msg: error: multiple Refs footers are not allowed'
     The stderr should include 'commit-msg: info: expected footer: Refs: <task-id>; 3 <= id length < 24'
+    The stderr should include 'commit-msg: info: reference exactly one PMem ticket per commit; split changes into separate commits when they belong to different tickets'
+    The stderr should not include 'pmem wi get should not be called'
+  End
+
+  It 'rejects duplicate Refs footers split across commit message paragraphs'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+case "$1 $2 $3" in
+"info --repo --json")
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
+  ;;
+"wi get --project-id")
+  printf "%s\n" "pmem wi get should not be called" >&2
+  exit 9
+  ;;
+*)
+  exit 8
+  ;;
+esac
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n\n%s\n" "Refs: OPEN-1" "Refs: CLOSED-1" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'commit-msg: error: multiple Refs footers are not allowed'
+    The stderr should include 'commit-msg: info: reference exactly one PMem ticket per commit; split changes into separate commits when they belong to different tickets'
+    The stderr should not include 'pmem wi get should not be called'
+  End
+
+  It 'rejects case-insensitive duplicate Refs footers before checking a single work item'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-pmem-commit-msg.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_PHASE=commit-msg
+      mkdir -p "$HOME" "$tmpdir/repo" "$tmpdir/bin"
+      cat > "$tmpdir/bin/pmem" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+case "$1 $2 $3" in
+"info --repo --json")
+  printf "%s\n" "{\"project_id\":\"proj-1\"}"
+  ;;
+"wi get --project-id")
+  printf "%s\n" "pmem wi get should not be called" >&2
+  exit 9
+  ;;
+*)
+  exit 8
+  ;;
+esac
+EOF
+      chmod +x "$tmpdir/bin/pmem"
+      export GIT_HOOK_PMEM_BIN="$tmpdir/bin/pmem"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir/repo"
+      git init -q
+      printf "%s\n\n%s\n%s\n" "feat(pmem): reject duplicate refs" "Refs: OPEN-1" "refs: CLOSED-1" > COMMIT_EDITMSG
+      sh "$ROOT/lib/checks/pmem/ref-footer.sh" COMMIT_EDITMSG
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 1
+    The stderr should include 'commit-msg: error: multiple Refs footers are not allowed'
+    The stderr should include 'commit-msg: info: reference exactly one PMem ticket per commit; split changes into separate commits when they belong to different tickets'
     The stderr should not include 'pmem wi get should not be called'
   End
 

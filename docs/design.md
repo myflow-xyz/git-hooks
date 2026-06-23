@@ -31,9 +31,9 @@ the submodule as a pinned dependency. Update by moving the submodule pointer to
 a reviewed commit or tag, then run `install.sh --check` and target repo
 `setup-repo-hooks.sh --check` where applicable.
 
-The repository is private proprietary tooling unless the owner explicitly
-changes the license. Tags are the release boundary after migration; downstream
-repos should pin reviewed tags or commits instead of tracking a moving branch.
+The repository is MIT licensed. Tags are the release boundary after migration;
+downstream repos should pin reviewed tags or commits instead of tracking a
+moving branch.
 
 ## Execution Model
 
@@ -256,12 +256,13 @@ are concrete enough to maintain.
   until there is a concrete need for repo-content checks. The profile is
   enforced only when the local `pmem` CLI is available and `pmem info --repo
   --json` reports active repo PMem config; missing CLI or missing repo config
-  should warn and skip. Configured repos must require a `Refs: <task-id>` footer,
-  resolve the repo `project_id` through `pmem info --repo --json`, and validate
-  the work item with `pmem wi get --project-id <project-id> --id <task-id>
-  --fields status,type --json`. The hook should fail on PMem CLI/API errors and
-  should reject `canceled`, `done`, and `closed` work items because those
-  statuses should not accept new changes.
+  should warn and skip. Configured repos must require exactly one
+  `Refs: <task-id>` footer, resolve the repo `project_id` through
+  `pmem info --repo --json`, and validate the work item with
+  `pmem wi get --project-id <project-id> --id <task-id> --fields status,type
+  --json`. The hook should fail on PMem CLI/API errors, duplicated `Refs`
+  footers, and `canceled`, `done`, or `closed` work items because those statuses
+  should not accept new changes.
 - Shell hooks use explicit extensions only: `.sh`, `.bash`, and `.zsh`.
 - Shell `pre-commit` checks should operate on staged shell files wherever those
   files live in the repository.

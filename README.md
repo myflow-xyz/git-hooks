@@ -8,9 +8,7 @@ hook setup script, runtime helpers, checks, profiles, templates, docs, bundled
 fallback config, and tests. It can be cloned directly, vendored, or consumed as
 a submodule by another repository.
 
-This is private proprietary tooling. Authorized collaborators may use it for
-approved internal projects; redistribution or publication requires explicit
-owner approval. See [License](LICENSE).
+This project is available under the MIT License. See [License](LICENSE).
 
 General policy lives in [Design](docs/design.md),
 [Repo Hook Setup](docs/setup-repo-hooks.md), and
@@ -128,10 +126,10 @@ $XDG_CONFIG_HOME/git-hooks/setup-repo-hooks.sh \
 ```
 
 The `pmem` profile is for Project Memory managed repos. It requires
-the `pmem` CLI and repo PMem config. When both are present, commits must carry a
-`Refs: <task-id>` footer that resolves to an active work item in the repo project.
-Missing CLI or missing repo PMem config warns and skips so the opt-in profile
-does not block repos that have not finished local PMem setup.
+the `pmem` CLI and repo PMem config. When both are present, commits must carry
+exactly one `Refs: <task-id>` footer that resolves to an active work item in the
+repo project. Missing CLI or missing repo PMem config warns and skips so the
+opt-in profile does not block repos that have not finished local PMem setup.
 
 Go profile cache defaults:
 
@@ -170,7 +168,6 @@ tracked manually for that repo-local copy.
 ```text
 git-hooks/
   README.md
-  CHANGELOG.md
   LICENSE
   install.sh
   install-tool-config.sh

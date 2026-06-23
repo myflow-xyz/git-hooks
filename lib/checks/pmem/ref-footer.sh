@@ -182,8 +182,24 @@ git_hooks_pmem_ref_footer_task_id() {
       return length(value) >= 3 && length(value) < 24 && value ~ /^[[:alnum:]][[:alnum:]_-]*$/
     }
 
+    function trailer_key(value) {
+      if (value !~ /^[[:alnum:]][[:alnum:]-]*:[[:space:]]*[^[:space:]]/) {
+        return ""
+      }
+
+      sub(/:.*/, "", value)
+      return value
+    }
+
     /^[[:space:]]*#/ { next }
-    { lines[++line_count] = $0 }
+    {
+      lines[++line_count] = $0
+
+      git_hooks_pmem_ref_footer_key = trailer_key($0)
+      if (tolower(git_hooks_pmem_ref_footer_key) == "refs") {
+        ref_count++
+      }
+    }
 
     END {
       while (line_count > 0 && lines[line_count] ~ /^[[:space:]]*$/) {
@@ -203,13 +219,20 @@ git_hooks_pmem_ref_footer_task_id() {
       for (i = line_count + 1; i <= end; i++) {
         line = lines[i]
 
-        if (line !~ /^[[:alnum:]][[:alnum:]-]*:[[:space:]]*[^[:space:]]/) {
+        git_hooks_pmem_ref_footer_key = trailer_key(line)
+
+        if (git_hooks_pmem_ref_footer_key == "") {
           exit 1
         }
 
-        if (line ~ /^Refs:[[:space:]]*/) {
-          ref_count++
+        if (tolower(git_hooks_pmem_ref_footer_key) == "refs") {
           found = 1
+
+          if (git_hooks_pmem_ref_footer_key != "Refs") {
+            invalid_ref = 1
+            continue
+          }
+
           sub(/^Refs:[[:space:]]*/, "", line)
           line = trim(line)
 
@@ -223,12 +246,12 @@ git_hooks_pmem_ref_footer_task_id() {
         }
       }
 
-      if (invalid_ref) {
-        exit 3
-      }
-
       if (ref_count > 1) {
         exit 4
+      }
+
+      if (invalid_ref) {
+        exit 3
       }
 
       if (task_id != "") {
@@ -352,8 +375,9 @@ case "$git_hooks_pmem_ref_footer_status" in
   exit 1
   ;;
 4)
-  git_hooks_log_error 'duplicate Refs footer'
+  git_hooks_log_error 'multiple Refs footers are not allowed'
   git_hooks_pmem_ref_footer_info "expected footer: $(git_hooks_pmem_ref_footer_expected_footer)"
+  git_hooks_pmem_ref_footer_info 'reference exactly one PMem ticket per commit; split changes into separate commits when they belong to different tickets'
   exit 1
   ;;
 *)

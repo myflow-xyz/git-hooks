@@ -219,7 +219,7 @@ EOF
     The stdout should include 'config/markdownlint/markdownlint.yaml'
   End
 
-  It 'uses bundled config that allows long table and code block lines'
+  It 'uses bundled config that relaxes normal and code block line limits'
     When run sh -u -c '
       ROOT=$1
       tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-md.XXXXXX")
@@ -248,27 +248,32 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-grep -q "line_length: 140" "$config" || {
-  printf "%s\n" "missing line_length: 140" >&2
+grep -q "line_length: 999999" "$config" || {
+  printf "%s\n" "missing line_length: 999999" >&2
   exit 10
+}
+grep -q "code_block_line_length: 999999" "$config" || {
+  printf "%s\n" "missing code_block_line_length: 999999" >&2
+  exit 11
 }
 grep -q "code_blocks: false" "$config" || {
   printf "%s\n" "missing code_blocks: false" >&2
-  exit 11
+  exit 12
 }
 grep -q "tables: false" "$config" || {
   printf "%s\n" "missing tables: false" >&2
-  exit 12
+  exit 13
 }
 
 awk '"'"'
   /^```/ { code = !code; next }
+  !code && !/^\|/ && length($0) > 140 { long_text = 1 }
   code && length($0) > 140 { long_code = 1 }
   /^\|/ && length($0) > 140 { long_table = 1 }
-  END { exit (long_code && long_table) ? 0 : 1 }
+  END { exit (long_text && long_code && long_table) ? 0 : 1 }
 '"'"' "$target" || {
-  printf "%s\n" "missing long table or code block line" >&2
-  exit 13
+  printf "%s\n" "missing long normal, table, or code block line" >&2
+  exit 14
 }
 EOF
       chmod +x "$tmpdir/bin/markdownlint-cli2"
@@ -277,6 +282,8 @@ EOF
       git init -q
       {
         printf "%s\n" "# Title" ""
+        awk '"'"'BEGIN { for (i = 0; i < 150; i++) printf "n"; print "" }'"'"'
+        printf "%s\n" ""
         printf "%s\n" "| Name | Value |" "| --- | --- |"
         printf "| fixture | "
         awk '"'"'BEGIN { for (i = 0; i < 150; i++) printf "t"; print " |" }'"'"'

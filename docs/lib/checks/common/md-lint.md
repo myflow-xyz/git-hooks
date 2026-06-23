@@ -19,9 +19,10 @@ Staged Markdown lint check for `pre-commit`.
 - `$GIT_HOOKS_HOME/config/markdownlint/markdownlint.yaml`
 - If no config exists, falls back to markdownlint's built-in defaults instead
   of blocking the commit.
-- The bundled fallback config sets `MD013` prose lines to 140 characters,
-  keeps headings at 100 characters, excludes code blocks and tables from line
-  length checks, and keeps structural readability rules enabled.
+- The bundled fallback config sets `MD013` normal and code block line limits to
+  999999 characters, keeps headings at 100 characters, excludes code blocks and
+  tables from active line length checks, and keeps structural readability rules
+  enabled.
 - The bundled fallback excludes common generated or dependency paths through
   `globs`, including `.git`, `node_modules`, `vendor`, `dist`, `build`, and
   `coverage`.
@@ -55,7 +56,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | falls back to repo-local `.markdownlint.yaml` |
 | Existing | `git-hooks` | falls back to user XDG markdownlint config |
 | Existing | `git-hooks` | falls back to bundled git-hooks config |
-| Existing | `git-hooks` | uses bundled config that allows long table and code block lines |
+| Existing | `git-hooks` | uses bundled config that relaxes normal and code block line limits |
 | Existing | `git-hooks` | falls back to built-in defaults |
 | Existing | `git-hooks` | keeps clean lint success silent in quiet mode |
 | Existing | `git-hooks` | honors verbose mode from repo hook env |
