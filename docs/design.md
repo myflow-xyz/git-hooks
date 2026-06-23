@@ -31,9 +31,9 @@ the submodule as a pinned dependency. Update by moving the submodule pointer to
 a reviewed commit or tag, then run `install.sh --check` and target repo
 `setup-repo-hooks.sh --check` where applicable.
 
-The repository is private proprietary tooling unless the owner explicitly
-changes the license. Tags are the release boundary after migration; downstream
-repos should pin reviewed tags or commits instead of tracking a moving branch.
+The repository is MIT licensed. Tags are the release boundary after migration;
+downstream repos should pin reviewed tags or commits instead of tracking a
+moving branch.
 
 ## Execution Model
 

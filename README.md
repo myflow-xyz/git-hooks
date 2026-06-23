@@ -8,9 +8,7 @@ hook setup script, runtime helpers, checks, profiles, templates, docs, bundled
 fallback config, and tests. It can be cloned directly, vendored, or consumed as
 a submodule by another repository.
 
-This is private proprietary tooling. Authorized collaborators may use it for
-approved internal projects; redistribution or publication requires explicit
-owner approval. See [License](LICENSE).
+This project is available under the MIT License. See [License](LICENSE).
 
 General policy lives in [Design](docs/design.md),
 [Repo Hook Setup](docs/setup-repo-hooks.md), and
@@ -170,7 +168,6 @@ tracked manually for that repo-local copy.
 ```text
 git-hooks/
   README.md
-  CHANGELOG.md
   LICENSE
   install.sh
   install-tool-config.sh
