@@ -472,6 +472,30 @@ EOF
     The stdout should eq 'profilebuiltinlocal'
   End
 
+  It 'does not let local hooks shadow builtin extra checks'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/test" "$GIT_HOOKS_HOME/lib/checks/common" "$tmpdir/repo/.githooks/hooks/common"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      printf "%s\n" "#!/usr/bin/env sh" "printf builtin" > "$GIT_HOOKS_HOME/lib/checks/common/whitespace.sh"
+      printf "%s\n" "#!/usr/bin/env sh" "printf local" > "$tmpdir/repo/.githooks/hooks/common/whitespace.sh"
+      chmod +x "$GIT_HOOKS_HOME/lib/checks/common/whitespace.sh" "$tmpdir/repo/.githooks/hooks/common/whitespace.sh"
+      printf "%s\n" \
+        "GIT_HOOK_PROFILES=test" \
+        "GIT_HOOK_PRE_COMMIT_EXTRA_CHECKS=\"common/whitespace\"" \
+        > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq 'builtin'
+  End
+
   It 'runs nested local extra hooks with git hook arguments'
     When run sh -u -c '
       ROOT=$1
