@@ -496,6 +496,32 @@ EOF
     The stdout should eq 'builtin'
   End
 
+  It 'runs nested pre-commit local hooks after profile checks'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-dispatcher.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$tmpdir/hooks"
+      mkdir -p "$HOME" "$GIT_HOOKS_HOME/lib" "$GIT_HOOKS_HOME/profiles/test" "$GIT_HOOKS_HOME/lib/checks/test" "$tmpdir/repo/.githooks/hooks/dir"
+      cp -R "$ROOT/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      printf "%s\n" "#!/usr/bin/env sh" "printf profile >> \"$tmpdir/order-log\"" > "$GIT_HOOKS_HOME/lib/checks/test/profile.sh"
+      printf "%s\n" "#!/usr/bin/env sh" "printf local >> \"$tmpdir/order-log\"" > "$tmpdir/repo/.githooks/hooks/dir/xhook.sh"
+      chmod +x "$GIT_HOOKS_HOME/lib/checks/test/profile.sh" "$tmpdir/repo/.githooks/hooks/dir/xhook.sh"
+      printf "%s\n" "test/profile" > "$GIT_HOOKS_HOME/profiles/test/pre-commit.list"
+      printf "%s\n" \
+        "GIT_HOOK_PROFILES=test" \
+        "GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS=\"dir/xhook\"" \
+        > "$tmpdir/repo/.githooks/project.conf"
+      cd "$tmpdir/repo"
+      git init -q
+      sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
+      cat "$tmpdir/order-log"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq 'profilelocal'
+  End
+
   It 'runs nested local extra hooks with git hook arguments'
     When run sh -u -c '
       ROOT=$1
