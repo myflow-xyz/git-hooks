@@ -40,10 +40,10 @@ Run only this script's tests:
 
 | Status | Environment | Scenario |
 | --- | --- | --- |
-| Planned | `git-hooks` | skips with install guidance when the scanner is missing |
-| Planned | `git-hooks` | skips with install guidance when the scanner is not executable |
-| Planned | `git-hooks` | runs a recursive source scan with Markdown output selected |
-| Planned | `git-hooks` | keeps clean success silent |
-| Planned | `git-hooks` | streams native output in verbose mode |
-| Planned | `git-hooks` | prints Markdown results and returns exit `1` for vulnerabilities |
-| Planned | `git-hooks` | reports operational failures and preserves the scanner status |
+| Existing | `git-hooks` | skips with install guidance when the scanner is missing |
+| Existing | `git-hooks` | skips with install guidance when the scanner is not executable |
+| Existing | `git-hooks` | runs a recursive source scan with Markdown output selected |
+| Existing | `git-hooks` | keeps clean success silent |
+| Existing | `git-hooks` | streams native output in verbose mode |
+| Existing | `git-hooks` | prints Markdown results and returns exit `1` for vulnerabilities |
+| Existing | `git-hooks` | reports operational failures and preserves the scanner status |
