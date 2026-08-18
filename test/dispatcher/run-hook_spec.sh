@@ -212,13 +212,19 @@ EOF
       export HOME="$tmpdir/home"
       export GIT_HOOKS_HOME="$ROOT"
       export PNPM_LOG="$tmpdir/pnpm-log"
+      export OSV_SCANNER_LOG="$tmpdir/osv-scanner-log"
       mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/repo/.githooks" "$tmpdir/repo/node_modules/.bin"
       cat > "$tmpdir/bin/pnpm" <<EOF
 #!/usr/bin/env sh
 printf "%s\n" "\$*" >> "$PNPM_LOG"
 exit 0
 EOF
-      chmod +x "$tmpdir/bin/pnpm"
+      cat > "$tmpdir/bin/osv-scanner" <<EOF
+#!/usr/bin/env sh
+printf "%s\n" "\$*" >> "$OSV_SCANNER_LOG"
+exit 0
+EOF
+      chmod +x "$tmpdir/bin/pnpm" "$tmpdir/bin/osv-scanner"
       printf "%s\n" "#!/usr/bin/env sh" "exit 0" > "$tmpdir/repo/node_modules/.bin/vitest"
       printf "%s\n" "#!/usr/bin/env sh" "exit 0" > "$tmpdir/repo/node_modules/.bin/playwright"
       chmod +x "$tmpdir/repo/node_modules/.bin/vitest" "$tmpdir/repo/node_modules/.bin/playwright"
@@ -230,10 +236,12 @@ EOF
       printf "export default {}\n" > playwright.config.ts
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       cat "$PNPM_LOG"
+      cat "$OSV_SCANNER_LOG"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should include 'exec vitest run'
     The stdout should include 'exec playwright test --pass-with-no-tests'
+    The stdout should include 'scan source --format markdown --verbosity error --recursive .'
   End
 
   It 'runs golang pre-commit profile checks'
@@ -294,12 +302,17 @@ EOF
 printf "govulncheck:%s\n" "\$*" >> "$HOOK_LOG"
 exit 0
 EOF
+      cat > "$tmpdir/bin/osv-scanner" <<EOF
+#!/usr/bin/env sh
+printf "osv-scanner:%s\n" "\$*" >> "$HOOK_LOG"
+exit 0
+EOF
       cat > "$tmpdir/bin/go" <<EOF
 #!/usr/bin/env sh
 printf "go:%s\n" "\$*" >> "$HOOK_LOG"
 exit 0
 EOF
-      chmod +x "$tmpdir/bin/golangci-lint" "$tmpdir/bin/govulncheck" "$tmpdir/bin/go"
+      chmod +x "$tmpdir/bin/golangci-lint" "$tmpdir/bin/govulncheck" "$tmpdir/bin/osv-scanner" "$tmpdir/bin/go"
       export PATH="$tmpdir/bin:$PATH"
       printf "%s\n" "GIT_HOOK_PROFILES=golang" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
@@ -311,6 +324,7 @@ EOF
       expected=$(cat <<'"'"'EOF_EXPECTED'"'"'
 go:mod tidy -diff
 govulncheck:./...
+osv-scanner:scan source --format markdown --verbosity error --recursive .
 golangci-lint:run
 go:vet ./...
 go:test ./...
@@ -326,6 +340,7 @@ EOF_EXPECTED
     The status should eq 0
     The stdout should include 'go:mod tidy -diff'
     The stdout should include 'govulncheck:./...'
+    The stdout should include 'osv-scanner:scan source --format markdown --verbosity error --recursive .'
     The stdout should include 'golangci-lint:run'
     The stdout should include 'go:vet ./...'
     The stdout should include 'go:test ./...'
@@ -366,10 +381,12 @@ EOF_EXPECTED
       export GIT_HOOKS_HOME="$ROOT"
       export MYPY_LOG="$tmpdir/mypy-log"
       export PYTEST_LOG="$tmpdir/pytest-log"
+      export OSV_SCANNER_LOG="$tmpdir/osv-scanner-log"
       mkdir -p "$HOME" "$tmpdir/bin" "$tmpdir/repo/.githooks" "$tmpdir/repo/tests"
       printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$MYPY_LOG\"" "exit 0" > "$tmpdir/bin/mypy"
       printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$PYTEST_LOG\"" "exit 0" > "$tmpdir/bin/pytest"
-      chmod +x "$tmpdir/bin/mypy" "$tmpdir/bin/pytest"
+      printf "%s\n" "#!/usr/bin/env sh" "printf \"%s\\n\" \"\$*\" >> \"\$OSV_SCANNER_LOG\"" "exit 0" > "$tmpdir/bin/osv-scanner"
+      chmod +x "$tmpdir/bin/mypy" "$tmpdir/bin/pytest" "$tmpdir/bin/osv-scanner"
       export PATH="$tmpdir/bin:$PATH"
       printf "%s\n" "GIT_HOOK_PROFILES=python" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
@@ -381,9 +398,11 @@ EOF_EXPECTED
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       cat "$MYPY_LOG"
       cat "$PYTEST_LOG"
+      cat "$OSV_SCANNER_LOG"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should include '.'
+    The stdout should include 'scan source --format markdown --verbosity error --recursive .'
   End
 
   It 'runs pmem commit-msg profile checks'
