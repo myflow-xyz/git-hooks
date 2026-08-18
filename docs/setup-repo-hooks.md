@@ -40,14 +40,17 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
 - Use `--profiles "common python"` for Python projects.
 - The `python` profile runs Ruff format, import sorting, and lint checks during
   `pre-commit`, then mypy and pytest during `pre-push`.
+- The `react-vite`, `golang`, and `python` profiles also run the reusable
+  `common/osv-scanner` check during `pre-push`. It recursively scans dependency
+  files from the repository root and reports vulnerabilities as Markdown.
 - Python checks support `GIT_HOOK_PYTHON_RUNNER=auto|uv|path`.
 - Python runner `auto` prefers `uv run` when `uv.lock` exists and falls back to
   the active environment or `PATH` otherwise.
 - `GIT_HOOK_PYTHON_UV_ARGS` defaults to `--frozen`.
 - Add `python/pytest-cov` as a `pre-push` extra check when local coverage is
   required.
-- Add `python/pip-audit` as a `pre-push` extra check when dependency audit is
-  required.
+- Add `python/pip-audit` as a `pre-push` extra check when a Python-specific
+  audit in addition to the default OSV scan is required.
 - Use `--profiles "common pmem"` for repositories managed by Project Memory.
 - The `pmem` profile uses the `pmem` CLI and repo PMem config to enforce a
   single `Refs: <task-id>` footer during `commit-msg`. Missing CLI or missing

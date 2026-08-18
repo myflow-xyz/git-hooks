@@ -197,6 +197,7 @@ git-hooks/
   - [path](docs/lib/common/path.md)
 - Common checks:
   - [gitleaks](docs/lib/checks/common/gitleaks.md)
+  - [osv-scanner](docs/lib/checks/common/osv-scanner.md)
   - [eol-lf](docs/lib/checks/common/eol-lf.md)
   - [whitespace](docs/lib/checks/common/whitespace.md)
   - [eof-newline](docs/lib/checks/common/eof-newline.md)

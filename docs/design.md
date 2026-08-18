@@ -194,6 +194,10 @@ are concrete enough to maintain.
   signal-like child statuses (`>=128`) instead of continuing to the next item.
 - If an optional external tool is missing, skip that check with a concise
   warning that includes the check name, missing command, and install hint.
+- The cross-ecosystem OSV check uses an executable `osv-scanner` from `PATH`.
+  It runs a recursive source scan from the repository root with Markdown
+  failure output in the `react-vite`, `golang`, and `python` `pre-push`
+  profiles. Missing or non-executable local tooling warns and skips.
 - Hook tools should be widely used by their community, actively maintained, and
   familiar enough that failures are easy to interpret.
 - Hooks should be portable across `sh`, `bash`, and `zsh` unless a stricter
@@ -249,9 +253,9 @@ are concrete enough to maintain.
 - Python uv mode should default to `--frozen` so hooks do not update lockfiles.
 - Python hooks should keep staged Ruff format, import sorting, and lint checks
   in `pre-commit`, then mypy and pytest in `pre-push`.
-- Python coverage and dependency audit checks are explicit extras by default:
-  coverage can duplicate test execution, while dependency audit can be slower
-  or require advisory/database access.
+- Python coverage and the Python-specific `pip-audit` check are explicit extras
+  by default: coverage can duplicate test execution, while `pip-audit` overlaps
+  the default cross-ecosystem OSV scan and can require project resolution.
 - Project Memory (`pmem`) hooks are opt-in and should stay in `commit-msg`
   until there is a concrete need for repo-content checks. The profile is
   enforced only when the local `pmem` CLI is available and `pmem info --repo
