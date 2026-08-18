@@ -322,9 +322,9 @@ EOF
       git add go.mod main.go
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       expected=$(cat <<'"'"'EOF_EXPECTED'"'"'
+osv-scanner:scan source --format markdown --verbosity error --recursive .
 go:mod tidy -diff
 govulncheck:./...
-osv-scanner:scan source --format markdown --verbosity error --recursive .
 golangci-lint:run
 go:vet ./...
 go:test ./...
