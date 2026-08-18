@@ -1,3 +1,4 @@
+common/osv-scanner
 golang/go-mod-tidy
 golang/govulncheck
 golang/golangci-lint

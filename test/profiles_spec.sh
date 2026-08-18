@@ -58,4 +58,20 @@ Describe 'profiles'
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
   End
+
+  It 'enables osv-scanner once in application pre-push profiles'
+    When run sh -u -c '
+      ROOT=$1
+
+      for profile_name in react-vite golang python; do
+        list_file=$ROOT/profiles/$profile_name/pre-push.list
+        check_count=$(awk '\''$0 == "common/osv-scanner" { count++ } END { print count + 0 }'\'' "$list_file")
+        if [ "$check_count" -ne 1 ]; then
+          printf "%s\n" "unexpected osv-scanner count: $profile_name=$check_count" >&2
+          exit 1
+        fi
+      done
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+  End
 End

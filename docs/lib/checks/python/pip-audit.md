@@ -17,9 +17,9 @@ Python dependency vulnerability audit for explicit extra checks.
 
 ## Lifecycle Decision
 
-Dependency audit can perform dependency resolution and may require network or
-advisory database access, so it is explicit-only instead of part of the default
-profile.
+`pip-audit` can perform Python dependency resolution and overlaps the default
+cross-ecosystem OSV scan. It remains explicit-only for projects that want both
+checks.
 
 ## Failure Modes
 
