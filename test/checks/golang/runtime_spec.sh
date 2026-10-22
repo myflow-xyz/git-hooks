@@ -8,6 +8,7 @@ Describe 'lib/checks/golang/runtime.sh'
       export GIT_HOOKS_HOME="$ROOT"
       export GIT_HOOK_VERBOSE=0
       unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
+      export GOENV=off
       mkdir -p "$HOME"
       cd "$tmpdir"
       git init -q
@@ -35,6 +36,7 @@ Describe 'lib/checks/golang/runtime.sh'
       export GIT_HOOKS_HOME="$ROOT"
       export GIT_HOOK_VERBOSE=0
       unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
+      export GOENV=off
       mkdir -p "$HOME"
       cd "$tmpdir"
       git init -q
@@ -47,6 +49,70 @@ Describe 'lib/checks/golang/runtime.sh'
       test -d "$GOCACHE"
       test -d "$GOTMPDIR"
       test -d "$GOLANGCI_LINT_CACHE"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'leaves runtime directories set with go env -w to Go'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-golang-runtime.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_VERBOSE=0
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/go" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+[ "$1 $2 $3" = "env -changed -json" ] || exit 2
+printf "{\n\t\"%s\": \"%s\"\n}\n" "$4" "/go-env-file/$4"
+EOF
+      chmod +x "$tmpdir/bin/go"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      . "$ROOT/lib/common/env.sh"
+      . "$ROOT/lib/checks/golang/runtime.sh"
+      git_hooks_golang_prepare_runtime_dirs
+      [ "${GOCACHE+x}" != x ]
+      [ "${GOTMPDIR+x}" != x ]
+      test ! -e "$tmpdir/.cache/go-build"
+      test ! -e "$tmpdir/.tmp/go"
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The stdout should eq ''
+    The stderr should eq ''
+  End
+
+  It 'keeps repo defaults when go cannot report changed settings'
+    When run sh -u -c '
+      ROOT=$1
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-golang-runtime.XXXXXX")
+      trap '"'"'rm -rf "$tmpdir"'"'"' EXIT HUP INT TERM
+      export HOME="$tmpdir/home"
+      export GIT_HOOKS_HOME="$ROOT"
+      export GIT_HOOK_VERBOSE=0
+      unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
+      mkdir -p "$HOME" "$tmpdir/bin"
+      cat > "$tmpdir/bin/go" <<'"'"'EOF'"'"'
+#!/usr/bin/env sh
+printf "%s\n" "flag provided but not defined: -changed" >&2
+exit 2
+EOF
+      chmod +x "$tmpdir/bin/go"
+      export PATH="$tmpdir/bin:$PATH"
+      cd "$tmpdir"
+      git init -q
+      . "$ROOT/lib/common/env.sh"
+      . "$ROOT/lib/checks/golang/runtime.sh"
+      git_hooks_golang_prepare_runtime_dirs
+      [ "$GOCACHE" = "$tmpdir/.cache/go-build" ]
+      [ "$GOTMPDIR" = "$tmpdir/.tmp/go" ]
+      test -d "$GOCACHE"
+      test -d "$GOTMPDIR"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
     The stdout should eq ''

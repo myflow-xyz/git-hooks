@@ -191,6 +191,7 @@ EOF
       export GIT_HOOKS_HOME="$ROOT"
       export GIT_HOOK_VERBOSE=0
       unset GOCACHE GOTMPDIR GOLANGCI_LINT_CACHE
+      export GOENV=off
       mkdir -p "$HOME" "$tmpdir/bin"
       cat > "$tmpdir/bin/golangci-lint" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh

@@ -309,6 +309,7 @@ exit 0
 EOF
       cat > "$tmpdir/bin/go" <<EOF
 #!/usr/bin/env sh
+[ "\$1" = env ] && exit 0
 printf "go:%s\n" "\$*" >> "$HOOK_LOG"
 exit 0
 EOF

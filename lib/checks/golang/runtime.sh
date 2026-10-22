@@ -41,21 +41,48 @@ git_hooks_golang_ensure_repo_root() {
   fi
 }
 
+git_hooks_golang_go_config_sets() {
+  if [ "$#" -ne 1 ]; then
+    git_hooks_log_error 'Usage: git_hooks_golang_go_config_sets <env-name>'
+    return 2
+  fi
+
+  command -v go >/dev/null 2>&1 || return 1
+
+  # Go 1.23+ reports values from its config file (`go env -w`) as changed.
+  # Older Go rejects -changed, so the caller keeps the repo-local default.
+  git_hooks_golang_go_config=$(git_hooks_env_run_project_command go env -changed -json "$1" 2>/dev/null) || return 1
+
+  case "$git_hooks_golang_go_config" in
+  *"\"$1\":"*)
+    return 0
+    ;;
+  esac
+
+  return 1
+}
+
 git_hooks_golang_default_runtime_dirs() {
   if [ "${GOCACHE+x}" != x ] || [ "${GOTMPDIR+x}" != x ]; then
     git_hooks_golang_ensure_repo_root || return $?
   fi
 
-  if [ "${GOCACHE+x}" != x ]; then
+  if [ "${GOCACHE+x}" != x ] && ! git_hooks_golang_go_config_sets GOCACHE; then
     GOCACHE=$GIT_HOOK_REPO_ROOT/.cache/go-build
   fi
 
-  if [ "${GOTMPDIR+x}" != x ]; then
+  if [ "${GOTMPDIR+x}" != x ] && ! git_hooks_golang_go_config_sets GOTMPDIR; then
     GOTMPDIR=$GIT_HOOK_REPO_ROOT/.tmp/go
   fi
 
-  export GOCACHE
-  export GOTMPDIR
+  # Keep `go env -w` values unset here so Go reads them from its own config.
+  if [ "${GOCACHE+x}" = x ]; then
+    export GOCACHE
+  fi
+
+  if [ "${GOTMPDIR+x}" = x ]; then
+    export GOTMPDIR
+  fi
 }
 
 git_hooks_golang_default_lint_runtime_dirs() {
