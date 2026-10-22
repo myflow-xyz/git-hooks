@@ -138,9 +138,23 @@ Go profile cache defaults:
 .tmp/
 ```
 
-The `golang` profile creates repo-local runtime cache directories by default:
-`.cache/go-build`, `.cache/golangci-lint`, and `.tmp/go`. Add the ignore rules
+The `golang` profile uses `GOCACHE`, `GOTMPDIR`, and `GOLANGCI_LINT_CACHE` from
+the environment, such as shell exports, and `GOCACHE` and `GOTMPDIR` set with
+`go env -w`. When a path is not configured, it creates a repo-local default:
+`.cache/go-build`, `.cache/golangci-lint`, or `.tmp/go`. Add the ignore rules
 above in Go repos, or override cache locations in `.githooks/hooks.env`.
+
+To use the same Go caches from IDEs, Git GUIs, and AI agents that do not load
+your shell profile, save them with `go env -w`. The hooks detect these values
+with Go 1.23 or later; with older Go, they use the repo-local defaults.
+
+```sh
+mkdir -p "$HOME/.cache/go/tmp"
+go env -w GOCACHE="$HOME/.cache/go/build" GOTMPDIR="$HOME/.cache/go/tmp"
+```
+
+Exported variables and `.githooks/hooks.env` still win over `go env -w`. Go
+creates a missing `GOCACHE`, but the `GOTMPDIR` directory must exist.
 
 `--hooks` selects which Git wrapper phases exist in the repo. `--profiles`
 selects built-in check lists. Multiple profiles are merged by running each

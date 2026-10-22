@@ -33,10 +33,11 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
 - The `golang` profile runs `goimports` and fast `golangci-lint` during
   `pre-commit`, then `go mod tidy -diff`, full `golangci-lint`, `go vet`, and
   `go test` during `pre-push`.
-- Go checks use repo-local `.cache/` and `.tmp/` runtime directories by default.
-  Repos using the `golang` profile should ignore `.cache/` and `.tmp/`; override
-  cache locations in `.githooks/hooks.env` only when a repo needs different
-  local policy.
+- Go checks use cache paths from the environment or `go env -w` first, and
+  repo-local `.cache/` and `.tmp/` runtime directories otherwise. Repos using
+  the `golang` profile should ignore `.cache/` and `.tmp/`; override cache
+  locations in `.githooks/hooks.env` only when a repo needs different local
+  policy.
 - Use `--profiles "common python"` for Python projects.
 - The `python` profile runs Ruff format, import sorting, and lint checks during
   `pre-commit`, then mypy and pytest during `pre-push`.

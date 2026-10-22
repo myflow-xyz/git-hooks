@@ -11,10 +11,10 @@ Go static analysis check for `pre-push`.
 - Skips silently when neither `go.mod` nor `go.work` exists.
 - Skips silently when the repo has no tracked or untracked, non-ignored Go
   source files.
-- Prepares Go runtime directories before invoking `golangci-lint`: unset
-  `GOCACHE` defaults to `$REPO/.cache/go-build`, unset `GOTMPDIR` defaults to
-  `$REPO/.tmp/go`, and unset `GOLANGCI_LINT_CACHE` defaults to
-  `$REPO/.cache/golangci-lint`.
+- Prepares Go runtime directories before invoking `golangci-lint`: when
+  neither the environment nor `go env -w` sets them, `GOCACHE` defaults to
+  `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`; unset
+  `GOLANGCI_LINT_CACHE` defaults to `$REPO/.cache/golangci-lint`.
 - Runs `golangci-lint run` across the repository.
 - Uses the first existing config in this priority order:
 - `$REPO/.golangci.yml`

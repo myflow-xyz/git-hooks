@@ -9,9 +9,9 @@ Go module hygiene check for `pre-push`.
 - Intended for the opt-in `golang` profile, not the common baseline.
 - Uses user-level `go` from `PATH`.
 - Skips silently when repo root has no `go.mod`.
-- Prepares Go runtime directories before invoking `go`: unset `GOCACHE`
-  defaults to `$REPO/.cache/go-build`, and unset `GOTMPDIR` defaults to
-  `$REPO/.tmp/go`.
+- Prepares Go runtime directories before invoking `go`: when neither the
+  environment nor `go env -w` sets them, `GOCACHE` defaults to
+  `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
 - Runs `go mod tidy -diff` so the hook reports required `go.mod` or `go.sum`
   changes without modifying files.
 - Does not run from `go.work` alone because `go mod tidy` is module-scoped.

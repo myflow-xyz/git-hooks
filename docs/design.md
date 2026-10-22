@@ -76,6 +76,11 @@ If the same variable is set in both your shell and `.githooks/hooks.env`, the
 repo-local `.githooks/hooks.env` value wins. Use shell env for temporary
 one-command overrides only when the repo does not set the same variable.
 
+Tool-native user config sits below the process environment. For example, Go
+reads `go env -w` values only for variables the environment does not set. Go
+checks keep this order and apply their repo-local cache defaults only when
+neither source sets `GOCACHE` or `GOTMPDIR`.
+
 AI agent configs should force quiet mode in the agent runtime environment, for
 example `GIT_HOOK_VERBOSE=0`, so a developer's interactive shell setting does
 not leak into Codex, Claude Code, IDE agents, or sandboxed command execution.
@@ -231,10 +236,13 @@ are concrete enough to maintain.
   binary releases over package managers like Homebrew, because package managers
   may install another Go runtime or shim ahead of the selected `GOROOT`.
   Missing optional Go tools should skip with a concise install hint.
-- Go stack checks that invoke the Go toolchain default unset `GOCACHE` to
-  `$REPO/.cache/go-build` and unset `GOTMPDIR` to `$REPO/.tmp/go`. Repo-local
-  `.githooks/hooks.env` values take priority. Missing directories are created;
-  existing non-directory paths fail with a concise error.
+- Go stack checks that invoke the Go toolchain respect the user's Go runtime
+  config. `GOCACHE` and `GOTMPDIR` come from `.githooks/hooks.env` or the
+  parent environment first, then from Go's own config file (`go env -w`). Only
+  when neither sets them do the checks default to `$REPO/.cache/go-build` and
+  `$REPO/.tmp/go`. Missing environment or default directories are created;
+  existing non-directory paths fail with a concise error. Values from
+  `go env -w` are left to Go.
 - `golangci-lint` checks additionally default unset `GOLANGCI_LINT_CACHE` to
   `$REPO/.cache/golangci-lint`. This default is loaded only by golangci-lint
   checks, not by generic Go checks.

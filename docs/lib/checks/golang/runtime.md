@@ -7,10 +7,16 @@ Shared Go runtime helper for Golang checks that invoke the Go toolchain.
 ## Behavior
 
 - Intended for internal use by Golang checks, not as a standalone check ID.
-- Defaults unset `GOCACHE` to `$REPO/.cache/go-build`.
-- Defaults unset `GOTMPDIR` to `$REPO/.tmp/go`.
-- Creates `GOCACHE` and `GOTMPDIR` when missing.
-- Preserves values loaded from `.githooks/hooks.env` or the parent environment.
+- Resolves `GOCACHE` and `GOTMPDIR` from the first source that sets them:
+  `.githooks/hooks.env` or the parent environment, such as shell exports, then
+  Go's own config file written by `go env -w`, then the repo-local defaults
+  `$REPO/.cache/go-build` and `$REPO/.tmp/go`.
+- Detects `go env -w` values with `go env -changed -json`, which needs Go 1.23
+  or later. With older Go, or without `go` in `PATH`, the repo-local defaults
+  apply.
+- Leaves `go env -w` values to Go: the hook does not export or create them.
+- Creates `GOCACHE` and `GOTMPDIR` when missing if they come from the hook
+  environment or the repo-local defaults.
 - Defaults unset `GOLANGCI_LINT_CACHE` to `$REPO/.cache/golangci-lint` only when
   a golangci-lint check calls lint runtime preparation.
 - Creates `GOLANGCI_LINT_CACHE` only for golangci-lint checks.
@@ -34,6 +40,8 @@ Run only this helper's tests:
 | --- | --- | --- |
 | Existing | `git-hooks` | defaults unset Go runtime directories under the repo root |
 | Existing | `git-hooks` | defaults unset golangci-lint cache only through lint runtime preparation |
+| Existing | `git-hooks` | leaves runtime directories set with `go env -w` to Go |
+| Existing | `git-hooks` | keeps repo defaults when `go` cannot report changed settings |
 | Existing | `git-hooks` | creates missing `GOCACHE` and `GOTMPDIR` |
 | Existing | `git-hooks` | stays silent after successful creation in quiet mode |
 | Existing | `git-hooks` | reports created paths in verbose mode |

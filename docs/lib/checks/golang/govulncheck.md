@@ -11,9 +11,9 @@ Go vulnerability advisory check for `pre-push`.
 - Skips silently when neither `go.mod` nor `go.work` exists.
 - Skips silently when the repo has no tracked or untracked, non-ignored Go
   source files.
-- Prepares Go runtime directories before invoking `govulncheck`: unset
-  `GOCACHE` defaults to `$REPO/.cache/go-build`, and unset `GOTMPDIR`
-  defaults to `$REPO/.tmp/go`.
+- Prepares Go runtime directories before invoking `govulncheck`: when neither
+  the environment nor `go env -w` sets them, `GOCACHE` defaults to
+  `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
 - Runs `govulncheck ./...`.
 - Runs after `go mod tidy -diff` in the `golang` profile so advisory analysis
   sees current `go.mod` and `go.sum` state.
