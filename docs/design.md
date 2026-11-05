@@ -109,6 +109,11 @@ is loaded after the agent process environment.
 - `pre-push` is for heavier work: full repo tests, package-wide lint, type
   checks, production builds, coverage reports, dependency audits, integration
   checks, full scanner runs, and non-blocking repo hygiene recommendations.
+- Once the dispatcher starts, every `pre-push` requires a clean checkout before
+  profile checks and after all builtin and local extra checks. Staged changes,
+  unstaged tracked changes, and non-ignored untracked files reject the push.
+  Ignored caches and reports are allowed. Git query errors also reject the push.
+  The guard reports paths without changing the index or working files.
 - `commit-msg` should validate commit messages only. Common policy requires
   conventional commits with mandatory scope.
 - Hooks must not mutate tracked repo files, dependency locks, or tool config
@@ -249,6 +254,27 @@ are concrete enough to maintain.
 - Golang hooks should keep staged formatting and fast lint checks in
   `pre-commit`, then module hygiene, vulnerability advisory scanning,
   package-wide lint, vet, and test checks in `pre-push`.
+- Go formatting reads index blobs. Fast lint runs in the original checkout and
+  limits reports to files touched by staged Go changes. It warns and skips when
+  any tracked file differs from the index or any non-ignored untracked file is
+  present. This conservative guard includes unrelated files; it avoids
+  maintaining a partial model of Go build inputs. Git errors remain failures.
+- Fast lint preserves native workspace and dependency resolution. It does not
+  copy source trees, rewrite workspace paths, or inspect changes in external
+  dependency repositories. Ignored files remain native project inputs. It is
+  staged-file-scoped feedback, not an isolated staged build. Staged formatting
+  and full pre-push lint remain available when fast lint skips.
+- Go push checks run in each selected module of the working tree. Discover
+  tracked and untracked, non-ignored `go.mod` files, excluding vendor, testdata,
+  and hook cache directories. `GIT_HOOK_GO_MODULES` can select root-relative
+  directories, one per line, when a project needs a narrower scope.
+- Push checks inspect a clean working tree. They do not select or certify
+  arbitrary pushed revisions. Projects own their CI and push-ref policy.
+- Run full Go tests with `-count=1` by default. Projects may set
+  `GIT_HOOK_GO_TEST_SHORT=1` to select short tests. Race detection is the
+  independent `golang/go-test-race` extra check, not part of the default list.
+- Go integration and E2E checks are repository-owned local hooks. Keep OSV,
+  govulncheck, and CodeGraph in the default Go push profile.
 - Go fast lint is hook policy, not standard project policy. It should use only
   bundled git-hooks config and `golangci-lint run --fast-only`. In
   `pre-commit`, it should generate a staged patch and pass
@@ -324,12 +350,15 @@ are concrete enough to maintain.
 Git hook checks should be quiet-by-default, failure-oriented, and
 bounded-output.
 
-- Exit `0` means the check passed. Do not print normal successful tool output.
+- Exit `0` means the check passed or a documented skip policy applies. Do not
+  print normal successful tool output.
 - Print skip/progress details only when `GIT_HOOK_VERBOSE=1` or `true`.
 - On failure, print the check name, reason, affected path when known, and the
   next action needed to fix it.
 - External tools that can emit noisy output should be captured. Replay only the
   useful failure output and cap it to a documented line limit.
+- Go checks retain complete captured failure output in a uniquely named
+  temporary log and print its location. Successful runs remove their logs.
 - Preserve the external tool exit code when that code is meaningful.
 - Do not depend on `rtk` or another wrapper to reduce hook output. Hooks must be
   concise when run directly by Git, an IDE, a terminal, or an agent.

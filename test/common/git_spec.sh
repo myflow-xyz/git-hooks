@@ -1,4 +1,18 @@
 Describe 'lib/common/git.sh'
+  It 'preserves Git discovery failures through both extension helpers'
+    When run sh -c '
+      . "$1/lib/common/git.sh"
+      export GIT_DIR=/dev/null
+      git_hooks_git_staged_files_by_extension go 2>/dev/null
+      first=$?
+      git_hooks_git_staged_text_files_by_extension go 2>/dev/null
+      second=$?
+      [ "$first" -ne 0 ] && [ "$second" -ne 0 ]
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 0
+    The output should eq ''
+  End
+
   It 'lists staged files and filters by extension'
     When run sh -u -c '
       ROOT=$1

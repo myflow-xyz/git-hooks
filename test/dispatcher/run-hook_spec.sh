@@ -1,4 +1,29 @@
 Describe 'lib/dispatcher/run-hook.sh'
+  It 'does not let stdin-reading checks consume later check IDs'
+    When run sh -u -c '
+      root=$1
+      fixture=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-stdin.XXXXXX")
+      trap '\''rm -rf "$fixture"'\'' EXIT HUP INT TERM
+      export GIT_HOOKS_HOME="$fixture/runtime"
+      mkdir -p "$GIT_HOOKS_HOME/lib/checks/test" "$GIT_HOOKS_HOME/profiles/test" "$fixture/repo/.githooks"
+      cp -R "$root/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      printf "%s\n" "#!/usr/bin/env sh" "cat >/dev/null" "printf reader" >"$GIT_HOOKS_HOME/lib/checks/test/read.sh"
+      printf "%s\n" "#!/usr/bin/env sh" "printf later" "exit 7" >"$GIT_HOOKS_HOME/lib/checks/test/fail.sh"
+      chmod +x "$GIT_HOOKS_HOME/lib/checks/test/"*.sh
+      printf "%s\n" test/read test/fail >"$GIT_HOOKS_HOME/profiles/test/pre-push.list"
+      printf "%s\n" GIT_HOOK_PROFILES=test >"$fixture/repo/.githooks/project.conf"
+      cd "$fixture/repo"
+      git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
+      sh "$root/lib/dispatcher/run-hook.sh" pre-push </dev/null
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 7
+    The stdout should eq readerlater
+    The stderr should eq ''
+  End
+
   It 'runs profile checks through the dispatcher'
     When run sh -u -c '
       ROOT=$1
@@ -234,6 +259,9 @@ EOF
       git init -q
       printf "{}\n" > package.json
       printf "export default {}\n" > playwright.config.ts
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       cat "$PNPM_LOG"
       cat "$OSV_SCANNER_LOG"
@@ -270,15 +298,17 @@ EOF
       printf "%s\n" "GIT_HOOK_PROFILES=golang" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
       git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add go.mod main.go
+      git add go.mod main.go .githooks/project.conf
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
       cat "$GOIMPORTS_LOG"
       cat "$GOLANGCI_LOG"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stdout should include '-l main.go'
+    The stdout should include '-l -srcdir'
+    The stdout should include '/main.go'
     The stdout should include '--fast-only'
   End
 
@@ -321,6 +351,9 @@ EOF
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
       git add go.mod main.go
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       expected=$(cat <<'"'"'EOF_EXPECTED'"'"'
 osv-scanner:scan source --format markdown --verbosity error --recursive .
@@ -328,7 +361,7 @@ go:mod tidy -diff
 govulncheck:./...
 golangci-lint:run
 go:vet ./...
-go:test ./...
+go:test -count=1 ./...
 EOF_EXPECTED
 )
       actual=$(cat "$HOOK_LOG")
@@ -344,7 +377,7 @@ EOF_EXPECTED
     The stdout should include 'osv-scanner:scan source --format markdown --verbosity error --recursive .'
     The stdout should include 'golangci-lint:run'
     The stdout should include 'go:vet ./...'
-    The stdout should include 'go:test ./...'
+    The stdout should include 'go:test -count=1 ./...'
   End
 
   It 'runs python pre-commit profile checks'
@@ -396,6 +429,9 @@ EOF_EXPECTED
       printf "def test_ok():\n    assert True\n" > tests/test_app.py
       git add pyproject.toml tests/test_app.py
       git commit -qm init
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       cat "$MYPY_LOG"
       cat "$PYTEST_LOG"
@@ -792,6 +828,9 @@ EOF
       printf "%s\n" "GIT_HOOK_PROFILES=test" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
       git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 130
@@ -811,6 +850,9 @@ EOF
       printf "%s\n" "GIT_HOOK_PROFILES=test" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
       git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0

@@ -10,6 +10,7 @@ Describe 'lib/checks/golang/golangci-lint-fast.sh'
       mkdir -p "$HOME"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -31,6 +32,7 @@ Describe 'lib/checks/golang/golangci-lint-fast.sh'
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "# Title\n" > README.md
       git add README.md
@@ -53,9 +55,10 @@ Describe 'lib/checks/golang/golangci-lint-fast.sh'
       mkdir -p "$HOME"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add main.go
+      git add go.mod main.go
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -77,9 +80,10 @@ Describe 'lib/checks/golang/golangci-lint-fast.sh'
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add main.go
+      git add go.mod main.go
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -101,10 +105,11 @@ Describe 'lib/checks/golang/golangci-lint-fast.sh'
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "version: \"2\"\n" > .golangci.yml
       printf "package main\n" > main.go
-      git add main.go
+      git add go.mod main.go .golangci.yml
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
       cat "$GOLANGCI_LOG"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
@@ -136,9 +141,10 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add main.go
+      git add go.mod main.go
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -169,9 +175,10 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add main.go
+      git add go.mod main.go
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
       test -d "$GOCACHE"
       test -d "$GOTMPDIR"
@@ -195,9 +202,9 @@ EOF
       mkdir -p "$HOME" "$tmpdir/bin"
       cat > "$tmpdir/bin/golangci-lint" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
-[ "$GOCACHE" = "$PWD/.cache/go-build" ] || exit 91
-[ "$GOTMPDIR" = "$PWD/.tmp/go" ] || exit 92
-[ "$GOLANGCI_LINT_CACHE" = "$PWD/.cache/golangci-lint" ] || exit 93
+[ "$GOCACHE" = "$GOLANGCI_EXPECTED_REPO/.cache/go-build" ] || exit 91
+[ "$GOTMPDIR" = "$GOLANGCI_EXPECTED_REPO/.tmp/go" ] || exit 92
+[ "$GOLANGCI_LINT_CACHE" = "$GOLANGCI_EXPECTED_REPO/.cache/golangci-lint" ] || exit 93
 [ -d "$GOCACHE" ] || exit 94
 [ -d "$GOTMPDIR" ] || exit 95
 [ -d "$GOLANGCI_LINT_CACHE" ] || exit 96
@@ -206,10 +213,13 @@ EOF
       chmod +x "$tmpdir/bin/golangci-lint"
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
+      GOLANGCI_EXPECTED_REPO=$(pwd -P)
+      export GOLANGCI_EXPECTED_REPO
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add main.go
+      git add go.mod main.go
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
@@ -235,9 +245,10 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add main.go
+      git add go.mod main.go
       sh "$ROOT/lib/checks/golang/golangci-lint-fast.sh"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 7
@@ -260,6 +271,7 @@ EOF
       export PATH="$tmpdir/bin:$PATH"
       cd "$tmpdir"
       git init -q
+      printf "%s\n" "/bin/" "/home/" "/cache/" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "\000\001binary-go" > generated.go
       git add generated.go

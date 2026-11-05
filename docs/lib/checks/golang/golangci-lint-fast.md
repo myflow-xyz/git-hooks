@@ -8,7 +8,7 @@ Fast Go static analysis check for `pre-commit`.
 
 - Intended for the opt-in `golang` profile, not the common baseline.
 - Uses user-level `golangci-lint` from `PATH`.
-- Skips silently when neither `go.mod` nor `go.work` exists.
+- Skips when no selected Go module exists.
 - Skips when there are no staged text `.go` files.
 - Prepares Go runtime directories before invoking `golangci-lint`: when
   neither the environment nor `go env -w` sets them, `GOCACHE` defaults to
@@ -20,6 +20,24 @@ Fast Go static analysis check for `pre-commit`.
   policy, not standard project or CI policy.
 - Builds a temporary patch from staged text `.go` files and runs:
   `golangci-lint run --config <fast.yaml> --fast-only --new-from-patch=<patch> --whole-files`.
+- Runs in the original checkout, once per selected module containing staged Go
+  files. The patch is relative to each module and limits reports to files
+  touched by staged Go changes.
+- Before linting, checks that all tracked files match the Git index and that no
+  non-ignored untracked files exist. Partial staging, unstaged edits or deletion,
+  and untracked files cause a visible warning and a successful skip. The guard
+  is repository-wide, so unrelated files can also cause a skip.
+- Ignored files do not cause a skip. Ignore generated cache directories such as
+  `.cache/` and `.tmp/`, or configure caches outside the repository.
+- Preserves `GOWORK` and native workspace discovery, including relative external
+  members and local replacements. External repositories are dependencies, not
+  additional lint targets or subjects of the Git guard.
+- Does not copy the repository or rewrite workspace/module paths. Ignored and
+  external inputs remain part of the native environment; this check does not
+  claim an isolated staged-build guarantee.
+- Removes temporary patches/state after success, failure, or interruption.
+  Complete captured failure logs are retained. Staged goimports and full
+  pre-push lint are unaffected by a fast-lint skip.
 - The bundled fast config uses a 60s timeout, resolves relative paths from
   `go.mod`, skips test files, starts from an explicit linter set instead of
   golangci-lint defaults, and keeps checks focused on fast early signals.
@@ -38,6 +56,8 @@ Fast Go static analysis check for `pre-commit`.
   of Homebrew, because Homebrew may install a separate Go runtime or shim before
   the configured `GOROOT` toolchain.
 - Skips with a hook maintenance hint when bundled fast config is missing.
+- Warns and skips for unstaged tracked changes or non-ignored untracked files.
+- Fails on Git query errors; they are not treated as an empty or clean tree.
 - Returns the `golangci-lint` exit code and capped diagnostics on failure.
 
 ## Test Cases
@@ -45,6 +65,7 @@ Fast Go static analysis check for `pre-commit`.
 Run only this script's tests:
 
 - `shellspec test/checks/golang/golangci-lint-fast_spec.sh`
+- Shared behavior regressions: `shellspec test/checks/golang/quality-gates_spec.sh`
 
 | Status | Environment | Scenario |
 | --- | --- | --- |
@@ -58,3 +79,9 @@ Run only this script's tests:
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | reports lint failure output |
 | Existing | `git-hooks` | skips staged binary Go files |
+| Existing | `git-hooks` | runs in the original checkout when it matches the index |
+| Existing | `git-hooks` | visibly skips partial staging and unrelated unstaged files |
+| Existing | `git-hooks` | skips untracked files but permits ignored files |
+| Existing | `git-hooks` | preserves external workspace members and native GOWORK |
+| Existing | `git-hooks` | scopes patches and invocations to affected modules |
+| Existing | `git-hooks` | preserves failure and interruption statuses |

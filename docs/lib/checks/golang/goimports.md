@@ -13,7 +13,12 @@ Staged Go import formatting check for `pre-commit`.
 - Prepares Go runtime directories before invoking `goimports`: when neither
   the environment nor `go env -w` sets them, `GOCACHE` defaults to
   `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
-- Runs `goimports -l` against staged Go file paths.
+- Reads each selected regular file from the index and runs `goimports -l` on
+  that content, with the original path supplied through `-srcdir` for import
+  resolution. Working-file edits or deletion do not replace the staged input.
+- Uses NUL-delimited paths, skips staged symlinks and binary files, and fails
+  when Git discovery or an index read fails. Import resolution still uses the
+  project's module/dependency environment.
 - Quiet mode suppresses clean success output and exits `0`.
 - Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks
   environment.
@@ -29,6 +34,7 @@ Staged Go import formatting check for `pre-commit`.
 Run only this script's tests:
 
 - `shellspec test/checks/golang/goimports_spec.sh`
+- Shared behavior regressions: `shellspec test/checks/golang/quality-gates_spec.sh`
 
 | Status | Environment | Scenario |
 | --- | --- | --- |
@@ -38,3 +44,5 @@ Run only this script's tests:
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | fails when files need import formatting |
 | Existing | `git-hooks` | skips staged binary Go files |
+| Existing | `git-hooks` | checks staged content under partial staging and working-file deletion |
+| Existing | `git-hooks` | handles unusual filenames and rejects Git discovery errors |
