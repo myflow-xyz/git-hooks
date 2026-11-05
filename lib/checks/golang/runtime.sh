@@ -270,8 +270,9 @@ git_hooks_golang_module_command() (
   go-mod-tidy) set -- go mod tidy -diff ;;
   go-vet) set -- go vet ./... ;;
   govulncheck) set -- govulncheck ./... ;;
-  go-test)
+  go-test | go-test-race)
     set -- go test
+    [ "$GIT_HOOK_GO_CHECK" != go-test-race ] || set -- "$@" -race
     [ "${GIT_HOOK_GO_TEST_SHORT:-0}" -eq 0 ] || set -- "$@" -short
     set -- "$@" -count=1 ./...
     ;;
@@ -336,7 +337,7 @@ git_hooks_golang_run_check() {
     return 0
   fi
   case "$1" in
-  go-test)
+  go-test | go-test-race)
     case "${GIT_HOOK_GO_TEST_SHORT:-0}" in
     0 | 1) ;;
     *)

@@ -184,14 +184,25 @@ EOF
     grep -q '/service one|test -count=1 ./...' "$GATE_LOG" || exit 91
     if grep -Eq '/(vendor|testdata)/' "$GATE_LOG"; then exit 92; fi
     ;;
-  short | invalid_short)
-    if [ "$gate_case" = short ]; then
+  short | race | race_failure | invalid_short)
+    gate_check=go-test
+    case "$gate_case" in
+    short) printf 'GIT_HOOK_GO_TEST_SHORT=1\n' >.githooks/project.conf ;;
+    race)
+      gate_check=go-test-race
       printf 'GIT_HOOK_GO_TEST_SHORT=1\n' >.githooks/project.conf
-    else
-      printf 'GIT_HOOK_GO_TEST_SHORT=typo\n' >.githooks/project.conf
-    fi
-    sh "$gate_root/lib/checks/golang/go-test.sh" || exit $?
-    grep -q '|test -short -count=1 ./...' "$GATE_LOG"
+      ;;
+    race_failure)
+      gate_check=go-test-race
+      export GATE_MODE=fail
+      ;;
+    invalid_short) printf 'GIT_HOOK_GO_TEST_SHORT=typo\n' >.githooks/project.conf ;;
+    esac
+    sh "$gate_root/lib/checks/golang/$gate_check.sh" || exit $?
+    case "$gate_case" in
+    short) grep -q '|test -short -count=1 ./...' "$GATE_LOG" ;;
+    race) grep -q '|test -race -short -count=1 ./...' "$GATE_LOG" ;;
+    esac
     ;;
   long_output)
     export GATE_MODE=long
