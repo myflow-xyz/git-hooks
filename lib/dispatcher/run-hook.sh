@@ -28,7 +28,7 @@ git_hooks_dispatcher_run_check() {
   fi
 
   git_hooks_log_check_start "$git_hooks_dispatcher_check"
-  "$git_hooks_dispatcher_check_path" "$@"
+  "$git_hooks_dispatcher_check_path" "$@" </dev/null
 }
 
 git_hooks_dispatcher_replay_local_hook_output() {
@@ -88,7 +88,7 @@ git_hooks_dispatcher_run_local_hook() {
   }
 
   git_hooks_log_check_start "local/$git_hooks_dispatcher_local_hook"
-  "$git_hooks_dispatcher_local_hook_path" "$@" >"$git_hooks_dispatcher_local_hook_output" 2>&1
+  "$git_hooks_dispatcher_local_hook_path" "$@" </dev/null >"$git_hooks_dispatcher_local_hook_output" 2>&1
   git_hooks_dispatcher_local_hook_status=$?
 
   if [ "$git_hooks_dispatcher_local_hook_status" -eq 0 ]; then

@@ -1,4 +1,26 @@
 Describe 'lib/dispatcher/run-hook.sh'
+  It 'does not let stdin-reading checks consume later check IDs'
+    When run sh -u -c '
+      root=$1
+      fixture=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-stdin.XXXXXX")
+      trap '\''rm -rf "$fixture"'\'' EXIT HUP INT TERM
+      export GIT_HOOKS_HOME="$fixture/runtime"
+      mkdir -p "$GIT_HOOKS_HOME/lib/checks/test" "$GIT_HOOKS_HOME/profiles/test" "$fixture/repo/.githooks"
+      cp -R "$root/lib/common" "$GIT_HOOKS_HOME/lib/common"
+      printf "%s\n" "#!/usr/bin/env sh" "cat >/dev/null" "printf reader" >"$GIT_HOOKS_HOME/lib/checks/test/read.sh"
+      printf "%s\n" "#!/usr/bin/env sh" "printf later" "exit 7" >"$GIT_HOOKS_HOME/lib/checks/test/fail.sh"
+      chmod +x "$GIT_HOOKS_HOME/lib/checks/test/"*.sh
+      printf "%s\n" test/read test/fail >"$GIT_HOOKS_HOME/profiles/test/pre-push.list"
+      printf "%s\n" GIT_HOOK_PROFILES=test >"$fixture/repo/.githooks/project.conf"
+      cd "$fixture/repo"
+      git init -q
+      sh "$root/lib/dispatcher/run-hook.sh" pre-push </dev/null
+    ' sh "$SHELLSPEC_PROJECT_ROOT"
+    The status should eq 7
+    The stdout should eq readerlater
+    The stderr should eq ''
+  End
+
   It 'runs profile checks through the dispatcher'
     When run sh -u -c '
       ROOT=$1
