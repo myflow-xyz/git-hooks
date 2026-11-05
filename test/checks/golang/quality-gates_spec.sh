@@ -1,6 +1,60 @@
 Describe 'Go quality gate behavior'
   Include "$SHELLSPEC_PROJECT_ROOT/test/checks/golang/_quality-gate.sh"
 
+  It 'accepts staged formatting despite unstaged changes'
+    When run quality_gate staged_good
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'rejects bad staged formatting despite an unstaged fix'
+    When run quality_gate staged_bad
+    The status should eq 1
+    The stderr should include 'goimports: main.go'
+  End
+
+  It 'honors an alternate commit index'
+    When run quality_gate alternate_index
+    The status should eq 1
+    The stderr should include 'goimports: main.go'
+  End
+
+  It 'handles unusual staged paths and working-file deletion'
+    When run quality_gate unusual_paths
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'rejects failed Git discovery'
+    When run quality_gate discovery_error
+    The status should not eq 0
+    The stderr should include 'index'
+  End
+
+  It 'checks renamed Go files'
+    When run quality_gate renamed
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'checks copied Go files'
+    When run quality_gate copied
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'skips deleted Go files'
+    When run quality_gate deleted
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'skips commits without relevant Go changes'
+    When run quality_gate no_go
+    The status should eq 0
+    The output should eq ''
+  End
+
   It 'tests nested modules and excludes vendor and test fixtures'
     When run quality_gate modules
     The status should eq 0

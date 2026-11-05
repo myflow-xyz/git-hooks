@@ -24,6 +24,12 @@ quality_gate() (
   printf 'module example.com/gate\n\ngo 1.23\n' >go.mod
   printf 'package gate\nvar value = 1\n' >main.go
   git add go.mod main.go
+  cat >"$gate_tmp/bin/goimports" <<'EOF'
+#!/usr/bin/env sh
+printf 'format\n' >>"$GATE_LOG"
+grep -q 'value = 1' || printf 'needs formatting\n'
+exit 0
+EOF
   cat >"$gate_tmp/bin/go" <<'EOF'
 #!/usr/bin/env sh
 [ "$1" != env ] || exit 0
@@ -37,8 +43,60 @@ case "$GATE_MODE" in
   long) i=0; while [ "$i" -lt 150 ]; do printf 'diagnostic %s\n' "$i"; i=$((i + 1)); done; printf 'FINAL ASSERTION\n'; exit 6 ;;
 esac
 EOF
-  chmod +x "$gate_tmp/bin/go"
+  chmod +x "$gate_tmp/bin/go" "$gate_tmp/bin/goimports"
   case "$gate_case" in
+  staged_good)
+    printf 'package gate\nvar value = 2\n' >main.go
+    sh "$gate_root/lib/checks/golang/goimports.sh"
+    ;;
+  staged_bad)
+    printf 'package gate\nvar value = 2\n' >main.go
+    git add main.go
+    printf 'package gate\nvar value = 1\n' >main.go
+    sh "$gate_root/lib/checks/golang/goimports.sh"
+    ;;
+  alternate_index)
+    cp .git/index "$gate_tmp/alternate-index"
+    export GIT_INDEX_FILE="$gate_tmp/alternate-index"
+    printf 'package gate\nvar value = 2\n' >main.go
+    git add main.go
+    printf 'package gate\nvar value = 1\n' >main.go
+    sh "$gate_root/lib/checks/golang/goimports.sh"
+    ;;
+  unusual_paths)
+    for gate_path in 'white space.go' 'back\slash.go' '-leading.go' '[glob].go' 'café.go' "$(printf 'tab\tname.go')" "$(printf 'line\nname.go')"; do
+      printf 'package gate\nvar value = 1\n' >"$gate_path"
+      git add -- "$gate_path"
+      printf 'package gate\nvar value = 2\n' >"$gate_path"
+    done
+    rm main.go
+    sh "$gate_root/lib/checks/golang/goimports.sh"
+    ;;
+  discovery_error)
+    export GIT_INDEX_FILE="$gate_tmp/invalid-index"
+    printf broken >"$GIT_INDEX_FILE"
+    sh "$gate_root/lib/checks/golang/goimports.sh"
+    ;;
+  renamed | copied | deleted | no_go)
+    git -c user.name=Test -c user.email=test@example.com commit -qm baseline
+    case "$gate_case" in
+    renamed) git mv main.go 'renamed file.go' ;;
+    copied)
+      cp main.go copy.go
+      git add copy.go
+      ;;
+    deleted) git rm -q main.go ;;
+    no_go)
+      printf 'notes\n' >notes.txt
+      git add notes.txt
+      ;;
+    esac
+    sh "$gate_root/lib/checks/golang/goimports.sh" || exit $?
+    case "$gate_case" in
+    renamed | copied) [ "$(wc -l <"$GATE_LOG" | tr -d ' ')" = 1 ] ;;
+    deleted | no_go) [ ! -f "$GATE_LOG" ] ;;
+    esac
+    ;;
   modules | explicit_modules | workspace | empty_root | duplicate_modules | module_failure | module_interrupt | missing_module | traversal)
     for gate_dir in 'service one' other vendor/dep testdata/fixture; do
       mkdir -p "$gate_dir"

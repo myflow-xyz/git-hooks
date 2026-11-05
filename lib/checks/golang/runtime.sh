@@ -348,6 +348,43 @@ git_hooks_golang_run_check() {
     git_hooks_golang_each "$GIT_HOOK_GO_STATE_DIR/modules" git_hooks_golang_module_command
 }
 
+git_hooks_golang_select_staged_file() {
+  git_hooks_golang_mode=$(command git --literal-pathspecs ls-files -s -- "$1") || return $?
+  case "$git_hooks_golang_mode" in
+  100644\ * | 100755\ *) ;;
+  *) return 0 ;;
+  esac
+  git_hooks_git_is_staged_binary "$1"
+  git_hooks_golang_binary_status=$?
+  case "$git_hooks_golang_binary_status" in
+  0) return 0 ;;
+  1) ;;
+  *) return "$git_hooks_golang_binary_status" ;;
+  esac
+  printf '%s\000' "$1" >>"$GIT_HOOK_GO_STATE_DIR/staged"
+}
+
+git_hooks_golang_collect_staged() {
+  : >"$GIT_HOOK_GO_STATE_DIR/staged" || return $?
+  git_hooks_git_staged_files_z go >"$GIT_HOOK_GO_STATE_DIR/staged-raw" || return $?
+  git_hooks_golang_each "$GIT_HOOK_GO_STATE_DIR/staged-raw" git_hooks_golang_select_staged_file
+}
+
+git_hooks_golang_import_file() {
+  git_hooks_git_show_staged_file "$1" >"$GIT_HOOK_GO_STATE_DIR/input" || return $?
+  git_hooks_env_run_project_command goimports -l -srcdir "$GIT_HOOK_REPO_ROOT/$1" \
+    <"$GIT_HOOK_GO_STATE_DIR/input" >"$GIT_HOOK_GO_STATE_DIR/current"
+  git_hooks_golang_import_status=$?
+  if [ "$git_hooks_golang_import_status" -ne 0 ]; then
+    git_hooks_log_error "goimports: $1"
+    return "$git_hooks_golang_import_status"
+  fi
+  if [ -s "$GIT_HOOK_GO_STATE_DIR/current" ]; then
+    git_hooks_log_error "goimports: $1; format the staged Go content"
+    return 1
+  fi
+}
+
 git_hooks_golang_mark_affected_module() {
   [ -f "$GIT_HOOK_GO_SOURCE_ROOT/$1" ] || return 0
   git_hooks_golang_parent=$1

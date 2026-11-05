@@ -300,7 +300,8 @@ EOF
       cat "$GOLANGCI_LOG"
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0
-    The stdout should include '-l main.go'
+    The stdout should include '-l -srcdir'
+    The stdout should include '/main.go'
     The stdout should include '--fast-only'
   End
 
