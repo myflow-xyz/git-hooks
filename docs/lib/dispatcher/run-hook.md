@@ -16,6 +16,10 @@ Phase dispatcher for repo-local Git hook wrappers.
 - Snapshot the index at `pre-commit` entry and restore that snapshot when the
   hook fails or is interrupted.
 - Pass Git hook arguments through to each check entrypoint.
+- Isolate profile-list input from check stdin. Checks receive `/dev/null` on
+  stdin, so they cannot consume later check IDs or another check's input.
+  Push-ref records are not part of the shared check contract; project-specific
+  ref policies require a separate integration.
 - Run phase-specific extra checks from project config.
 - Run phase-specific local extra hooks from project config after builtin extra
   checks.
@@ -79,6 +83,7 @@ Run only this script's tests:
 | Existing | `git-hooks` | fails when local extra hook paths are directories |
 | Existing | `git-hooks` | replays failed local hook output and stops |
 | Existing | `git-hooks` | stops on the first failing check |
+| Existing | `git-hooks` | stdin-reading checks cannot consume subsequent check IDs |
 | Existing | `git-hooks` | restores pre-commit index after check failure |
 | Existing | `git-hooks` | restores pre-commit index after interrupt status |
 | Existing | `git-hooks` | stops immediately when interrupted |

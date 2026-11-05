@@ -131,6 +131,34 @@ exactly one `Refs: <task-id>` footer that resolves to an active work item in the
 repo project. Missing CLI or missing repo PMem config warns and skips so the
 opt-in profile does not block repos that have not finished local PMem setup.
 
+Go profile policy:
+
+- `pre-commit` keeps goimports and fast golangci-lint focused on staged Go files.
+  Formatting reads the index; fast lint uses a temporary index checkout.
+- `pre-push` keeps OSV, tidy, govulncheck, full lint, vet, fresh full tests,
+  and CodeGraph. Checks inspect the working tree, not pushed revisions.
+- Race detection is an independent opt-in extra. Integration and E2E commands
+  remain project-owned local hooks.
+- Optional missing tools warn and skip. Executed checks must preserve failures.
+
+Example `.githooks/project.conf`:
+
+```sh
+GIT_HOOK_PROFILES="common golang"
+GIT_HOOK_PRE_PUSH_EXTRA_CHECKS="golang/go-test-race"
+GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS="test/integration test/e2e"
+# Optional: tests that honor testing.Short(). Full tests are the default.
+# GIT_HOOK_GO_TEST_SHORT=1
+# Optional: select modules instead of discovering them; one directory per line.
+# GIT_HOOK_GO_MODULES=".
+# services/api"
+```
+
+The local hook IDs above require executable project scripts at
+`.githooks/hooks/test/integration.sh` and `.githooks/hooks/test/e2e.sh`.
+Keep full captured Go failure logs when diagnosing errors; hooks print their
+paths and keep temporary snapshots out of the working tree.
+
 Go profile cache defaults:
 
 ```gitignore
@@ -233,6 +261,7 @@ git-hooks/
   - [govulncheck](docs/lib/checks/golang/govulncheck.md)
   - [go-vet](docs/lib/checks/golang/go-vet.md)
   - [go-test](docs/lib/checks/golang/go-test.md)
+  - [go-test-race](docs/lib/checks/golang/go-test-race.md)
 - Python checks:
   - [env](docs/lib/checks/python/env.md)
   - [ruff-format](docs/lib/checks/python/ruff-format.md)

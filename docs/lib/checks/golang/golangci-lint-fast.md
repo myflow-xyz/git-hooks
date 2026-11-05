@@ -8,7 +8,7 @@ Fast Go static analysis check for `pre-commit`.
 
 - Intended for the opt-in `golang` profile, not the common baseline.
 - Uses user-level `golangci-lint` from `PATH`.
-- Skips silently when neither `go.mod` nor `go.work` exists.
+- Skips when the index contains no selected Go module.
 - Skips when there are no staged text `.go` files.
 - Prepares Go runtime directories before invoking `golangci-lint`: when
   neither the environment nor `go env -w` sets them, `GOCACHE` defaults to
@@ -20,6 +20,18 @@ Fast Go static analysis check for `pre-commit`.
   policy, not standard project or CI policy.
 - Builds a temporary patch from staged text `.go` files and runs:
   `golangci-lint run --config <fast.yaml> --fast-only --new-from-patch=<patch> --whole-files`.
+- Runs inside a temporary checkout of the index, once per selected module
+  containing staged Go files. Git checkout filters apply to the snapshot.
+  The patch is relative to each module. Unstaged source changes are excluded.
+- Does not lint unrelated modules. The snapshot supplies package context; the
+  patch limits diagnostics to files touched by staged Go changes.
+- Uses the snapshot's workspace rather than an ambient `GOWORK`. External
+  workspace members and local replacements remain project dependencies; this
+  check does not copy directories outside the repository.
+- Absolute workspace and replacement paths are not rewritten. Use repository-
+  relative paths when those dependencies must also come from the staged tree.
+- Removes the snapshot after success, failure, or interruption. Source files,
+  the index, and the bundled fast-lint policy are not edited.
 - The bundled fast config uses a 60s timeout, resolves relative paths from
   `go.mod`, skips test files, starts from an explicit linter set instead of
   golangci-lint defaults, and keeps checks focused on fast early signals.
@@ -45,6 +57,7 @@ Fast Go static analysis check for `pre-commit`.
 Run only this script's tests:
 
 - `shellspec test/checks/golang/golangci-lint-fast_spec.sh`
+- Shared behavior regressions: `shellspec test/checks/golang/quality-gates_spec.sh`
 
 | Status | Environment | Scenario |
 | --- | --- | --- |
@@ -58,3 +71,6 @@ Run only this script's tests:
 | Existing | `git-hooks` | keeps clean success silent |
 | Existing | `git-hooks` | reports lint failure output |
 | Existing | `git-hooks` | skips staged binary Go files |
+| Existing | `git-hooks` | lints index content despite unstaged changes |
+| Existing | `git-hooks` | scopes patches and invocations to affected modules |
+| Existing | `git-hooks` | cleans snapshots and retains complete failure diagnostics |

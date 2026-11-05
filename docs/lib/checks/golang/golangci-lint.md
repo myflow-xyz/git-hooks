@@ -8,14 +8,14 @@ Go static analysis check for `pre-push`.
 
 - Intended for the opt-in `golang` profile, not the common baseline.
 - Uses user-level `golangci-lint` from `PATH`.
-- Skips silently when neither `go.mod` nor `go.work` exists.
+- Uses shared module selection; skips when no selected Go module exists.
 - Skips silently when the repo has no tracked or untracked, non-ignored Go
   source files.
 - Prepares Go runtime directories before invoking `golangci-lint`: when
   neither the environment nor `go env -w` sets them, `GOCACHE` defaults to
   `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`; unset
   `GOLANGCI_LINT_CACHE` defaults to `$REPO/.cache/golangci-lint`.
-- Runs `golangci-lint run` across the repository.
+- Runs `golangci-lint run` in each selected module.
 - Uses the first existing config in this priority order:
 - `$REPO/.golangci.yml`
 - `$REPO/.golangci.yaml`
@@ -49,7 +49,8 @@ Go static analysis check for `pre-push`.
 - The install hint intentionally recommends the upstream binary release instead
   of Homebrew, because Homebrew may install a separate Go runtime or shim before
   the configured `GOROOT` toolchain.
-- Returns the `golangci-lint` exit code and capped diagnostics on failure.
+- Returns the `golangci-lint` exit code and capped diagnostics on failure. The complete captured log is
+  retained and its path is printed.
 
 ## Related Checks
 
