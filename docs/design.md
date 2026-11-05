@@ -109,6 +109,11 @@ is loaded after the agent process environment.
 - `pre-push` is for heavier work: full repo tests, package-wide lint, type
   checks, production builds, coverage reports, dependency audits, integration
   checks, full scanner runs, and non-blocking repo hygiene recommendations.
+- Once the dispatcher starts, every `pre-push` requires a clean checkout before
+  profile checks and after all builtin and local extra checks. Staged changes,
+  unstaged tracked changes, and non-ignored untracked files reject the push.
+  Ignored caches and reports are allowed. Git query errors also reject the push.
+  The guard reports paths without changing the index or working files.
 - `commit-msg` should validate commit messages only. Common policy requires
   conventional commits with mandatory scope.
 - Hooks must not mutate tracked repo files, dependency locks, or tool config
@@ -263,8 +268,8 @@ are concrete enough to maintain.
   tracked and untracked, non-ignored `go.mod` files, excluding vendor, testdata,
   and hook cache directories. `GIT_HOOK_GO_MODULES` can select root-relative
   directories, one per line, when a project needs a narrower scope.
-- Push checks provide local working-tree feedback; they do not certify pushed
-  revisions or require a clean tree. Projects own their CI and push-ref policy.
+- Push checks inspect a clean working tree. They do not select or certify
+  arbitrary pushed revisions. Projects own their CI and push-ref policy.
 - Run full Go tests with `-count=1` by default. Projects may set
   `GIT_HOOK_GO_TEST_SHORT=1` to select short tests. Race detection is the
   independent `golang/go-test-race` extra check, not part of the default list.

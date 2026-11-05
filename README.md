@@ -143,6 +143,12 @@ Go profile policy:
   remain project-owned local hooks.
 - Optional missing tools warn and skip. Executed checks must preserve failures.
 
+Every `pre-push` dispatch requires a clean checkout before any checks run and
+again after all checks finish. Staged changes, unstaged tracked changes, and
+non-ignored untracked files reject the push. Ignore generated caches and reports.
+The guard reports affected paths and does not stage, stash, or restore files.
+This policy applies to all profiles; commit checks keep their separate policies.
+
 Example `.githooks/project.conf`:
 
 ```sh

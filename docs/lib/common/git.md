@@ -13,6 +13,7 @@ Centralized Git query helpers for dispatcher and checks.
 - Filter staged text files by extension for checks that must skip binary paths.
 - Read staged file content from the index.
 - Inspect tracked files and changed paths.
+- Report staged, unstaged, and non-ignored untracked changes for the push guard.
 
 ## Public Functions
 
@@ -27,6 +28,7 @@ Centralized Git query helpers for dispatcher and checks.
 - `git_hooks_git_show_staged_file <path>`
 - `git_hooks_git_tracked_files`
 - `git_hooks_git_changed_paths [diff-args...]`
+- `git_hooks_git_worktree_status`
 
 ## Boundary
 
@@ -38,6 +40,11 @@ in a shell variable. Existing newline-delimited helpers remain for callers that
 use their original interface. Discovery and index-read errors must remain
 nonzero; they are not empty change sets. Single-path queries use literal Git
 pathspecs.
+
+The worktree-status helper emits Git porcelain v1 status for the whole repository,
+including all non-ignored untracked files and dirty submodules. Empty successful
+output means clean. Git errors remain nonzero. Optional index refresh writes are
+disabled, and Git quotes unusual filenames for safe diagnostic display.
 
 ## Test Cases
 
