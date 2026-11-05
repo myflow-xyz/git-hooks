@@ -135,7 +135,8 @@ EOF
       cat > "$tmpdir/bin/go" <<'"'"'EOF'"'"'
 #!/usr/bin/env sh
 [ "$1" = test ] || exit 8
-[ "$2" = ./... ] || exit 8
+[ "$2" = -count=1 ] || exit 8
+[ "$3" = ./... ] || exit 8
 [ -z "${GIT_DIR+x}" ] || exit 9
 [ -z "${GIT_WORK_TREE+x}" ] || exit 9
 [ -z "${GIT_COMMON_DIR+x}" ] || exit 9

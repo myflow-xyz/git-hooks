@@ -350,7 +350,7 @@ go:mod tidy -diff
 govulncheck:./...
 golangci-lint:run
 go:vet ./...
-go:test ./...
+go:test -count=1 ./...
 EOF_EXPECTED
 )
       actual=$(cat "$HOOK_LOG")
@@ -366,7 +366,7 @@ EOF_EXPECTED
     The stdout should include 'osv-scanner:scan source --format markdown --verbosity error --recursive .'
     The stdout should include 'golangci-lint:run'
     The stdout should include 'go:vet ./...'
-    The stdout should include 'go:test ./...'
+    The stdout should include 'go:test -count=1 ./...'
   End
 
   It 'runs python pre-commit profile checks'

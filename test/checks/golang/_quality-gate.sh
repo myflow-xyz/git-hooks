@@ -79,7 +79,7 @@ EOF
     explicit_modules | duplicate_modules) gate_expected=1 ;;
     esac
     [ "$(wc -l <"$GATE_LOG" | tr -d ' ')" = "$gate_expected" ] || exit 90
-    grep -q '/service one|test ./...' "$GATE_LOG" || exit 91
+    grep -q '/service one|test -count=1 ./...' "$GATE_LOG" || exit 91
     if grep -Eq '/(vendor|testdata)/' "$GATE_LOG"; then exit 92; fi
     ;;
   short | invalid_short)
@@ -89,7 +89,7 @@ EOF
       printf 'GIT_HOOK_GO_TEST_SHORT=typo\n' >.githooks/project.conf
     fi
     sh "$gate_root/lib/checks/golang/go-test.sh" || exit $?
-    grep -q '|test -short ./...' "$GATE_LOG"
+    grep -q '|test -short -count=1 ./...' "$GATE_LOG"
     ;;
   long_output)
     export GATE_MODE=long

@@ -273,7 +273,7 @@ git_hooks_golang_module_command() (
   go-test)
     set -- go test
     [ "${GIT_HOOK_GO_TEST_SHORT:-0}" -eq 0 ] || set -- "$@" -short
-    set -- "$@" ./...
+    set -- "$@" -count=1 ./...
     ;;
   golangci-lint)
     set -- golangci-lint run
