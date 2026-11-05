@@ -55,13 +55,13 @@ Describe 'Go quality gate behavior'
     The output should eq ''
   End
 
-  It 'lints staged source and cleans the snapshot without changing Git content'
-    When run quality_gate fast_snapshot
+  It 'runs fast lint in the original checkout when tracked files match the index'
+    When run quality_gate fast_clean
     The status should eq 0
     The output should eq ''
   End
 
-  It 'cleans a failed lint snapshot and preserves the linter status'
+  It 'preserves an executed fast-lint failure'
     When run quality_gate fast_failure
     The status should eq 7
     The stderr should include 'golangci-lint-fast failed; exit=7'
@@ -73,10 +73,52 @@ Describe 'Go quality gate behavior'
     The output should eq ''
   End
 
-  It 'cleans an interrupted lint snapshot and stops with the original status'
+  It 'preserves an executed fast-lint interruption'
     When run quality_gate fast_interrupt
     The status should eq 130
     The stderr should include 'exit=130'
+  End
+
+  It 'visibly skips fast lint for partial staging'
+    When run quality_gate fast_partial
+    The status should eq 0
+    The stderr should include 'skip golangci-lint-fast; unstaged tracked changes'
+  End
+
+  It 'conservatively skips fast lint for unrelated unstaged files'
+    When run quality_gate fast_unrelated
+    The status should eq 0
+    The stderr should include 'skip golangci-lint-fast; unstaged tracked changes'
+  End
+
+  It 'visibly skips fast lint for non-ignored untracked files'
+    When run quality_gate fast_untracked
+    The status should eq 0
+    The stderr should include 'skip golangci-lint-fast; non-ignored untracked files'
+  End
+
+  It 'does not skip fast lint for ignored files'
+    When run quality_gate fast_ignored
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'keeps relative external workspace members at their original locations'
+    When run quality_gate fast_workspace
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'preserves an explicit project workspace'
+    When run quality_gate fast_gowork
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'fails when the working-tree Git query fails'
+    When run quality_gate fast_guard_error
+    The status should eq 6
+    The stderr should include 'working-tree Git query failed'
   End
 
   It 'tests nested modules and excludes vendor and test fixtures'

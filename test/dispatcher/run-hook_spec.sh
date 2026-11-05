@@ -292,9 +292,10 @@ EOF
       printf "%s\n" "GIT_HOOK_PROFILES=golang" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
       git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" > .git/info/exclude
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
-      git add go.mod main.go
+      git add go.mod main.go .githooks/project.conf
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-commit
       cat "$GOIMPORTS_LOG"
       cat "$GOLANGCI_LOG"

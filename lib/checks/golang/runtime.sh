@@ -127,10 +127,9 @@ git_hooks_golang_begin() {
     return 127
   fi
   GIT_HOOK_GO_STATE_DIR=$(command mktemp -d "${TMPDIR:-/tmp}/git-hooks-go.XXXXXX") || return 2
-  GIT_HOOK_GO_SOURCE_ROOT=$GIT_HOOK_REPO_ROOT
   git_hooks_golang_output=
   git_hooks_golang_keep_output=0
-  export GIT_HOOKS_COMMON_DIR GIT_HOOKS_GOLANG_DIR GIT_HOOK_GO_STATE_DIR GIT_HOOK_GO_SOURCE_ROOT
+  export GIT_HOOKS_COMMON_DIR GIT_HOOKS_GOLANG_DIR GIT_HOOK_GO_STATE_DIR
   export GIT_HOOK_GO_TEST_SHORT
   git_hooks_env_install_abort_traps git_hooks_golang_cleanup
 }
@@ -167,9 +166,9 @@ git_hooks_golang_each() {
 
 git_hooks_golang_resolve_module() {
   # The suffix preserves a directory name that ends in a newline.
-  git_hooks_golang_module_real=$(CDPATH='' cd -P -- "$GIT_HOOK_GO_SOURCE_ROOT/$1" && printf '%s/.' "$PWD") || return 2
+  git_hooks_golang_module_real=$(CDPATH='' cd -P -- "$GIT_HOOK_REPO_ROOT/$1" && printf '%s/.' "$PWD") || return 2
   git_hooks_golang_module_real=${git_hooks_golang_module_real%/.}
-  git_hooks_golang_root_real=$(CDPATH='' cd -P -- "$GIT_HOOK_GO_SOURCE_ROOT" && printf '%s/.' "$PWD") || return 2
+  git_hooks_golang_root_real=$(CDPATH='' cd -P -- "$GIT_HOOK_REPO_ROOT" && printf '%s/.' "$PWD") || return 2
   git_hooks_golang_root_real=${git_hooks_golang_root_real%/.}
   case "$git_hooks_golang_module_real/" in
   "$git_hooks_golang_root_real/"*) ;;
@@ -199,11 +198,7 @@ git_hooks_golang_module_path() {
 }
 
 git_hooks_golang_repo_files() {
-  if [ "$GIT_HOOK_GO_SOURCE_ROOT" = "$GIT_HOOK_REPO_ROOT" ]; then
-    set -- --cached --others --exclude-standard -z -- "$@"
-  else
-    set -- --cached -z -- "$@"
-  fi
+  set -- --cached --others --exclude-standard -z -- "$@"
   if [ -n "${GIT_HOOK_GO_MODULES:-}" ]; then
     command git ls-files "$@"
     return $?
@@ -217,7 +212,7 @@ git_hooks_golang_collect_modules() {
   if [ -n "${GIT_HOOK_GO_MODULES:-}" ]; then
     while IFS= read -r git_hooks_golang_module || [ -n "$git_hooks_golang_module" ]; do
       [ -n "$git_hooks_golang_module" ] || continue
-      if [ ! -f "$GIT_HOOK_GO_SOURCE_ROOT/$git_hooks_golang_module/go.mod" ]; then
+      if [ ! -f "$GIT_HOOK_REPO_ROOT/$git_hooks_golang_module/go.mod" ]; then
         git_hooks_log_error "Go module manifest missing: $git_hooks_golang_module/go.mod"
         return 2
       fi
@@ -255,7 +250,7 @@ git_hooks_golang_capture() {
 
 git_hooks_golang_module_command() (
   git_hooks_golang_manifest=$1
-  [ -f "$GIT_HOOK_GO_SOURCE_ROOT/$git_hooks_golang_manifest" ] || exit 0
+  [ -f "$GIT_HOOK_REPO_ROOT/$git_hooks_golang_manifest" ] || exit 0
   if [ "$GIT_HOOK_GO_CHECK" != go-mod-tidy ]; then
     [ -f "$GIT_HOOK_GO_STATE_DIR/affected/$git_hooks_golang_manifest" ] || exit 0
   fi
@@ -285,18 +280,6 @@ git_hooks_golang_module_command() (
       --no-ext-diff --no-textconv --no-renames --src-prefix=a/ --dst-prefix=b/ \
       --relative="$git_hooks_golang_module_dir" -- "${git_hooks_golang_module_dir:-.}" \
       >"$GIT_HOOK_GO_STATE_DIR/patch" || exit $?
-    git_hooks_golang_workspace=off
-    git_hooks_golang_workspace_dir=$git_hooks_golang_module_real
-    while :; do
-      if [ -f "$git_hooks_golang_workspace_dir/go.work" ]; then
-        git_hooks_golang_workspace=$git_hooks_golang_workspace_dir/go.work
-        break
-      fi
-      [ "$git_hooks_golang_workspace_dir" != "$git_hooks_golang_root_real" ] || break
-      git_hooks_golang_workspace_dir=${git_hooks_golang_workspace_dir%/*}
-    done
-    GOWORK=$git_hooks_golang_workspace
-    export GOWORK
     set -- golangci-lint run \
       --config "$GIT_HOOK_GO_LINT_CONFIG" --fast-only \
       --new-from-patch="$GIT_HOOK_GO_STATE_DIR/patch" --whole-files
@@ -408,14 +391,14 @@ git_hooks_golang_import_file() {
 }
 
 git_hooks_golang_mark_affected_module() {
-  [ -f "$GIT_HOOK_GO_SOURCE_ROOT/$1" ] || return 0
+  [ -f "$GIT_HOOK_REPO_ROOT/$1" ] || return 0
   git_hooks_golang_parent=$1
   while :; do
     case "$git_hooks_golang_parent" in
     */*) git_hooks_golang_parent=${git_hooks_golang_parent%/*} ;;
     *) git_hooks_golang_parent=. ;;
     esac
-    if [ -f "$GIT_HOOK_GO_SOURCE_ROOT/$git_hooks_golang_parent/go.mod" ]; then
+    if [ -f "$GIT_HOOK_REPO_ROOT/$git_hooks_golang_parent/go.mod" ]; then
       command mkdir -p "$GIT_HOOK_GO_STATE_DIR/affected/$git_hooks_golang_parent" || return $?
       : >"$GIT_HOOK_GO_STATE_DIR/affected/$git_hooks_golang_parent/go.mod"
       return $?

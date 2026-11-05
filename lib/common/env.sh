@@ -83,7 +83,6 @@ git_hooks_env_unset_hook_runtime_vars() {
   unset GIT_HOOK_GO_TEST_SHORT
   unset GIT_HOOK_GO_CHECK
   unset GIT_HOOK_GO_STATE_DIR
-  unset GIT_HOOK_GO_SOURCE_ROOT
   unset GIT_HOOK_GO_LINT_CONFIG
   unset GIT_HOOK_PYTHON_RUNNER
   unset GIT_HOOK_PYTHON_UV_ARGS
