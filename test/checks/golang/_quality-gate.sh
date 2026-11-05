@@ -43,7 +43,22 @@ case "$GATE_MODE" in
   long) i=0; while [ "$i" -lt 150 ]; do printf 'diagnostic %s\n' "$i"; i=$((i + 1)); done; printf 'FINAL ASSERTION\n'; exit 6 ;;
 esac
 EOF
-  chmod +x "$gate_tmp/bin/go" "$gate_tmp/bin/goimports"
+  cat >"$gate_tmp/bin/golangci-lint" <<'EOF'
+#!/usr/bin/env sh
+printf '%s\n' "$PWD" >>"$GATE_LOG"
+[ "$PWD" != "$GATE_REPO" ] || exit 81
+grep -q 'value = 1' main.go || exit 82
+[ ! -e untracked.go ] || exit 83
+for arg do
+  case "$arg" in
+    --new-from-patch=*) patch=${arg#*=} ;;
+  esac
+done
+grep -q '^+++ b/main.go' "$patch" || exit 84
+[ "$GATE_MODE" != fail ] || exit 7
+[ "$GATE_MODE" != interrupt ] || exit 130
+EOF
+  chmod +x "$gate_tmp/bin/go" "$gate_tmp/bin/goimports" "$gate_tmp/bin/golangci-lint"
   case "$gate_case" in
   staged_good)
     printf 'package gate\nvar value = 2\n' >main.go
@@ -96,6 +111,35 @@ EOF
     renamed | copied) [ "$(wc -l <"$GATE_LOG" | tr -d ' ')" = 1 ] ;;
     deleted | no_go) [ ! -f "$GATE_LOG" ] ;;
     esac
+    ;;
+  fast_snapshot | fast_failure | fast_interrupt)
+    printf 'package gate\nvar value = 2\n' >main.go
+    printf 'package gate\ninvalid source\n' >untracked.go
+    [ "$gate_case" != fast_failure ] || export GATE_MODE=fail
+    [ "$gate_case" != fast_interrupt ] || export GATE_MODE=interrupt
+    sh "$gate_root/lib/checks/golang/golangci-lint-fast.sh" 2>"$gate_tmp/errors"
+    gate_status=$?
+    IFS= read -r gate_snapshot <"$GATE_LOG" || exit 85
+    [ ! -d "$gate_snapshot" ] || exit 86
+    grep -q 'value = 2' main.go || exit 87
+    git show :main.go | grep -q 'value = 1' || exit 88
+    cat "$gate_tmp/errors" >&2
+    exit "$gate_status"
+    ;;
+  fast_modules)
+    mkdir -p 'service one' other
+    cp go.mod 'service one/go.mod'
+    cp main.go 'service one/main.go'
+    cp go.mod other/go.mod
+    cp main.go other/main.go
+    git add .
+    git -c user.name=Test -c user.email=test@example.com commit -qm baseline
+    printf 'package gate\nvar value = 1\n// staged\n' >'service one/main.go'
+    git add 'service one/main.go'
+    printf 'package gate\nvar value = 2\n' >'service one/main.go'
+    sh "$gate_root/lib/checks/golang/golangci-lint-fast.sh" || exit $?
+    [ "$(wc -l <"$GATE_LOG" | tr -d ' ')" = 1 ] || exit 89
+    grep -q '/service one$' "$GATE_LOG"
     ;;
   modules | explicit_modules | workspace | empty_root | duplicate_modules | module_failure | module_interrupt | missing_module | traversal)
     for gate_dir in 'service one' other vendor/dep testdata/fixture; do

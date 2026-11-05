@@ -279,6 +279,27 @@ git_hooks_golang_module_command() (
     set -- golangci-lint run
     [ -z "${GIT_HOOK_GO_LINT_CONFIG:-}" ] || set -- "$@" --config "$GIT_HOOK_GO_LINT_CONFIG"
     ;;
+  golangci-lint-fast)
+    command git -C "$GIT_HOOK_REPO_ROOT" --literal-pathspecs diff --cached \
+      --no-ext-diff --no-textconv --no-renames --src-prefix=a/ --dst-prefix=b/ \
+      --relative="$git_hooks_golang_module_dir" -- "${git_hooks_golang_module_dir:-.}" \
+      >"$GIT_HOOK_GO_STATE_DIR/patch" || exit $?
+    git_hooks_golang_workspace=off
+    git_hooks_golang_workspace_dir=$git_hooks_golang_module_real
+    while :; do
+      if [ -f "$git_hooks_golang_workspace_dir/go.work" ]; then
+        git_hooks_golang_workspace=$git_hooks_golang_workspace_dir/go.work
+        break
+      fi
+      [ "$git_hooks_golang_workspace_dir" != "$git_hooks_golang_root_real" ] || break
+      git_hooks_golang_workspace_dir=${git_hooks_golang_workspace_dir%/*}
+    done
+    GOWORK=$git_hooks_golang_workspace
+    export GOWORK
+    set -- golangci-lint run \
+      --config "$GIT_HOOK_GO_LINT_CONFIG" --fast-only \
+      --new-from-patch="$GIT_HOOK_GO_STATE_DIR/patch" --whole-files
+    ;;
   *)
     git_hooks_log_error "unknown Go check: $GIT_HOOK_GO_CHECK"
     exit 2

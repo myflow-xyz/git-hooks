@@ -55,6 +55,30 @@ Describe 'Go quality gate behavior'
     The output should eq ''
   End
 
+  It 'lints staged source and cleans the snapshot without changing Git content'
+    When run quality_gate fast_snapshot
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'cleans a failed lint snapshot and preserves the linter status'
+    When run quality_gate fast_failure
+    The status should eq 7
+    The stderr should include 'golangci-lint-fast failed; exit=7'
+  End
+
+  It 'lints only the affected module with a module-relative patch'
+    When run quality_gate fast_modules
+    The status should eq 0
+    The output should eq ''
+  End
+
+  It 'cleans an interrupted lint snapshot and stops with the original status'
+    When run quality_gate fast_interrupt
+    The status should eq 130
+    The stderr should include 'exit=130'
+  End
+
   It 'tests nested modules and excludes vendor and test fixtures'
     When run quality_gate modules
     The status should eq 0
