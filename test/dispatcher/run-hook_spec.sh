@@ -14,6 +14,9 @@ Describe 'lib/dispatcher/run-hook.sh'
       printf "%s\n" GIT_HOOK_PROFILES=test >"$fixture/repo/.githooks/project.conf"
       cd "$fixture/repo"
       git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$root/lib/dispatcher/run-hook.sh" pre-push </dev/null
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 7
@@ -256,6 +259,9 @@ EOF
       git init -q
       printf "{}\n" > package.json
       printf "export default {}\n" > playwright.config.ts
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       cat "$PNPM_LOG"
       cat "$OSV_SCANNER_LOG"
@@ -345,6 +351,9 @@ EOF
       printf "module example.com/app\n" > go.mod
       printf "package main\n" > main.go
       git add go.mod main.go
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       expected=$(cat <<'"'"'EOF_EXPECTED'"'"'
 osv-scanner:scan source --format markdown --verbosity error --recursive .
@@ -420,6 +429,9 @@ EOF_EXPECTED
       printf "def test_ok():\n    assert True\n" > tests/test_app.py
       git add pyproject.toml tests/test_app.py
       git commit -qm init
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
       cat "$MYPY_LOG"
       cat "$PYTEST_LOG"
@@ -816,6 +828,9 @@ EOF
       printf "%s\n" "GIT_HOOK_PROFILES=test" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
       git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 130
@@ -835,6 +850,9 @@ EOF
       printf "%s\n" "GIT_HOOK_PROFILES=test" > "$tmpdir/repo/.githooks/project.conf"
       cd "$tmpdir/repo"
       git init -q
+      printf "%s\n" "/.cache/" "/.tmp/" "/node_modules/" >> .git/info/exclude
+      git add --all
+      git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=Test -c user.email=test@example.com commit -qm fixture
       sh "$ROOT/lib/dispatcher/run-hook.sh" pre-push
     ' sh "$SHELLSPEC_PROJECT_ROOT"
     The status should eq 0

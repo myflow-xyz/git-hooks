@@ -104,3 +104,7 @@ git_hooks_git_changed_paths() {
 
   command git diff --name-only "$@"
 }
+
+git_hooks_git_worktree_status() {
+  GIT_OPTIONAL_LOCKS=0 command git status --porcelain=v1 --untracked-files=all --ignore-submodules=none
+}

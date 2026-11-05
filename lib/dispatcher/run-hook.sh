@@ -214,6 +214,22 @@ git_hooks_dispatcher_index_guard_disarm() {
   git_hooks_dispatcher_index_guard_restore=0
 }
 
+git_hooks_dispatcher_require_clean_push() {
+  [ "$GIT_HOOK_PHASE" = pre-push ] || return 0
+
+  git_hooks_dispatcher_worktree_status=$(git_hooks_git_worktree_status) || {
+    git_hooks_dispatcher_git_status=$?
+    git_hooks_log_error "cannot verify checkout cleanliness; exit=$git_hooks_dispatcher_git_status"
+    return "$git_hooks_dispatcher_git_status"
+  }
+  [ -z "$git_hooks_dispatcher_worktree_status" ] && return 0
+
+  git_hooks_log_error 'push requires a clean checkout; uncommitted changes remain'
+  printf '%s\n' "$git_hooks_dispatcher_worktree_status" | command sed -n '1,120p' >&2
+  git_hooks_log_error 'commit or set aside changes before pushing; use git status --short for the full listing'
+  return 1
+}
+
 if [ "$#" -lt 1 ]; then
   git_hooks_dispatcher_usage >&2
   exit 2
@@ -240,6 +256,7 @@ GIT_HOOKS_COMMON_DIR=$GIT_HOOKS_HOME/lib/common
 git_hooks_env_install_abort_traps || exit $?
 git_hooks_env_bootstrap "$GIT_HOOK_PHASE" || exit $?
 git_hooks_dispatcher_index_guard_start || exit $?
+git_hooks_dispatcher_require_clean_push || exit $?
 
 for git_hooks_dispatcher_profile in $GIT_HOOK_PROFILES; do
   if git_hooks_dispatcher_profile_was_seen "$git_hooks_dispatcher_profile"; then
@@ -281,4 +298,5 @@ for git_hooks_dispatcher_local_hook in $GIT_HOOK_EXTRA_LOCAL_HOOKS; do
   git_hooks_dispatcher_run_local_hook "$git_hooks_dispatcher_local_hook" "$@" || exit $?
 done
 
+git_hooks_dispatcher_require_clean_push || exit $?
 git_hooks_dispatcher_index_guard_disarm
