@@ -20,8 +20,8 @@ Shared Go runtime helper for Golang checks that invoke the Go toolchain.
 - Defaults unset `GOLANGCI_LINT_CACHE` to `$REPO/.cache/golangci-lint` only when
   a golangci-lint check calls lint runtime preparation.
 - Creates `GOLANGCI_LINT_CACHE` only for golangci-lint checks.
-- Use absolute cache and temporary-directory paths so module changes and index
-  snapshots use the same locations.
+- Use absolute cache and temporary-directory paths so module changes use the
+  same locations.
 - Detects tracked and untracked, non-ignored `*.go` files for package-wide Go
   checks.
 - Keeps successful directory preparation silent unless `GIT_HOOK_VERBOSE` is
@@ -39,7 +39,7 @@ Shared Go runtime helper for Golang checks that invoke the Go toolchain.
   nested modules. Tidy still checks manifests in modules without Go source.
 - Explicit module selection can include fixture directories. Repeated module
   paths do not repeat checks; paths that escape the source root are rejected.
-- Go workspace and build settings remain project-owned. Push checks preserve
+- Go workspace and build settings remain project-owned. Package checks preserve
   ambient `GOFLAGS`, `GOWORK`, and `GOTOOLCHAIN`; verbose output identifies the
   selected module. Projects must supply settings that match their intended
   coverage. Hooks do not install quality tools.
@@ -47,9 +47,10 @@ Shared Go runtime helper for Golang checks that invoke the Go toolchain.
   and retain their original status, including interrupt statuses.
 - Captures quiet-mode output, displays up to 120 lines on failure, and retains
   the complete log in the system temporary directory. Success removes logs;
-  snapshots and other temporary state are always cleaned up.
-- Pre-commit formatting reads index blobs; fast lint uses an isolated checkout
-  of the index for package context and limits reports to staged Go files.
+  other temporary state is always cleaned up.
+- Pre-commit formatting reads index blobs. Fast lint uses the original checkout
+  and a staged patch, after checking for unstaged and non-ignored untracked
+  files. It does not relocate the workspace or its dependencies.
 
 ## Failure Modes
 

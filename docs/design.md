@@ -249,10 +249,16 @@ are concrete enough to maintain.
 - Golang hooks should keep staged formatting and fast lint checks in
   `pre-commit`, then module hygiene, vulnerability advisory scanning,
   package-wide lint, vet, and test checks in `pre-push`.
-- Go formatting reads index blobs. Fast lint uses a temporary checkout of the
-  index and reports only files touched by staged Go changes. Neither check
-  modifies working files or stages fixes. File discovery uses NUL delimiters
-  and propagates Git errors.
+- Go formatting reads index blobs. Fast lint runs in the original checkout and
+  limits reports to files touched by staged Go changes. It warns and skips when
+  any tracked file differs from the index or any non-ignored untracked file is
+  present. This conservative guard includes unrelated files; it avoids
+  maintaining a partial model of Go build inputs. Git errors remain failures.
+- Fast lint preserves native workspace and dependency resolution. It does not
+  copy source trees, rewrite workspace paths, or inspect changes in external
+  dependency repositories. Ignored files remain native project inputs. It is
+  staged-file-scoped feedback, not an isolated staged build. Staged formatting
+  and full pre-push lint remain available when fast lint skips.
 - Go push checks run in each selected module of the working tree. Discover
   tracked and untracked, non-ignored `go.mod` files, excluding vendor, testdata,
   and hook cache directories. `GIT_HOOK_GO_MODULES` can select root-relative

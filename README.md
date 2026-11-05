@@ -134,7 +134,9 @@ opt-in profile does not block repos that have not finished local PMem setup.
 Go profile policy:
 
 - `pre-commit` keeps goimports and fast golangci-lint focused on staged Go files.
-  Formatting reads the index; fast lint uses a temporary index checkout.
+  Formatting reads the index. Fast lint runs in the original checkout only when
+  tracked files match the index and no non-ignored untracked files are present.
+  Otherwise it warns and skips; full lint still runs on push.
 - `pre-push` keeps OSV, tidy, govulncheck, full lint, vet, fresh full tests,
   and CodeGraph. Checks inspect the working tree, not pushed revisions.
 - Race detection is an independent opt-in extra. Integration and E2E commands
@@ -157,7 +159,7 @@ GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS="test/integration test/e2e"
 The local hook IDs above require executable project scripts at
 `.githooks/hooks/test/integration.sh` and `.githooks/hooks/test/e2e.sh`.
 Keep full captured Go failure logs when diagnosing errors; hooks print their
-paths and keep temporary snapshots out of the working tree.
+paths. Fast lint preserves the project's normal workspace and dependency paths.
 
 Go profile cache defaults:
 
