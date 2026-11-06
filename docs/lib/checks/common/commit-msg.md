@@ -8,11 +8,9 @@ Commit message subject validation for `commit-msg`.
 
 - Reads the commit message file passed by Git as the first hook argument.
 - Validates only the first line as the commit subject.
-- Requires conventional commit format with a mandatory scope:
-  `<type>(scope): brief description`
+- Requires conventional commit format with a mandatory scope: `<type>(scope): brief description`
 - Allows optional body and footer lines after the subject.
-- Supports breaking-change marker before the colon:
-  `<type>(scope)!: brief description`
+- Supports breaking-change marker before the colon: `<type>(scope)!: brief description`
 
 Allowed types:
 
@@ -32,16 +30,12 @@ Allowed types:
 
 - Returns `2` when the commit message file argument is missing.
 - Returns `1` when the commit message file does not exist.
-- Returns `1` when the subject type, scope, colon separator, or brief
-  description is invalid.
-- Invalid subject output uses a `commit-msg` phase prefix, one cause-bearing
-  error line, and one expected-format info line.
+- Returns `1` when the subject type, scope, colon separator, or brief description is invalid.
+- Invalid subject output uses a `commit-msg` phase prefix, one cause-bearing error line, and one expected-format info line.
 
 ## Future Tracking
 
-Issue or ticket IDs may become required later. Prefer adding this as a
-project-configurable option, for example `GIT_HOOK_COMMIT_MSG_REQUIRE_ISSUE=1`,
-instead of hardcoding it into every project.
+Issue or ticket IDs may become required later. Prefer adding this as a project-configurable option, for example `GIT_HOOK_COMMIT_MSG_REQUIRE_ISSUE=1`, instead of hardcoding it into every project.
 
 ## Test Cases
 

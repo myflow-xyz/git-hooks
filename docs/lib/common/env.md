@@ -8,19 +8,12 @@ Runtime environment bootstrap for dispatcher and check scripts.
 
 - Resolve `GIT_HOOKS_HOME`, `GIT_HOOK_REPO_ROOT`, and `GIT_HOOK_PROJECT_DIR`.
 - Load optional `.githooks/hooks.env` before optional `.githooks/project.conf`.
-- Export values from `hooks.env` so child checks can use them when the file
-  exists.
-- Load `.githooks/hooks.env` and `.githooks/project.conf` for direct check
-  execution too, so debugging a check script uses the same repo policy as
-  dispatcher execution.
+- Export values from `hooks.env` so child checks can use them when the file exists.
+- Load `.githooks/hooks.env` and `.githooks/project.conf` for direct check execution too, so debugging a check script uses the same repo policy as dispatcher execution.
 - Apply defaults such as `GIT_HOOK_PROFILES=common`.
-- Default missing builtin extra-check and local extra-hook variables to empty;
-  repo config should omit empty variables and set only values that change hook
-  policy.
-- Provide shared cleanup-and-abort trap helpers so checks do not swallow
-  `SIGHUP`, `SIGINT`, or `SIGTERM`.
-- Provide a project-command runner that clears git-hooks runtime variables and
-  Git local repository variables before launching project-owned tools.
+- Default missing builtin extra-check and local extra-hook variables to empty; repo config should omit empty variables and set only values that change hook policy.
+- Provide shared cleanup-and-abort trap helpers so checks do not swallow `SIGHUP`, `SIGINT`, or `SIGTERM`.
+- Provide a project-command runner that clears git-hooks runtime variables and Git local repository variables before launching project-owned tools.
 - Keep runtime bootstrap portable for `sh`, `bash`, and `zsh`.
 
 ## Priority
@@ -32,21 +25,11 @@ Environment values are applied from lowest to highest priority:
 3. Repo-local `.githooks/hooks.env`.
 4. Repo-local `.githooks/project.conf`.
 
-Repo-local files intentionally win over shell variables because they represent
-the repository's hook policy. For example, if your shell exports
-`GIT_HOOK_VERBOSE=1` but `.githooks/hooks.env` sets `GIT_HOOK_VERBOSE=0`, the
-repo-local value wins.
+Repo-local files intentionally win over shell variables because they represent the repository's hook policy. For example, if your shell exports `GIT_HOOK_VERBOSE=1` but `.githooks/hooks.env` sets `GIT_HOOK_VERBOSE=0`, the repo-local value wins.
 
-The builtin defaults for `GIT_HOOK_*_EXTRA_CHECKS` and
-`GIT_HOOK_*_EXTRA_LOCAL_HOOKS` are empty. They are applied after repo-local
-config is loaded, so values from `.githooks/project.conf` override the empty
-defaults.
+The builtin defaults for `GIT_HOOK_*_EXTRA_CHECKS` and `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` are empty. They are applied after repo-local config is loaded, so values from `.githooks/project.conf` override the empty defaults.
 
-For AI agents, prefer setting `GIT_HOOK_VERBOSE=0` in the agent runtime
-environment so inherited developer shell verbosity does not increase tool
-output. Codex can inject it through `shell_environment_policy.set`; Claude Code
-can inject it through `settings.json` `env`. A repo can still override that
-agent default by explicitly setting `GIT_HOOK_VERBOSE` in `.githooks/hooks.env`.
+For AI agents, prefer setting `GIT_HOOK_VERBOSE=0` in the agent runtime environment so inherited developer shell verbosity does not increase tool output. Codex can inject it through `shell_environment_policy.set`; Claude Code can inject it through `settings.json` `env`. A repo can still override that agent default by explicitly setting `GIT_HOOK_VERBOSE` in `.githooks/hooks.env`.
 
 ## Public Functions
 
@@ -61,13 +44,9 @@ agent default by explicitly setting `GIT_HOOK_VERBOSE` in `.githooks/hooks.env`.
 
 ## Boundary
 
-Do not add check-specific defaults here. Use profile lists and project config for
-policy.
+Do not add check-specific defaults here. Use profile lists and project config for policy.
 
-When adding a new hook that launches a project-owned tool, run that child command
-through `git_hooks_env_run_project_command` unless the tool intentionally needs
-the hook's Git environment. Use direct `command ...` only for hook-side Git
-queries, staged-content operations, or tools that must inspect the hook's index.
+When adding a new hook that launches a project-owned tool, run that child command through `git_hooks_env_run_project_command` unless the tool intentionally needs the hook's Git environment. Use direct `command ...` only for hook-side Git queries, staged-content operations, or tools that must inspect the hook's index.
 
 ## Test Cases
 

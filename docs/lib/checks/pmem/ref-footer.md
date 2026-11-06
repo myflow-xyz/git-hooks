@@ -2,58 +2,32 @@
 
 ## Scope
 
-Project Memory (`pmem`) reference footer validation for the `commit-msg`
-phase.
+Project Memory (`pmem`) reference footer validation for the `commit-msg` phase.
 
 ## Behavior
 
-- Intended for the opt-in Project Memory (`pmem`) profile, not the common
-  baseline.
-- Resolves the PMem CLI from `GIT_HOOK_PMEM_BIN` when set, otherwise from
-  `pmem` on `PATH`.
-- If no PMem CLI is available, warns that the pmem check is enabled but no CLI
-  client was found, then skips.
+- Intended for the opt-in Project Memory (`pmem`) profile, not the common baseline.
+- Resolves the PMem CLI from `GIT_HOOK_PMEM_BIN` when set, otherwise from `pmem` on `PATH`.
+- If no PMem CLI is available, warns that the pmem check is enabled but no CLI client was found, then skips.
 - Uses `pmem info --repo --json --quiet` to read repo PMem config.
-- If repo PMem config is absent, warns that no pmem config exists while the
-  hook is enabled, then skips.
-- Clears ambient `PMEM_PROJECT_ID` and `PMEM_PROJECT_KEY` before PMem CLI calls
-  so repo config must come from the repository settings resolved by the CLI.
-- Uses `project_id` from `pmem info --repo --json`; PMem project selector
-  environment variables are not a repo-config source for this hook.
-- Does not inspect `project_key`; resolving project keys to canonical
-  project IDs is PMem CLI behavior, not hook behavior.
-- Parses PMem JSON with `jq`. The hook does not trust raw substring matches
-  from PMem output.
-- Requires the commit message footer block to contain exactly one
-  `Refs: <task-id>`.
-- Rejects multiple `Refs`-style footer keys case-insensitively, so a commit
-  cannot reference more than one PMem ticket through duplicated trailer keys.
-- Counts `Refs`-style keys across the whole non-comment commit message, so
-  repeated `git commit -m 'Refs: A' -m 'Refs: B'` paragraphs are rejected even
-  though only the final paragraph is the trailer block.
-- Validates every line in the trailing footer block before accepting the
-  `Refs` footer.
-- Allows implementation, test, documentation, and configuration changes to
-  share one `Refs` footer when they belong to the same work item. Changes for
-  different work items should be split into separate commits instead of using
-  multiple `Refs` footers.
-- Validates task ID syntax locally: the ID must match
-  `[A-Za-z0-9][A-Za-z0-9_-]*`.
-- Temporarily requires the task ID to be at least 3 characters and less than 24
-  characters. This should follow the PMem ID standard once finalized.
-- Uses `pmem wi get --project-id <project-id> --id <task-id> --fields
-  status,type --json --quiet` to fetch only the referenced work item fields the
-  hook consumes.
-- Rejects commits that reference work items with status `canceled`, `done`, or
-  `closed`.
-- Treats malformed PMem JSON, failed PMem commands, and missing or invalid
-  required response fields as hook failures.
+- If repo PMem config is absent, warns that no pmem config exists while the hook is enabled, then skips.
+- Clears ambient `PMEM_PROJECT_ID` and `PMEM_PROJECT_KEY` before PMem CLI calls so repo config must come from the repository settings resolved by the CLI.
+- Uses `project_id` from `pmem info --repo --json`; PMem project selector environment variables are not a repo-config source for this hook.
+- Does not inspect `project_key`; resolving project keys to canonical project IDs is PMem CLI behavior, not hook behavior.
+- Parses PMem JSON with `jq`. The hook does not trust raw substring matches from PMem output.
+- Requires the commit message footer block to contain exactly one `Refs: <task-id>`.
+- Rejects multiple `Refs`-style footer keys case-insensitively, so a commit cannot reference more than one PMem ticket through duplicated trailer keys.
+- Counts `Refs`-style keys across the whole non-comment commit message, so repeated `git commit -m 'Refs: A' -m 'Refs: B'` paragraphs are rejected even though only the final paragraph is the trailer block.
+- Validates every line in the trailing footer block before accepting the `Refs` footer.
+- Allows implementation, test, documentation, and configuration changes to share one `Refs` footer when they belong to the same work item. Changes for different work items should be split into separate commits instead of using multiple `Refs` footers.
+- Validates task ID syntax locally: the ID must match `[A-Za-z0-9][A-Za-z0-9_-]*`.
+- Temporarily requires the task ID to be at least 3 characters and less than 24 characters. This should follow the PMem ID standard once finalized.
+- Uses `pmem wi get --project-id <project-id> --id <task-id> --fields status,type --json --quiet` to fetch only the referenced work item fields the hook consumes.
+- Rejects commits that reference work items with status `canceled`, `done`, or `closed`.
+- Treats malformed PMem JSON, failed PMem commands, and missing or invalid required response fields as hook failures.
 - Keeps passing output silent by default, including PMem advisory warnings.
-- In verbose mode, emits a concise three-line PMem summary with project name,
-  project ID, task ID, task type, and task status. It does not print raw PMem
-  JSON responses.
-- Ignores commented commit-template lines while parsing the trailing footer
-  block.
+- In verbose mode, emits a concise three-line PMem summary with project name, project ID, task ID, task type, and task status. It does not print raw PMem JSON responses.
+- Ignores commented commit-template lines while parsing the trailing footer block.
 
 ## Failure Modes
 
@@ -61,18 +35,13 @@ phase.
 - Returns `1` when the commit message file does not exist.
 - Returns `0` when the PMem CLI is missing, after a warning.
 - Returns `0` when repo PMem config is absent, after a warning.
-- Returns `1` when `pmem info --repo --json` fails, reports active repo config
-  without `project_id`, returns an invalid `project_id`, or returns malformed
-  JSON.
+- Returns `1` when `pmem info --repo --json` fails, reports active repo config without `project_id`, returns an invalid `project_id`, or returns malformed JSON.
 - Returns `127` when PMem JSON must be parsed but `jq` is unavailable.
 - Returns `1` when the required `Refs` footer is missing.
 - Returns `1` when a `Refs` footer exists but its ID is malformed.
 - Returns `1` when more than one `Refs`-style footer exists.
-- Returns `1` when `pmem wi get --project-id <project-id> --id <task-id>
-  --fields status,type --json` fails, omits `status`, returns an invalid
-  `status`, or returns malformed JSON.
-- Returns `1` when the referenced work item status is `canceled`, `done`, or
-  `closed`.
+- Returns `1` when `pmem wi get --project-id <project-id> --id <task-id> --fields status,type --json` fails, omits `status`, returns an invalid `status`, or returns malformed JSON.
+- Returns `1` when the referenced work item status is `canceled`, `done`, or `closed`.
 
 ## Test Cases
 

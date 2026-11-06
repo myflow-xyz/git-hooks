@@ -32,19 +32,11 @@ Centralized Git query helpers for dispatcher and checks.
 
 ## Boundary
 
-Checks should call these helpers instead of embedding raw `git diff`, `git show`,
-or `git ls-files` queries.
+Checks should call these helpers instead of embedding raw `git diff`, `git show`, or `git ls-files` queries.
 
-The NUL-delimited helper preserves unusual filenames. Do not capture its output
-in a shell variable. Existing newline-delimited helpers remain for callers that
-use their original interface. Discovery and index-read errors must remain
-nonzero; they are not empty change sets. Single-path queries use literal Git
-pathspecs.
+The NUL-delimited helper preserves unusual filenames. Do not capture its output in a shell variable. Existing newline-delimited helpers remain for callers that use their original interface. Discovery and index-read errors must remain nonzero; they are not empty change sets. Single-path queries use literal Git pathspecs.
 
-The worktree-status helper emits Git porcelain v1 status for the whole repository,
-including all non-ignored untracked files and dirty submodules. Empty successful
-output means clean. Git errors remain nonzero. Optional index refresh writes are
-disabled, and Git quotes unusual filenames for safe diagnostic display.
+The worktree-status helper emits Git porcelain v1 status for the whole repository, including all non-ignored untracked files and dirty submodules. Empty successful output means clean. Git errors remain nonzero. Optional index refresh writes are disabled, and Git quotes unusual filenames for safe diagnostic display.
 
 ## Test Cases
 

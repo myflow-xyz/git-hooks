@@ -10,18 +10,11 @@ Staged Go import formatting check for `pre-commit`.
 - Uses user-level `goimports` from `PATH`.
 - Skips silently when no staged text `.go` files exist.
 - Skips binary staged Go paths before deciding whether formatting is needed.
-- Prepares Go runtime directories before invoking `goimports`: when neither
-  the environment nor `go env -w` sets them, `GOCACHE` defaults to
-  `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
-- Reads each selected regular file from the index and runs `goimports -l` on
-  that content, with the original path supplied through `-srcdir` for import
-  resolution. Working-file edits or deletion do not replace the staged input.
-- Uses NUL-delimited paths, skips staged symlinks and binary files, and fails
-  when Git discovery or an index read fails. Import resolution still uses the
-  project's module/dependency environment.
+- Prepares Go runtime directories before invoking `goimports`: when neither the environment nor `go env -w` sets them, `GOCACHE` defaults to `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
+- Reads each selected regular file from the index and runs `goimports -l` on that content, with the original path supplied through `-srcdir` for import resolution. Working-file edits or deletion do not replace the staged input.
+- Uses NUL-delimited paths, skips staged symlinks and binary files, and fails when Git discovery or an index read fails. Import resolution still uses the project's module/dependency environment.
 - Quiet mode suppresses clean success output and exits `0`.
-- Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks
-  environment.
+- Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks environment.
 
 ## Failure Modes
 

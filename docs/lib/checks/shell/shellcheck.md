@@ -11,12 +11,10 @@ Staged shell static analysis check for `pre-commit`.
 - Checks staged text `.sh` and `.bash` files only.
 - Skips `.zsh` files because ShellCheck does not support zsh syntax reliably.
 - Skips `.sh` files with zsh shebangs for the same reason.
-- Skips ShellSpec `*_spec.sh` files because ShellSpec DSL commands are not
-  normal shell commands; `shell/shellspec` validates those files instead.
+- Skips ShellSpec `*_spec.sh` files because ShellSpec DSL commands are not normal shell commands; `shell/shellspec` validates those files instead.
 - Uses the staged shebang dialect when present.
 - Falls back to `sh` for `.sh` and `bash` for `.bash` when no shebang exists.
-- Runs with `--severity=warning` so informational source-following messages do
-  not fail commits.
+- Runs with `--severity=warning` so informational source-following messages do not fail commits.
 - Captures output and keeps successful runs silent unless `GIT_HOOK_VERBOSE=1`.
 
 ## Failure Modes

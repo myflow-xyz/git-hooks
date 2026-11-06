@@ -13,8 +13,7 @@ Consistent terminal output for Git hooks.
 - Parse `true` and `false` case-insensitively for portable hook env usage.
 - Print short actionable errors with the failing check/path and reason.
 - Keep output dense enough for humans and LLM agents to identify next action.
-- Enforce quiet-by-default, failure-oriented, bounded-output behavior for check
-  scripts.
+- Enforce quiet-by-default, failure-oriented, bounded-output behavior for check scripts.
 
 ## Public Functions
 
@@ -29,9 +28,7 @@ Consistent terminal output for Git hooks.
 
 ## Boundary
 
-Do not print large command output here. Checks that call noisy external tools
-should capture tool output, suppress it on success, and replay only bounded
-failure diagnostics.
+Do not print large command output here. Checks that call noisy external tools should capture tool output, suppress it on success, and replay only bounded failure diagnostics.
 
 ## Test Cases
 

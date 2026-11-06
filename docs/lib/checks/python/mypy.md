@@ -7,19 +7,15 @@ Python type check for `pre-push`.
 ## Behavior
 
 - Intended for the opt-in `python` profile, not the common baseline.
-- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock`
-  exists and otherwise uses the active environment or `PATH`.
+- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock` exists and otherwise uses the active environment or `PATH`.
 - Skips silently when Python project files are missing.
 - Runs `mypy --cache-dir <tmpdir> .` across the repository.
-- Uses a temporary mypy cache directory so the hook does not create
-  `.mypy_cache` in the repository root.
+- Uses a temporary mypy cache directory so the hook does not create `.mypy_cache` in the repository root.
 - Captures output and keeps successful runs silent unless `GIT_HOOK_VERBOSE=1`.
 
 ## Lifecycle Decision
 
-Mypy does not have a stable generic fast mode that is correct across projects.
-Running it against only staged files can miss package-level errors, so the
-default profile keeps mypy in `pre-push`.
+Mypy does not have a stable generic fast mode that is correct across projects. Running it against only staged files can miss package-level errors, so the default profile keeps mypy in `pre-push`.
 
 ## Failure Modes
 

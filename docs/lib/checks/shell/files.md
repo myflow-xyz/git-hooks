@@ -7,16 +7,12 @@ Shared shell file discovery helpers for checks under `lib/checks/shell`.
 ## Behavior
 
 - Discovers staged text shell files by extension only: `.sh`, `.bash`, `.zsh`.
-- Provides a narrower `.sh` and `.bash` staged file list for tools that should
-  not process zsh syntax.
-- Excludes ShellSpec `*_spec.sh` files from the sh/bash static-tool list because
-  ShellSpec DSL files are validated by ShellSpec, not by `shfmt` or ShellCheck.
+- Provides a narrower `.sh` and `.bash` staged file list for tools that should not process zsh syntax.
+- Excludes ShellSpec `*_spec.sh` files from the sh/bash static-tool list because ShellSpec DSL files are validated by ShellSpec, not by `shfmt` or ShellCheck.
 - Reads staged file modes from the Git index.
 - Reads first lines from staged blobs, not the working tree.
-- Detects shell shebangs for `sh`, `bash`, and `zsh`, including common
-  `/usr/bin/env` forms.
-- Discovers ShellSpec projects from tracked `.shellspec` files anywhere in the
-  repository.
+- Detects shell shebangs for `sh`, `bash`, and `zsh`, including common `/usr/bin/env` forms.
+- Discovers ShellSpec projects from tracked `.shellspec` files anywhere in the repository.
 
 ## Failure Modes
 

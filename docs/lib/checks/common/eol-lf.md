@@ -7,15 +7,11 @@ Staged text-file LF end-of-line check for `pre-commit`.
 ## Behavior
 
 - Skips silently when there are no staged files.
-- Applies to staged added, copied, modified, and renamed files that Git
-  classifies as text.
+- Applies to staged added, copied, modified, and renamed files that Git classifies as text.
 - Reads file content from the Git index, not the working tree.
-- Ignores binary staged files, staged deletions, unstaged files, and untracked
-  files.
-- Fails when staged text content contains a carriage return byte (`\r`), which
-  catches CRLF and CR-only line endings.
-- Complements `.gitattributes`; `.gitattributes` controls checkout behavior,
-  while this hook prevents non-LF staged text from entering the repo.
+- Ignores binary staged files, staged deletions, unstaged files, and untracked files.
+- Fails when staged text content contains a carriage return byte (`\r`), which catches CRLF and CR-only line endings.
+- Complements `.gitattributes`; `.gitattributes` controls checkout behavior, while this hook prevents non-LF staged text from entering the repo.
 
 ## Failure Modes
 

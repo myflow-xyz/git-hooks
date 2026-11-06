@@ -2,8 +2,7 @@
 
 ## Scope
 
-Copy supported bundled hook tool configs into a target repository for repo-local
-overrides.
+Copy supported bundled hook tool configs into a target repository for repo-local overrides.
 
 ## Usage
 
@@ -13,22 +12,17 @@ install-tool-config.sh [--repo <path>] [--force] <check-id>
 
 Allowed check IDs:
 
-- `common/md-lint`: copies `config/markdownlint/markdownlint.yaml` to
-  `.markdownlint-cli2.yaml`.
-- `golang/golangci-lint`: copies `config/golangci-lint/config.yaml` to
-  `.golangci.yaml`.
+- `common/md-lint`: copies `config/markdownlint/markdownlint.yaml` to `.markdownlint-cli2.yaml`.
+- `golang/golangci-lint`: copies `config/golangci-lint/config.yaml` to `.golangci.yaml`.
 
 ## Behavior
 
 - Resolves the target repository from `--repo` or the current Git repository.
-- Accepts only checks whose runtime explicitly prefers repo-local config over
-  bundled config.
+- Accepts only checks whose runtime explicitly prefers repo-local config over bundled config.
 - Copies the bundled config into the repo root.
 - Refuses to overwrite existing repo-local config unless `--force` is passed.
-- Warns after copying because the new repo-local config overrides bundled
-  defaults and future bundled changes will not apply automatically.
-- Does not support `golang/golangci-lint-fast`; that check intentionally uses
-  hook-only bundled fast-mode policy.
+- Warns after copying because the new repo-local config overrides bundled defaults and future bundled changes will not apply automatically.
+- Does not support `golang/golangci-lint-fast`; that check intentionally uses hook-only bundled fast-mode policy.
 
 ## Examples
 
@@ -61,8 +55,7 @@ install-tool-config.sh --repo /path/to/repo golang/golangci-lint
 Output is short and action-oriented:
 
 - Success: `git-hooks: copied; check-id=<check-id>; path=<repo-local-path>`
-- Warning: `git-hooks: warn: repo-local config now overrides bundled defaults;`
-  followed by `track future bundled changes manually`
+- Warning: `git-hooks: warn: repo-local config now overrides bundled defaults;` followed by `track future bundled changes manually`
 - Failure: `git-hooks: error: <reason>`
 - Actionable hints: `git-hooks: info: <hint>`
 

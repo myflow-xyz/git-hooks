@@ -10,8 +10,7 @@ Staged shell formatting check for `pre-commit`.
 - Uses user-level `shfmt` from `PATH`.
 - Checks staged text `.sh` and `.bash` files only.
 - Skips `.zsh` files because this profile keeps zsh handling conservative.
-- Skips ShellSpec `*_spec.sh` files because `shfmt` damages ShellSpec DSL
-  readability; `shell/shellspec` validates those files instead.
+- Skips ShellSpec `*_spec.sh` files because `shfmt` damages ShellSpec DSL readability; `shell/shellspec` validates those files instead.
 - Skips silently when no staged `.sh` or `.bash` files exist.
 - Runs `shfmt -l <file>` for each staged file.
 - Treats listed files as formatting failures.

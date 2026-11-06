@@ -8,14 +8,11 @@ React/Vite frontend test check for `pre-push`.
 
 - Intended for the opt-in `react-vite` profile, not the common baseline.
 - Uses `pnpm` project dependencies through `pnpm exec`.
-- Requires the repo-local `node_modules/.bin/vitest`; global installs are not
-  treated as valid for this hook.
+- Requires the repo-local `node_modules/.bin/vitest`; global installs are not treated as valid for this hook.
 - Runs `pnpm exec vitest run` so Git hooks never enter Vitest watch mode.
 - Skips when Vitest reports no test files.
-- Clears git-hooks runtime variables and Git local repository variables before
-  invoking Vitest so project tests see a normal local-test environment.
-- Captures output and keeps successful test runs silent unless
-  `GIT_HOOK_VERBOSE=1`.
+- Clears git-hooks runtime variables and Git local repository variables before invoking Vitest so project tests see a normal local-test environment.
+- Captures output and keeps successful test runs silent unless `GIT_HOOK_VERBOSE=1`.
 
 ## Failure Modes
 

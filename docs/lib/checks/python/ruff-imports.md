@@ -7,11 +7,9 @@ Python import sorting check for `pre-commit`.
 ## Behavior
 
 - Intended for the opt-in `python` profile, not the common baseline.
-- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock`
-  exists and otherwise uses the active environment or `PATH`.
+- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock` exists and otherwise uses the active environment or `PATH`.
 - Skips silently when no staged text Python files exist.
-- Runs `ruff check --no-cache --select I <file>` for each staged Python file so
-  Ruff does not create `.ruff_cache` in the repository root.
+- Runs `ruff check --no-cache --select I <file>` for each staged Python file so Ruff does not create `.ruff_cache` in the repository root.
 - Keeps import sorting separate because Ruff formatting does not sort imports.
 - Captures output and keeps successful runs silent unless `GIT_HOOK_VERBOSE=1`.
 

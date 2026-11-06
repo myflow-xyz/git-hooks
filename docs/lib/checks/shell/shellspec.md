@@ -11,22 +11,17 @@ ShellSpec test check for `pre-push`.
 - Discovers tracked `.shellspec` files anywhere in the repository.
 - Runs `shellspec` once from each tracked `.shellspec` directory.
 - Supports multiple ShellSpec project roots in one repository.
-- Stops immediately when a ShellSpec run is interrupted instead of continuing to
-  later ShellSpec roots.
-- Unsets Git hook runtime variables before invoking project ShellSpec suites so
-  nested hook tests do not inherit parent hook policy.
-- Unsets Git local repository environment variables before invoking project
-  ShellSpec suites so nested Git commands can discover their own test repos.
-- Does not guess test roots from `*_spec.sh`; `.shellspec` is the explicit
-  project marker.
+- Stops immediately when a ShellSpec run is interrupted instead of continuing to later ShellSpec roots.
+- Unsets Git hook runtime variables before invoking project ShellSpec suites so nested hook tests do not inherit parent hook policy.
+- Unsets Git local repository environment variables before invoking project ShellSpec suites so nested Git commands can discover their own test repos.
+- Does not guess test roots from `*_spec.sh`; `.shellspec` is the explicit project marker.
 - Skips silently when no tracked `.shellspec` files exist.
 - Captures output and keeps successful runs silent unless `GIT_HOOK_VERBOSE=1`.
 
 ## Failure Modes
 
 - Skips with an install hint when `shellspec` is unavailable.
-- Returns the signal-style exit code when a ShellSpec child process is
-  interrupted.
+- Returns the signal-style exit code when a ShellSpec child process is interrupted.
 - Returns the first non-zero `shellspec` exit code.
 - Reports the failed ShellSpec directory and capped diagnostics.
 

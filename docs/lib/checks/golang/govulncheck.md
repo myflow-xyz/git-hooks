@@ -9,25 +9,17 @@ Go vulnerability advisory check for `pre-push`.
 - Intended for the opt-in `golang` profile, not the common baseline.
 - Uses user-level `govulncheck` from `PATH`.
 - Uses shared module selection; skips when no selected Go module exists.
-- Skips silently when the repo has no tracked or untracked, non-ignored Go
-  source files.
-- Prepares Go runtime directories before invoking `govulncheck`: when neither
-  the environment nor `go env -w` sets them, `GOCACHE` defaults to
-  `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
+- Skips silently when the repo has no tracked or untracked, non-ignored Go source files.
+- Prepares Go runtime directories before invoking `govulncheck`: when neither the environment nor `go env -w` sets them, `GOCACHE` defaults to `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
 - Runs `govulncheck ./...` in each selected module.
-- Runs after `go mod tidy -diff` in the `golang` profile so advisory analysis
-  sees current `go.mod` and `go.sum` state.
+- Runs after `go mod tidy -diff` in the `golang` profile so advisory analysis sees current `go.mod` and `go.sum` state.
 - Quiet mode suppresses clean success output and exits `0`.
-- Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks
-  environment. It prints the command, streams native `govulncheck` output, and
-  reports the returned exit status on failure.
+- Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks environment. It prints the command, streams native `govulncheck` output, and reports the returned exit status on failure.
 
 ## Failure Modes
 
-- Skips with an install hint when `govulncheck` is unavailable:
-  `go install golang.org/x/vuln/cmd/govulncheck@latest`.
-- Returns the `govulncheck` exit code and capped diagnostics on failure. The complete captured log is
-  retained and its path is printed.
+- Skips with an install hint when `govulncheck` is unavailable: `go install golang.org/x/vuln/cmd/govulncheck@latest`.
+- Returns the `govulncheck` exit code and capped diagnostics on failure. The complete captured log is retained and its path is printed.
 
 ## Related Checks
 

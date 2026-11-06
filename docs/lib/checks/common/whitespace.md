@@ -8,8 +8,7 @@ Fast staged whitespace check for `pre-commit`.
 
 - Skips silently when there are no staged files.
 - Runs `git diff --cached --check`.
-- Relies on Git diff behavior so binary files are not treated as text
-  whitespace failures.
+- Relies on Git diff behavior so binary files are not treated as text whitespace failures.
 
 ## Failure Modes
 

@@ -7,12 +7,10 @@ Python test check for `pre-push`.
 ## Behavior
 
 - Intended for the opt-in `python` profile, not the common baseline.
-- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock`
-  exists and otherwise uses the active environment or `PATH`.
+- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock` exists and otherwise uses the active environment or `PATH`.
 - Skips silently when no test files are detected.
 - Runs `pytest -o cache_dir=<tmpdir>`.
-- Uses a temporary pytest cache directory so the hook does not create
-  `.pytest_cache` in the repository root.
+- Uses a temporary pytest cache directory so the hook does not create `.pytest_cache` in the repository root.
 - Captures output and keeps successful runs silent unless `GIT_HOOK_VERBOSE=1`.
 
 ## Failure Modes
@@ -22,8 +20,7 @@ Python test check for `pre-push`.
 
 ## Related Checks
 
-- `pytest-cov.sh` runs pytest with coverage and is available as an explicit
-  extra pre-push check when a project wants local coverage gating.
+- `pytest-cov.sh` runs pytest with coverage and is available as an explicit extra pre-push check when a project wants local coverage gating.
 
 ## Test Cases
 

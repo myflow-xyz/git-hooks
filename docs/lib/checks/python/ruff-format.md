@@ -7,8 +7,7 @@ Python formatting check for `pre-commit`.
 ## Behavior
 
 - Intended for the opt-in `python` profile, not the common baseline.
-- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock`
-  exists and otherwise uses the active environment or `PATH`.
+- Uses the shared Python runner. `auto` mode prefers `uv run` when `uv.lock` exists and otherwise uses the active environment or `PATH`.
 - Skips silently when no staged text Python files exist.
 - Skips binary staged Python paths before deciding whether formatting is needed.
 - Runs `ruff format --check <file>` for each staged Python file.
