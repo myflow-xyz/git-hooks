@@ -1,21 +1,12 @@
 # `git-hooks`
 
-Portable Git hook runtime, reusable checks, profiles, and repo hook setup
-templates.
+Portable Git hook runtime, reusable checks, profiles, and repo hook setup templates.
 
-This repository is intentionally self-contained. It owns its installer, repo
-hook setup script, runtime helpers, checks, profiles, templates, docs, bundled
-fallback config, and tests. It can be cloned directly, vendored, or consumed as
-a submodule by another repository.
+This repository is intentionally self-contained. It owns its installer, repo hook setup script, runtime helpers, checks, profiles, templates, docs, bundled fallback config, and tests. It can be cloned directly, vendored, or consumed as a submodule by another repository.
 
 This project is available under the MIT License. See [License](LICENSE).
 
-General policy lives in [Design](docs/design.md),
-[Repo Hook Setup](docs/setup-repo-hooks.md), and
-[Tool Config Install](docs/install-tool-config.md). In short: keep `pre-commit`
-lightweight and staged-area focused, put heavier full-repo or advisory checks in
-`pre-push`, keep hooks portable, keep output concise, and maintain tests plus
-per-hook design docs.
+General policy lives in [Design](docs/design.md), [Repo Hook Setup](docs/setup-repo-hooks.md), and [Tool Config Install](docs/install-tool-config.md). In short: keep `pre-commit` lightweight and staged-area focused, put heavier full-repo or advisory checks in `pre-push`, keep hooks portable, keep output concise, and maintain tests plus per-hook design docs.
 
 ## Install Model
 
@@ -23,17 +14,12 @@ There are three separate setup steps:
 
 - `install.sh` installs this shared runtime to `$XDG_CONFIG_HOME/git-hooks`.
 - `setup-repo-hooks.sh` bootstraps one target repo with tiny `.githooks` wrappers.
-- `install-tool-config.sh` copies supported bundled tool configs into a target repo
-  for explicit repo-local overrides.
-- `install.sh` is intentionally self-contained and owns its small link/check/fix
-  behavior directly.
+- `install-tool-config.sh` copies supported bundled tool configs into a target repo for explicit repo-local overrides.
+- `install.sh` is intentionally self-contained and owns its small link/check/fix behavior directly.
 
-The installed runtime is a symlink to this source checkout. Update the source
-checkout through Git, then rerun `install.sh --check` when needed to verify the
-XDG target still points to the expected source.
+The installed runtime is a symlink to this source checkout. Update the source checkout through Git, then rerun `install.sh --check` when needed to verify the XDG target still points to the expected source.
 
-Git >= 2.9.0 is required for `core.hooksPath`; `install.sh` rejects missing,
-unparseable, or older Git before changing the XDG target.
+Git >= 2.9.0 is required for `core.hooksPath`; `install.sh` rejects missing, unparseable, or older Git before changing the XDG target.
 
 Projects keep repo-local `.githooks` wrappers and configure:
 
@@ -41,30 +27,17 @@ Projects keep repo-local `.githooks` wrappers and configure:
 git config --local core.hooksPath .githooks
 ```
 
-Those wrappers call the shared dispatcher under `$XDG_CONFIG_HOME/git-hooks`.
-If the shared runtime is missing, wrappers warn and skip checks instead of
-blocking Git commands; install the runtime before relying on hook enforcement.
-Default `common` policy is provided by the shared runtime, so repos do not need
-config files for the normal case. Optional project policy can live in
-`.githooks/project.conf`; optional local machine overrides can live in
-`.githooks/hooks.env`.
+Those wrappers call the shared dispatcher under `$XDG_CONFIG_HOME/git-hooks`. If the shared runtime is missing, wrappers warn and skip checks instead of blocking Git commands; install the runtime before relying on hook enforcement. Default `common` policy is provided by the shared runtime, so repos do not need config files for the normal case. Optional project policy can live in `.githooks/project.conf`; optional local machine overrides can live in `.githooks/hooks.env`.
 
 ## Quickstart
 
-1. From the `git-hooks` source checkout, run `./install.sh` to link the runtime
-   into
-   `$XDG_CONFIG_HOME/git-hooks`.
+1. From the `git-hooks` source checkout, run `./install.sh` to link the runtime into `$XDG_CONFIG_HOME/git-hooks`.
 2. Verify the shared runtime with `./install.sh --check`.
 3. From a target repo, run `$XDG_CONFIG_HOME/git-hooks/setup-repo-hooks.sh`.
-4. Verify the repo hook setup with
-   `$XDG_CONFIG_HOME/git-hooks/setup-repo-hooks.sh --check`.
-5. Select built-in profiles when a repo needs language or stack-specific
-   checks, for example `--profiles "common golang"` or
-   `--profiles "common pmem"`.
-6. Add `.githooks/project.conf` or `.githooks/hooks.env` only when the repo
-   needs non-default policy, extra checks, or local overrides.
-7. Use `$XDG_CONFIG_HOME/git-hooks/install-tool-config.sh <check-id>` only when
-   the repo needs to fork a supported bundled tool config.
+4. Verify the repo hook setup with `$XDG_CONFIG_HOME/git-hooks/setup-repo-hooks.sh --check`.
+5. Select built-in profiles when a repo needs language or stack-specific checks, for example `--profiles "common golang"` or `--profiles "common pmem"`.
+6. Add `.githooks/project.conf` or `.githooks/hooks.env` only when the repo needs non-default policy, extra checks, or local overrides.
+7. Use `$XDG_CONFIG_HOME/git-hooks/install-tool-config.sh <check-id>` only when the repo needs to fork a supported bundled tool config.
 
 ## Setup Examples
 
@@ -96,8 +69,7 @@ $XDG_CONFIG_HOME/git-hooks/setup-repo-hooks.sh \
   --profiles "common shell"
 ```
 
-`--hooks` is an explicit override. When omitted, setup infers `pre-push` for
-profiles that define `pre-push` checks.
+`--hooks` is an explicit override. When omitted, setup infers `pre-push` for profiles that define `pre-push` checks.
 
 Custom extra checks in `.githooks/project.conf`:
 
@@ -114,9 +86,7 @@ GIT_HOOK_PROFILES="common"
 GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS="dir/xhook yhook"
 ```
 
-Local hook IDs are suffixless paths under `.githooks/hooks`, so the example
-runs `.githooks/hooks/dir/xhook.sh` and `.githooks/hooks/yhook.sh` after
-profile checks and builtin extra checks.
+Local hook IDs are suffixless paths under `.githooks/hooks`, so the example runs `.githooks/hooks/dir/xhook.sh` and `.githooks/hooks/yhook.sh` after profile checks and builtin extra checks.
 
 Project Memory (`pmem`) managed repo:
 
@@ -125,29 +95,16 @@ $XDG_CONFIG_HOME/git-hooks/setup-repo-hooks.sh \
   --profiles "common pmem"
 ```
 
-The `pmem` profile is for Project Memory managed repos. It requires
-the `pmem` CLI and repo PMem config. When both are present, commits must carry
-exactly one `Refs: <task-id>` footer that resolves to an active work item in the
-repo project. Missing CLI or missing repo PMem config warns and skips so the
-opt-in profile does not block repos that have not finished local PMem setup.
+The `pmem` profile is for Project Memory managed repos. It requires the `pmem` CLI and repo PMem config. When both are present, commits must carry exactly one `Refs: <task-id>` footer that resolves to an active work item in the repo project. Missing CLI or missing repo PMem config warns and skips so the opt-in profile does not block repos that have not finished local PMem setup.
 
 Go profile policy:
 
-- `pre-commit` keeps goimports and fast golangci-lint focused on staged Go files.
-  Formatting reads the index. Fast lint runs in the original checkout only when
-  tracked files match the index and no non-ignored untracked files are present.
-  Otherwise it warns and skips; full lint still runs on push.
-- `pre-push` keeps OSV, tidy, govulncheck, full lint, vet, fresh full tests,
-  and CodeGraph. Checks inspect the working tree, not pushed revisions.
-- Race detection is an independent opt-in extra. Integration and E2E commands
-  remain project-owned local hooks.
+- `pre-commit` keeps goimports and fast golangci-lint focused on staged Go files. Formatting reads the index. Fast lint runs in the original checkout only when tracked files match the index and no non-ignored untracked files are present. Otherwise it warns and skips; full lint still runs on push.
+- `pre-push` keeps OSV, tidy, govulncheck, full lint, vet, fresh full tests, and CodeGraph. Checks inspect the working tree, not pushed revisions.
+- Race detection is an independent opt-in extra. Integration and E2E commands remain project-owned local hooks.
 - Optional missing tools warn and skip. Executed checks must preserve failures.
 
-Every `pre-push` dispatch requires a clean checkout before any checks run and
-again after all checks finish. Staged changes, unstaged tracked changes, and
-non-ignored untracked files reject the push. Ignore generated caches and reports.
-The guard reports affected paths and does not stage, stash, or restore files.
-This policy applies to all profiles; commit checks keep their separate policies.
+Every `pre-push` dispatch requires a clean checkout before any checks run and again after all checks finish. Staged changes, unstaged tracked changes, and non-ignored untracked files reject the push. Ignore generated caches and reports. The guard reports affected paths and does not stage, stash, or restore files. This policy applies to all profiles; commit checks keep their separate policies.
 
 Example `.githooks/project.conf`:
 
@@ -162,10 +119,7 @@ GIT_HOOK_PRE_PUSH_EXTRA_LOCAL_HOOKS="test/integration test/e2e"
 # services/api"
 ```
 
-The local hook IDs above require executable project scripts at
-`.githooks/hooks/test/integration.sh` and `.githooks/hooks/test/e2e.sh`.
-Keep full captured Go failure logs when diagnosing errors; hooks print their
-paths. Fast lint preserves the project's normal workspace and dependency paths.
+The local hook IDs above require executable project scripts at `.githooks/hooks/test/integration.sh` and `.githooks/hooks/test/e2e.sh`. Keep full captured Go failure logs when diagnosing errors; hooks print their paths. Fast lint preserves the project's normal workspace and dependency paths.
 
 Go profile cache defaults:
 
@@ -174,33 +128,18 @@ Go profile cache defaults:
 .tmp/
 ```
 
-The `golang` profile uses `GOCACHE`, `GOTMPDIR`, and `GOLANGCI_LINT_CACHE` from
-the environment, such as shell exports, and `GOCACHE` and `GOTMPDIR` set with
-`go env -w`. When a path is not configured, it creates a repo-local default:
-`.cache/go-build`, `.cache/golangci-lint`, or `.tmp/go`. Add the ignore rules
-above in Go repos, or override cache locations in `.githooks/hooks.env`.
+The `golang` profile uses `GOCACHE`, `GOTMPDIR`, and `GOLANGCI_LINT_CACHE` from the environment, such as shell exports, and `GOCACHE` and `GOTMPDIR` set with `go env -w`. When a path is not configured, it creates a repo-local default: `.cache/go-build`, `.cache/golangci-lint`, or `.tmp/go`. Add the ignore rules above in Go repos, or override cache locations in `.githooks/hooks.env`.
 
-To use the same Go caches from IDEs, Git GUIs, and AI agents that do not load
-your shell profile, save them with `go env -w`. The hooks detect these values
-with Go 1.23 or later; with older Go, they use the repo-local defaults.
+To use the same Go caches from IDEs, Git GUIs, and AI agents that do not load your shell profile, save them with `go env -w`. The hooks detect these values with Go 1.23 or later; with older Go, they use the repo-local defaults.
 
 ```sh
 mkdir -p "$HOME/.cache/go/tmp"
 go env -w GOCACHE="$HOME/.cache/go/build" GOTMPDIR="$HOME/.cache/go/tmp"
 ```
 
-Exported variables and `.githooks/hooks.env` still win over `go env -w`. Go
-creates a missing `GOCACHE`, but the `GOTMPDIR` directory must exist.
+Exported variables and `.githooks/hooks.env` still win over `go env -w`. Go creates a missing `GOCACHE`, but the `GOTMPDIR` directory must exist.
 
-`--hooks` selects which Git wrapper phases exist in the repo. `--profiles`
-selects built-in check lists. Multiple profiles are merged by running each
-profile in declared order, then phase-specific builtin
-`GIT_HOOK_*_EXTRA_CHECKS` and local `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` are appended.
-Extra hooks do not override profile checks, and duplicate IDs are not
-de-duplicated. Unknown profiles are invalid. Duplicate profiles are invalid for
-setup/check, but runtime skips repeated profiles with a warning for existing
-repo configs. Omit empty variables; missing extra-hook variables default to
-empty.
+`--hooks` selects which Git wrapper phases exist in the repo. `--profiles` selects built-in check lists. Multiple profiles are merged by running each profile in declared order, then phase-specific builtin `GIT_HOOK_*_EXTRA_CHECKS` and local `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` are appended. Extra hooks do not override profile checks, and duplicate IDs are not de-duplicated. Unknown profiles are invalid. Duplicate profiles are invalid for setup/check, but runtime skips repeated profiles with a warning for existing repo configs. Omit empty variables; missing extra-hook variables default to empty.
 
 Copy bundled tool config for repo-local edits:
 
@@ -209,9 +148,7 @@ $XDG_CONFIG_HOME/git-hooks/install-tool-config.sh common/md-lint
 $XDG_CONFIG_HOME/git-hooks/install-tool-config.sh golang/golangci-lint
 ```
 
-Only checks that explicitly support repo-local config are accepted. The copied
-file overrides bundled defaults, so future bundled config updates must be
-tracked manually for that repo-local copy.
+Only checks that explicitly support repo-local config are accepted. The copied file overrides bundled defaults, so future bundled config updates must be tracked manually for that repo-local copy.
 
 ## Layout
 

@@ -7,13 +7,9 @@ Staged text-file trailing newline check for `pre-commit`.
 ## Behavior
 
 - Skips silently when there are no staged files.
-- Applies to staged added, copied, modified, and renamed files that Git classifies
-  as text.
-- Is not extension-limited. JSON files are included because a final newline is
-  valid trailing JSON whitespace; it is not required for JSON parsing, but the
-  common profile treats it as repository text-file hygiene.
-- Ignores binary staged files, empty staged files, staged deletions, unstaged
-  files, and untracked files.
+- Applies to staged added, copied, modified, and renamed files that Git classifies as text.
+- Is not extension-limited. JSON files are included because a final newline is valid trailing JSON whitespace; it is not required for JSON parsing, but the common profile treats it as repository text-file hygiene.
+- Ignores binary staged files, empty staged files, staged deletions, unstaged files, and untracked files.
 - Reads file content from the Git index, not the working tree.
 - Reports each staged text file that does not end with `\n`.
 

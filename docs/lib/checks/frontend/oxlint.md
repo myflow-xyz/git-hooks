@@ -8,14 +8,11 @@ React/Vite frontend lint check for `pre-commit`.
 
 - Intended for the opt-in `react-vite` profile, not the common baseline.
 - Uses `pnpm` project dependencies through `pnpm exec`.
-- Requires the repo-local `node_modules/.bin/oxlint`; global installs are not
-  treated as valid for this hook.
+- Requires the repo-local `node_modules/.bin/oxlint`; global installs are not treated as valid for this hook.
 - Skips silently when no staged text frontend source files exist.
 - Skips binary staged frontend paths before deciding whether lint is needed.
-- Runs `oxlint` with type-aware linting, unused-disable checks, and zero
-  warnings for each staged text frontend source file.
-- Captures output and keeps successful lint runs silent unless
-  `GIT_HOOK_VERBOSE=1`.
+- Runs `oxlint` with type-aware linting, unused-disable checks, and zero warnings for each staged text frontend source file.
+- Captures output and keeps successful lint runs silent unless `GIT_HOOK_VERBOSE=1`.
 
 ## Failure Modes
 

@@ -10,8 +10,7 @@ Staged shell executable-bit consistency check for `pre-commit`.
 - Checks staged text `.sh`, `.bash`, and `.zsh` files.
 - Does not require every shell file to be executable.
 - Allows non-executable sourced fragments and config snippets.
-- Fails only when a staged executable shell file lacks a supported shell
-  shebang for `sh`, `bash`, or `zsh`.
+- Fails only when a staged executable shell file lacks a supported shell shebang for `sh`, `bash`, or `zsh`.
 - Reads staged file modes and contents from the Git index.
 
 ## Failure Modes

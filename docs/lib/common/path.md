@@ -24,10 +24,7 @@ Filesystem layout and path resolution helpers.
 - `git_hooks_paths_profile_list <hooks-home> <profile> <phase>`
 - `git_hooks_paths_check <hooks-home> <check-id>`
 
-Local hook IDs are suffixless paths relative to `.githooks/hooks`, for example
-`dir/xhook` resolves to `.githooks/hooks/dir/xhook.sh`. IDs with absolute paths,
-`..`, `.`, duplicate separators, trailing slashes, or `.sh` suffixes are
-invalid.
+Local hook IDs are suffixless paths relative to `.githooks/hooks`, for example `dir/xhook` resolves to `.githooks/hooks/dir/xhook.sh`. IDs with absolute paths, `..`, `.`, duplicate separators, trailing slashes, or `.sh` suffixes are invalid.
 
 ## Boundary
 

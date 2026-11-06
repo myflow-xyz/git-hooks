@@ -10,33 +10,22 @@ Staged Markdown lint check for `pre-commit`.
 - Skips binary staged Markdown paths before selecting or invoking a linter.
 - Runs `markdownlint-cli2` for each staged text Markdown file.
 - Passes an explicit config to `markdownlint-cli2` when a config exists.
-- Uses `--no-globs` with explicit staged files so config `globs` do not expand
-  lint scope to unrelated repository files.
+- Uses `--no-globs` with explicit staged files so config `globs` do not expand lint scope to unrelated repository files.
 - Uses the first existing config in this priority order:
 - `$REPO/.markdownlint-cli2.yaml`
 - `$REPO/.markdownlint.yaml`
 - `$XDG_CONFIG_HOME/markdownlint/markdownlint.yaml`
 - `$GIT_HOOKS_HOME/config/markdownlint/markdownlint.yaml`
-- If no config exists, falls back to markdownlint's built-in defaults instead
-  of blocking the commit.
-- The bundled fallback config sets `MD013` normal and code block line limits to
-  999999 characters, keeps headings at 100 characters, excludes code blocks and
-  tables from active line length checks, and keeps structural readability rules
-  enabled.
-- The bundled fallback excludes common generated or dependency paths through
-  `globs`, including `.git`, `node_modules`, `vendor`, `dist`, `build`, and
-  `coverage`.
-- Quiet mode captures `markdownlint-cli2` output, suppresses successful output,
-  and exits `0` on clean lint.
-- Verbose mode keeps normal information output enabled, including the selected
-  config path and native `markdownlint-cli2` output.
-- Verbose mode is controlled by `GIT_HOOK_VERBOSE=1` or `true` from the shared
-  git-hooks environment, including repo-local `.githooks/hooks.env`.
+- If no config exists, falls back to markdownlint's built-in defaults instead of blocking the commit.
+- The bundled fallback config sets `MD013` normal and code block line limits to 999999 characters, keeps headings at 100 characters, excludes code blocks and tables from active line length checks, and keeps structural readability rules enabled.
+- The bundled fallback excludes common generated or dependency paths through `globs`, including `.git`, `node_modules`, `vendor`, `dist`, `build`, and `coverage`.
+- Quiet mode captures `markdownlint-cli2` output, suppresses successful output, and exits `0` on clean lint.
+- Verbose mode keeps normal information output enabled, including the selected config path and native `markdownlint-cli2` output.
+- Verbose mode is controlled by `GIT_HOOK_VERBOSE=1` or `true` from the shared git-hooks environment, including repo-local `.githooks/hooks.env`.
 
 ## Failure Modes
 
-- Skips with an install hint when `markdownlint-cli2` is unavailable and
-  Markdown files are staged.
+- Skips with an install hint when `markdownlint-cli2` is unavailable and Markdown files are staged.
 - Returns `1` when any Markdown lint command fails.
 
 ## Test Cases

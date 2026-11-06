@@ -15,63 +15,35 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
 
 - Resolves the target repository from `--repo` or the current Git repository.
 - Creates selected repo-local wrappers from the shared templates.
-- `--update` refreshes existing supported repo-local wrappers from the shared
-  templates without creating missing wrappers, changing `core.hooksPath`, or
-  writing `.githooks/project.conf`.
+- `--update` refreshes existing supported repo-local wrappers from the shared templates without creating missing wrappers, changing `core.hooksPath`, or writing `.githooks/project.conf`.
 - Infers default wrappers from selected profiles when `--hooks` is omitted.
 - Defaults to `pre-commit pre-push commit-msg` for the `common` profile.
 - Adds `pre-push` by default when any selected profile has `pre-push` checks.
 - Defaults to `--profiles common`, which requires no repo-local config file.
 - Use `--profiles "common react-vite"` for pnpm-based React/Vite projects.
-- The `react-vite` profile requires repo-local dev dependencies. Install the
-  core checks with `pnpm add -D oxlint oxfmt vitest`; add `@playwright/test`
-  when the repo has E2E tests. Global installs are intentionally ignored.
-- The Playwright E2E check skips when the repo has no Playwright config or
-  tracked conventional E2E test files. When E2E exists but Playwright is not
-  installed, it skips with an install hint.
+- The `react-vite` profile requires repo-local dev dependencies. Install the core checks with `pnpm add -D oxlint oxfmt vitest`; add `@playwright/test` when the repo has E2E tests. Global installs are intentionally ignored.
+- The Playwright E2E check skips when the repo has no Playwright config or tracked conventional E2E test files. When E2E exists but Playwright is not installed, it skips with an install hint.
 - Use `--profiles "common golang"` for Go projects.
-- The `golang` profile runs `goimports` and fast `golangci-lint` during
-  `pre-commit`, then `go mod tidy -diff`, full `golangci-lint`, `go vet`, and
-  `go test` during `pre-push`.
-- Go checks use cache paths from the environment or `go env -w` first, and
-  repo-local `.cache/` and `.tmp/` runtime directories otherwise. Repos using
-  the `golang` profile should ignore `.cache/` and `.tmp/`; override cache
-  locations in `.githooks/hooks.env` only when a repo needs different local
-  policy.
+- The `golang` profile runs `goimports` and fast `golangci-lint` during `pre-commit`, then `go mod tidy -diff`, full `golangci-lint`, `go vet`, and `go test` during `pre-push`.
+- Go checks use cache paths from the environment or `go env -w` first, and repo-local `.cache/` and `.tmp/` runtime directories otherwise. Repos using the `golang` profile should ignore `.cache/` and `.tmp/`; override cache locations in `.githooks/hooks.env` only when a repo needs different local policy.
 - Use `--profiles "common python"` for Python projects.
-- The `python` profile runs Ruff format, import sorting, and lint checks during
-  `pre-commit`, then mypy and pytest during `pre-push`.
-- The `react-vite`, `golang`, and `python` profiles also run the reusable
-  `common/osv-scanner` check during `pre-push`. It recursively scans dependency
-  files from the repository root and reports vulnerabilities as Markdown.
+- The `python` profile runs Ruff format, import sorting, and lint checks during `pre-commit`, then mypy and pytest during `pre-push`.
+- The `react-vite`, `golang`, and `python` profiles also run the reusable `common/osv-scanner` check during `pre-push`. It recursively scans dependency files from the repository root and reports vulnerabilities as Markdown.
 - Python checks support `GIT_HOOK_PYTHON_RUNNER=auto|uv|path`.
-- Python runner `auto` prefers `uv run` when `uv.lock` exists and falls back to
-  the active environment or `PATH` otherwise.
+- Python runner `auto` prefers `uv run` when `uv.lock` exists and falls back to the active environment or `PATH` otherwise.
 - `GIT_HOOK_PYTHON_UV_ARGS` defaults to `--frozen`.
-- Add `python/pytest-cov` as a `pre-push` extra check when local coverage is
-  required.
-- Add `python/pip-audit` as a `pre-push` extra check when a Python-specific
-  audit in addition to the default OSV scan is required.
+- Add `python/pytest-cov` as a `pre-push` extra check when local coverage is required.
+- Add `python/pip-audit` as a `pre-push` extra check when a Python-specific audit in addition to the default OSV scan is required.
 - Use `--profiles "common pmem"` for repositories managed by Project Memory.
-- The `pmem` profile uses the `pmem` CLI and repo PMem config to enforce a
-  single `Refs: <task-id>` footer during `commit-msg`. Missing CLI or missing
-  repo PMem config warns and skips; configured repos fail when the footer is
-  missing, duplicated, the PMem CLI returns an error, or the referenced work
-  item is closed.
+- The `pmem` profile uses the `pmem` CLI and repo PMem config to enforce a single `Refs: <task-id>` footer during `commit-msg`. Missing CLI or missing repo PMem config warns and skips; configured repos fail when the footer is missing, duplicated, the PMem CLI returns an error, or the referenced work item is closed.
 - Use `--profiles "common shell"` for repositories with shell scripts.
-- The `shell` profile runs `shfmt`, `shellcheck`, and executable-bit
-  consistency checks during `pre-commit`, then ShellSpec during `pre-push`.
-- Shell checks discover staged `.sh`, `.bash`, and `.zsh` files wherever they
-  live in the repository. `shfmt` and `shellcheck` skip `.zsh` files.
-- ShellSpec discovery uses tracked `.shellspec` files as project roots and runs
-  once from each matching directory. ShellSpec runs with hook runtime variables
-  and Git local repository variables cleared.
+- The `shell` profile runs `shfmt`, `shellcheck`, and executable-bit consistency checks during `pre-commit`, then ShellSpec during `pre-push`.
+- Shell checks discover staged `.sh`, `.bash`, and `.zsh` files wherever they live in the repository. `shfmt` and `shellcheck` skip `.zsh` files.
+- ShellSpec discovery uses tracked `.shellspec` files as project roots and runs once from each matching directory. ShellSpec runs with hook runtime variables and Git local repository variables cleared.
 - Does not create `.githooks/hooks.env` by default.
-- Writes `.githooks/project.conf` only when a non-default profile selection is
-  requested.
+- Writes `.githooks/project.conf` only when a non-default profile selection is requested.
 - Sets repo-local `core.hooksPath=.githooks`.
-- `--check` verifies selected wrappers, required profile config, and
-  `core.hooksPath`.
+- `--check` verifies selected wrappers, required profile config, and `core.hooksPath`.
 
 ## Selection Model
 
@@ -81,8 +53,7 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
 - Profiles with `pre-push.list` add `pre-push` to inferred wrappers.
 - Passing `--hooks` replaces inferred hook selection for that run.
 - Existing repo wrappers are not deleted when a later run selects fewer hooks.
-- Existing repo wrappers outside the selected hook set are not refreshed during
-  install. Use `--update` for a wrapper-only refresh.
+- Existing repo wrappers outside the selected hook set are not refreshed during install. Use `--update` for a wrapper-only refresh.
 - `--profiles` selects built-in profile check lists.
 - Default profile is `common`.
 - `GIT_HOOK_PROFILES` may be omitted when the default `common` profile is enough.
@@ -90,9 +61,7 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
 - Unknown profiles are invalid during setup/check and runtime dispatch.
 - Duplicate profiles are invalid in `setup-repo-hooks.sh` install/check mode.
 - Phase-specific `GIT_HOOK_*_EXTRA_CHECKS` append after profile checks.
-- Phase-specific `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` append repo-local custom hooks
-  after builtin extra checks. Local hook IDs resolve under
-  `.githooks/hooks/<id>.sh`.
+- Phase-specific `GIT_HOOK_*_EXTRA_LOCAL_HOOKS` append repo-local custom hooks after builtin extra checks. Local hook IDs resolve under `.githooks/hooks/<id>.sh`.
 - Missing builtin and local extra-hook variables default to empty.
 - Omit empty variables from `.githooks/project.conf`.
 - Extra checks do not override profile checks.
@@ -102,25 +71,16 @@ setup-repo-hooks.sh [--check | --update] [--repo <path>]
 
 - Keep `pre-commit` fast and lightweight.
 - Prefer staged-area checks in `pre-commit`.
-- Keep full repo tests, coverage, audits, builds, and integration checks in
-  `pre-push`.
-- Use tools that are widely adopted and actively maintained in the target
-  language or stack community.
-- Resolve runtime and package-manager policy from repo state and hook env where
-  needed, for example Python `GIT_HOOK_PYTHON_RUNNER=auto|uv|path`.
-- When a tool supports config files, prefer repo config first, user XDG config
-  second, bundled git-hooks config third, then tool defaults.
-- If a hook requires bundled config or a specific runtime, its own design doc
-  must say so explicitly.
-- Missing commands should skip with an install hint instead of failing with raw
-  shell errors.
-- Hook behavior should be portable across `sh`, `bash`, and `zsh` unless the
-  hook documents a narrower shell requirement.
-- Every hook needs ShellSpec coverage and a matching test case table in its
-  design doc.
+- Keep full repo tests, coverage, audits, builds, and integration checks in `pre-push`.
+- Use tools that are widely adopted and actively maintained in the target language or stack community.
+- Resolve runtime and package-manager policy from repo state and hook env where needed, for example Python `GIT_HOOK_PYTHON_RUNNER=auto|uv|path`.
+- When a tool supports config files, prefer repo config first, user XDG config second, bundled git-hooks config third, then tool defaults.
+- If a hook requires bundled config or a specific runtime, its own design doc must say so explicitly.
+- Missing commands should skip with an install hint instead of failing with raw shell errors.
+- Hook behavior should be portable across `sh`, `bash`, and `zsh` unless the hook documents a narrower shell requirement.
+- Every hook needs ShellSpec coverage and a matching test case table in its design doc.
 - Add regression tests when fixing bugs or non-obvious edge cases.
-- Commit hook work in reviewable order: docs first, then each hook, then profile
-  updates.
+- Commit hook work in reviewable order: docs first, then each hook, then profile updates.
 
 Default common example:
 
@@ -164,12 +124,7 @@ GIT_HOOK_PROFILES="common"
 GIT_HOOK_PRE_COMMIT_EXTRA_LOCAL_HOOKS="dir/xhook yhook"
 ```
 
-This runs `.githooks/hooks/dir/xhook.sh` and `.githooks/hooks/yhook.sh` after
-profile checks and builtin extra checks. Local hook scripts must be executable,
-exit `0` on success, exit non-zero on failure, avoid interactive prompts, and
-keep success output quiet unless `GIT_HOOK_VERBOSE=1`.
-Missing local hook files warn and skip so a stale local hook reference does not
-block the rest of the hook chain.
+This runs `.githooks/hooks/dir/xhook.sh` and `.githooks/hooks/yhook.sh` after profile checks and builtin extra checks. Local hook scripts must be executable, exit `0` on success, exit non-zero on failure, avoid interactive prompts, and keep success output quiet unless `GIT_HOOK_VERBOSE=1`. Missing local hook files warn and skip so a stale local hook reference does not block the rest of the hook chain.
 
 Python coverage and audit extra checks:
 

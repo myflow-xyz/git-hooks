@@ -4,8 +4,7 @@
 
 Install this Git hooks runtime into user XDG config.
 
-This script is self-contained and owns its small link/check/fix behavior
-directly.
+This script is self-contained and owns its small link/check/fix behavior directly.
 
 ## Usage
 
@@ -16,20 +15,15 @@ install.sh [--check|--fix-links]
 ## Behavior
 
 - Requires Git >= 2.9.0 because repo setup uses `core.hooksPath`.
-- Resolves the source runtime from the checkout directory containing
-  `install.sh`.
-- Resolves the source runtime through physical paths, so running
-  `$XDG_CONFIG_HOME/git-hooks/install.sh --check` or `--fix-links` does not
-  compare the installed symlink against itself.
-- Fails with a clear dependency error if `readlink` is not available while
-  inspecting an existing symlink.
+- Resolves the source runtime from the checkout directory containing `install.sh`.
+- Resolves the source runtime through physical paths, so running `$XDG_CONFIG_HOME/git-hooks/install.sh --check` or `--fix-links` does not compare the installed symlink against itself.
+- Fails with a clear dependency error if `readlink` is not available while inspecting an existing symlink.
 - Uses `${XDG_CONFIG_HOME:-$HOME/.config}/git-hooks` as the target.
 - Default mode creates the target symlink when it is missing.
 - Default mode fails fast when the target exists but points elsewhere.
 - `--check` verifies the target symlink and does not modify files.
 - `--fix-links` explicitly repairs wrong symlinks.
-- `--fix-links` backs up conflicting real files or directories to
-  `<target>.<YYYYmmddHHMMSS>.bak` before relinking.
+- `--fix-links` backs up conflicting real files or directories to `<target>.<YYYYmmddHHMMSS>.bak` before relinking.
 
 ## Output Policy
 

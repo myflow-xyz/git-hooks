@@ -9,22 +9,16 @@ Go module hygiene check for `pre-push`.
 - Intended for the opt-in `golang` profile, not the common baseline.
 - Uses user-level `go` from `PATH`.
 - Uses shared module selection; skips when no selected Go module exists.
-- Prepares Go runtime directories before invoking `go`: when neither the
-  environment nor `go env -w` sets them, `GOCACHE` defaults to
-  `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
-- Runs `go mod tidy -diff` so the hook reports required `go.mod` or `go.sum`
-  changes without modifying files.
-- Runs from each selected module, including modules below a workspace-only
-  root. It does not run tidy from the workspace root without a module.
+- Prepares Go runtime directories before invoking `go`: when neither the environment nor `go env -w` sets them, `GOCACHE` defaults to `$REPO/.cache/go-build` and `GOTMPDIR` defaults to `$REPO/.tmp/go`.
+- Runs `go mod tidy -diff` so the hook reports required `go.mod` or `go.sum` changes without modifying files.
+- Runs from each selected module, including modules below a workspace-only root. It does not run tidy from the workspace root without a module.
 - Quiet mode suppresses clean success output and exits `0`.
-- Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks
-  environment.
+- Verbose mode is controlled by `GIT_HOOK_VERBOSE` from the shared git-hooks environment.
 
 ## Failure Modes
 
 - Skips with an install hint when `go` is unavailable.
-- Returns the `go mod tidy -diff` exit code and capped diagnostics on failure. The complete captured log is
-  retained and its path is printed.
+- Returns the `go mod tidy -diff` exit code and capped diagnostics on failure. The complete captured log is retained and its path is printed.
 
 ## Test Cases
 

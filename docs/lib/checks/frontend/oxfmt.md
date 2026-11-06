@@ -8,14 +8,11 @@ React/Vite frontend format check for `pre-commit`.
 
 - Intended for the opt-in `react-vite` profile, not the common baseline.
 - Uses `pnpm` project dependencies through `pnpm exec`.
-- Requires the repo-local `node_modules/.bin/oxfmt`; global installs are not
-  treated as valid for this hook.
+- Requires the repo-local `node_modules/.bin/oxfmt`; global installs are not treated as valid for this hook.
 - Skips silently when no staged text frontend source files exist.
 - Skips binary staged frontend paths before deciding whether format is needed.
-- Runs `pnpm exec oxfmt --check <staged-file>` for each staged text frontend
-  source file, regardless of the file's directory.
-- Captures output and keeps successful format checks silent unless
-  `GIT_HOOK_VERBOSE=1`.
+- Runs `pnpm exec oxfmt --check <staged-file>` for each staged text frontend source file, regardless of the file's directory.
+- Captures output and keeps successful format checks silent unless `GIT_HOOK_VERBOSE=1`.
 
 ## Failure Modes
 
